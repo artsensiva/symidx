@@ -6,3 +6,8 @@
 /bench/results/
 target/
 *.img
+/spike/hello
+/spike/hello-*
+/spike/thread
+/spike/spike.img
+/goose/symidx
