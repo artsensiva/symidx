@@ -37,6 +37,7 @@ Requirements: git, Python 3, [hyperfine](https://github.com/sharkdp/hyperfine), 
 the Goose compiler and a Rust toolchain for the implementations.
 
 ```
+goose/build.sh          # build goose/symidx (needs the Goose compiler and clang)
 corpus/make.sh          # clone pinned CPython + Django, build corpora S, M, L (~2.5 GB on disk)
 bench/run.sh S M        # benchmark every built implementation on S and M
 ```
