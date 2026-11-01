@@ -15,3 +15,4 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-01 | Full S/M/L run, README | - | 13:12 | 13:15 | 3 | all three match on S/M/L; README results, assessment, plan, known issues |
 | 2026-11-01 | Fairness, serving memory, layout D′ | all | 13:19 | 13:25 | 6 | filed aardappel/goose#177; serving-RSS columns; streaming rust-expert build (batch kept); goose writes frames without an image copy; D′ measured, not adopted |
 | 2026-11-01 | Final S/M/L + baselines, report | - | 13:25 | 13:39 | 14 | all checksums match; ctags + SQLite baselines; `bench/REPORT.md`: kill criterion triggered, recommend Rust |
+| 2026-11-01 | Phase 1 close, lazy validation, Phase 2 plan | rust-expert, docs | 13:48 | 13:53 | 5 | tag `v0.1-experiment`, MIT license; segmented-validation experiment (L selective RSS 43→12 MB); draft zero-copy issue; `docs/PHASE2.md` |

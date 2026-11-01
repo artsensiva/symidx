@@ -105,12 +105,16 @@ symidx is a decision instrument, not a product. The real competitors are ctags/r
   Goose's own contributions are a smaller image from inline variable-size records, and a validating loader
   that comes for free.
 
-## Plan
+## Status
 
-1. ~~Load profiling~~ → ~~L run~~ → ~~market baselines~~ → ~~Rust versions + fairness fixes~~ → ~~report~~.
-2. Large project: Rust, with rust-expert's design (arenas, grouped occurrences, rkyv + bytecheck over mmap,
-   explicit eager validation, streaming build). Try a varint-packed occurrence stream if image size matters.
-3. Revisit Goose if `from_bytes` gains an in-place, zero-copy verified view.
+- **Phase 1 (this experiment): closed**, tagged
+  [`v0.1-experiment`](https://github.com/artsensiva/symidx/tree/v0.1-experiment). Verdict: Rust.
+- **Follow-ups since the tag:**
+  - a segmented-validation experiment for rust-expert (`SYMIDX_VALIDATE=lazy`, not SPEC-conformant):
+    3.5× less serving RSS on selective queries on L (`bench/REPORT.md`);
+  - a draft Goose feature request for a verified zero-copy view (`spike/ISSUE_zero_copy_view.md`, not filed).
+- **Phase 2: planned, not started.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start code navigation
+  index for AI coding agents, as an MCP server in Rust, built on rust-expert's design. It's awaiting approval.
 
 ## Known Goose issues
 
