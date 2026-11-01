@@ -81,6 +81,8 @@ change would remove both its load and serving-memory deficits.
   that loads and answers `""` (the whole index) or `Model` (selective).
 - **Machine:** 6 cores, 15 GB RAM with only 2–4 GB free (desktop apps open), `powersave` governor, warm page
   cache. Cold-cache runs (`COLD=1`) were not done: they need passwordless sudo. Expect noise of a few percent.
+- **Timing caveat:** in this run every build command was wrapped in `env` (one extra exec, ~2 ms), equally for
+  all implementations. That's under 3% of an M build; `bench/run.sh` has since been fixed.
 - **Tuning parity:** no Linux-specific tuning in any implementation. Pre-faulting (`madvise` populate +
   huge pages) was measured for Goose (load -20–27%) and not applied, so Rust got no `MAP_POPULATE` either.
   It changes time, not RSS, so it doesn't affect the verdict.
@@ -161,6 +163,43 @@ verify + copy at about 1 GB/s.
 Layout D′ (`spike/layout_dprime/`) is 27–30% faster to load. But it's larger and uses more serving memory,
 and memory is the primary metric. Even its load is 17× slower than rust-expert's on L. Neither option
 changes the verdict.
+
+## Experiment: segmented validation for rust-expert
+
+rust-expert's serving memory roughly equals the parts of the image its eager validation touches: all
+offset tables and every occurrence. `SYMIDX_VALIDATE=lazy` (`rust-expert/src/main.rs`) checks structure
+(bytecheck) and the O(1) invariants at load. Each 1024-entry chunk of an offset table, and the occurrences a
+chunk of groups spans, is checked the first time a query touches it, and before anything from that segment
+is returned. The output is identical to eager mode on S, M and L. 1,200 corrupted-image runs gave exit
+0 or 1 only. **This doesn't conform to SPEC's eager-validation rule, so it's an experiment, not the default.**
+
+| L (43.9 MB image) | Eager | Lazy |
+|---|---|---|
+| `load` | 7.9 ms | 1.0 ms |
+| `find Model` (12k rows): time / peak RSS | 9.8 ms / 43.3 MB | 2.9 ms / 12.4 MB |
+| `find get_` (75k rows) | 12.6 ms / 43.8 MB | 5.8 ms / 13.2 MB |
+| `find test` (1.58M rows), RSS | 44.8 MB | 26.1 MB |
+| `find ""` (whole index) | 133 ms / 45.1 MB | 137 ms / 45.1 MB |
+
+| M (3.6 MB image) | Eager | Lazy |
+|---|---|---|
+| `load` | 1.4 ms | 1.0 ms |
+| `find Model`: time / peak RSS | 1.5 ms / 4.4 MB | 1.1 ms / 3.3 MB |
+| `find ""` | 7.1 ms / 6.6 MB | 7.5 ms / 6.6 MB |
+
+A process that only prints usage peaks at 2.1 MB, so on M most of what's left is the process itself.
+
+**The trade-off.** Selective queries on a large index use 3.5× less memory and run 3.4× faster, and load
+becomes constant time. A full-index query costs about 3% more time and the same memory, since it ends up
+validating everything. The costs:
+- A corrupt segment is found only when a query reaches it, so a query can return rows from valid segments
+  and then fail.
+- "Load succeeded" no longer means "the image is valid".
+- Load-time figures stop being comparable with the eager implementations. That's why SPEC's rule exists.
+
+For a long-running server the gain mostly applies to RSS before the index has been fully touched. Adopting
+it for Phase 2 would need a SPEC amendment, for example "validation may be deferred per segment, but must
+complete for a segment before any data from it is returned".
 
 ## Development time
 

@@ -61,7 +61,8 @@ for size in "${SIZES[@]}"; do
     benv=$(build_env_of "$impl")
     /usr/bin/time -v env "$benv" "$bin" build "$corpus" -o "$img" > "$tag.build.out" 2> "$tag.build.time"
     rss=$(awk -F': ' '/Maximum resident set size/ {print $2}' "$tag.build.time")
-    hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "env $benv $bin build $corpus -o $img" > /dev/null
+    # The variable goes to hyperfine, not into the timed command: an `env` wrapper adds an exec (~2 ms).
+    env "$benv" hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "$bin build $corpus -o $img" > /dev/null
     imgsz=$(stat -c %s "$img")
 
     hyperfine -N -w 3 -r "$RUNS" "${PREPARE[@]}" --export-json "$tag.load.json" "$bin load $img" > /dev/null

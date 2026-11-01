@@ -394,6 +394,136 @@ fn find(ix: &ArchivedIndex, prefix: &[u8]) {
     out.flush().unwrap();
 }
 
+// --- experiment: segmented validation (SYMIDX_VALIDATE=lazy) -----------------------------
+// Not SPEC-conformant: SPEC requires eager validation of the whole image. Here `load` checks only
+// structure (bytecheck) and the O(1) invariants; each 1024-entry chunk of an offset table, and the
+// occurrences a chunk of groups spans, is checked the first time a query touches it and before
+// anything from it is returned. Every chunk is monotonic and bounded by its array's length.
+
+const CHUNK: usize = 1024;
+
+struct Lazy<'a> {
+    ix: &'a ArchivedIndex,
+    nfiles: usize,
+    names_ok: Vec<bool>,
+    occs_ok: Vec<bool>,
+    paths_ok: Vec<bool>,
+}
+
+fn chunk_ok(at: &[rkyv::rend::u32_le], c: usize, end: usize, strict: bool) -> bool {
+    let lo = c * CHUNK;
+    let hi = (lo + CHUNK).min(at.len() - 1);
+    at[lo..=hi].windows(2).all(|w| if strict { w[0] < w[1] } else { w[0] <= w[1] }) && at[hi].to_native() as usize <= end
+}
+
+impl<'a> Lazy<'a> {
+    /// The O(1) part of validation: table lengths and sentinels.
+    fn new(ix: &'a ArchivedIndex) -> Self {
+        let ok = !ix.path_at.is_empty()
+            && !ix.name_at.is_empty()
+            && ix.name_at.len() == ix.occ_at.len()
+            && ix.path_at[ix.path_at.len() - 1].to_native() as usize == ix.paths.len()
+            && ix.name_at[ix.name_at.len() - 1].to_native() as usize == ix.names.len()
+            && ix.occ_at[ix.occ_at.len() - 1].to_native() as usize == ix.occs.len();
+        if !ok {
+            fail("invalid image: tables");
+        }
+        let chunks = |t: &[rkyv::rend::u32_le]| (t.len() - 1).div_ceil(CHUNK).max(1);
+        Lazy {
+            ix,
+            nfiles: ix.path_at.len() - 1,
+            names_ok: vec![false; chunks(&ix.name_at)],
+            occs_ok: vec![false; chunks(&ix.occ_at)],
+            paths_ok: vec![false; chunks(&ix.path_at)],
+        }
+    }
+
+    fn at(t: &[rkyv::rend::u32_le], i: usize) -> usize {
+        t[i].to_native() as usize
+    }
+
+    fn name(&mut self, g: usize) -> &'a [u8] {
+        let c = g / CHUNK;
+        if !self.names_ok[c] {
+            if !chunk_ok(&self.ix.name_at, c, self.ix.names.len(), true) {
+                fail("invalid image: name table");
+            }
+            self.names_ok[c] = true;
+        }
+        &self.ix.names[Self::at(&self.ix.name_at, g)..Self::at(&self.ix.name_at, g + 1)]
+    }
+
+    fn occs(&mut self, g: usize) -> &'a [ArchivedOcc] {
+        let c = g / CHUNK;
+        if !self.occs_ok[c] {
+            let ix = self.ix;
+            if !chunk_ok(&ix.occ_at, c, ix.occs.len(), true) {
+                fail("invalid image: occurrence table");
+            }
+            let lo = Self::at(&ix.occ_at, c * CHUNK);
+            let hi = Self::at(&ix.occ_at, (c * CHUNK + CHUNK).min(ix.occ_at.len() - 1));
+            if ix.occs[lo..hi].iter().any(|o| o.file.to_native() as usize >= self.nfiles || o.line_kind.to_native() >> 1 == 0) {
+                fail("invalid image: occurrence");
+            }
+            self.occs_ok[c] = true;
+        }
+        &self.ix.occs[Self::at(&self.ix.occ_at, g)..Self::at(&self.ix.occ_at, g + 1)]
+    }
+
+    fn path(&mut self, f: usize) -> &'a [u8] {
+        let c = f / CHUNK;
+        if !self.paths_ok[c] {
+            if !chunk_ok(&self.ix.path_at, c, self.ix.paths.len(), false) {
+                fail("invalid image: path table");
+            }
+            self.paths_ok[c] = true;
+        }
+        &self.ix.paths[Self::at(&self.ix.path_at, f)..Self::at(&self.ix.path_at, f + 1)]
+    }
+}
+
+fn load_lazy(map: &memmap2::Mmap) -> Lazy<'_> {
+    if !map.starts_with(MAGIC) {
+        fail("not a symidx image");
+    }
+    let ix = rkyv::access::<ArchivedIndex, Error>(&map[MAGIC.len()..]).unwrap_or_else(|e| fail(&format!("invalid image: {e}")));
+    Lazy::new(ix)
+}
+
+fn find_lazy(lz: &mut Lazy, prefix: &[u8]) {
+    let ngroups = lz.ix.name_at.len() - 1;
+    let (mut lo, mut hi) = (0, ngroups);
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if lz.name(mid) < prefix { lo = mid + 1 } else { hi = mid }
+    }
+    let stdout = io::stdout();
+    let mut out = BufWriter::with_capacity(1 << 20, stdout.lock());
+    let mut buf = itoa_buf();
+    for g in lo..ngroups {
+        let n = lz.name(g);
+        if !n.starts_with(prefix) {
+            break;
+        }
+        for o in lz.occs(g) {
+            let lk = o.line_kind.to_native();
+            out.write_all(n).unwrap();
+            out.write_all(if lk & 1 == 0 { b"\tdef\t" } else { b"\tclass\t" }).unwrap();
+            out.write_all(lz.path(o.file.to_native() as usize)).unwrap();
+            out.write_all(b"\t").unwrap();
+            out.write_all(fmt_u32(&mut buf, lk >> 1)).unwrap();
+            out.write_all(b"\n").unwrap();
+        }
+    }
+    out.flush().unwrap();
+}
+
+fn map_file(path: &str) -> memmap2::Mmap {
+    let file = fs::File::open(path).unwrap_or_else(|e| fail(&format!("cannot read {path}: {e}")));
+    // SAFETY: as in `load`.
+    unsafe { memmap2::Mmap::map(&file) }.unwrap_or_else(|e| fail(&format!("cannot map {path}: {e}")))
+}
+
 fn itoa_buf() -> [u8; 10] {
     [0; 10]
 }
@@ -413,6 +543,23 @@ fn fmt_u32(buf: &mut [u8; 10], mut v: u32) -> &[u8] {
 fn main() {
     let args: Vec<std::ffi::OsString> = std::env::args_os().collect();
     let s = |i: usize| args[i].to_str().unwrap_or_else(|| fail("non-UTF-8 path"));
+    if std::env::var_os("SYMIDX_VALIDATE").is_some_and(|v| v == "lazy") {
+        match (args.len(), args.get(1).map(|a| a.as_bytes())) {
+            (3, Some(b"load")) => {
+                let t = Instant::now();
+                let map = map_file(s(2));
+                let n = load_lazy(&map).ix.occs.len();
+                println!("symbols={n} load_ms={:.3}", t.elapsed().as_secs_f64() * 1000.0);
+                return;
+            }
+            (4, Some(b"find")) => {
+                let map = map_file(s(2));
+                find_lazy(&mut load_lazy(&map), args[3].as_bytes());
+                return;
+            }
+            _ => {}
+        }
+    }
     match (args.len(), args.get(1).map(|a| a.as_bytes())) {
         (5, Some(b"build")) if args[3] == "-o" => build(s(2), s(4)),
         (3, Some(b"load")) => {
