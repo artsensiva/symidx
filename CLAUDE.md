@@ -17,17 +17,28 @@ than Rust, thanks to variable-size records, relative references and loading the 
 
 ## Implementations to compare
 All three must intern names and paths (see `bench/SPEC.md`, "String storage").
-1. `goose/` — Goose: a table of unique names (inline strings `u8[varint]`), a file table, a sorted
-   array of relative references `Sym&<u32>`, saving via `to_bytes`, loading via `from_bytes`
-   (validating loader). Files are parsed in `thread_fn` workers; records are passed through queues
-   as flat values (relative references cannot be passed through queues).
+All loaders must validate the image (see `bench/SPEC.md`, "Image validation").
+1. `goose/` — Goose, grouped verified layout. The image is three global arrays:
+   - `paths: u8[>..]` — all file paths concatenated, in path order (bytewise);
+   - `files: File[>..]`, `File { lo: u32 upto paths, hi: u32 upto paths }` — fixed-size spans into `paths`;
+   - `groups: NameGroup[>..]` (variable-size elements), one per unique name, in name order (bytewise):
+     `NameGroup { name: u8[varint], occs: Occ[varint] }`,
+     `Occ { file: u32 in files, line: varint, kind: u8 }` (kind: 0 = def, 1 = class), occs sorted by (file, line).
+   Saving via `to_bytes`, loading via `from_bytes` (validating loader: it checks every index and bound type
+   against its array). The image has no `in pool` links and no unchecked offsets. After `from_bytes`,
+   one sequential pass over `groups` builds the in-memory index `group_at: (NameGroup&<u32 in groups>)[>..]`
+   for binary search; this pass counts toward load time. Files are parsed in `thread_fn` workers; records are
+   passed through queues as flat values.
+   Note: self-relative links (`T&<u32>`) are not exercised by this data shape — each one would have to target
+   its own array, and nothing here links within one array. The comparison measures variable-size records,
+   index types and the validating loader, not relative references.
 2. `rust-idiomatic/` — `Vec<Symbol { name: String, file: String, … }>` + serde/bincode.
 3. `rust-expert/` — string arena + `rkyv` (zero-copy loading).
 
 All three implementations must produce the same result checksum.
 
 ## Corpus
-CPython + Django (~2M lines). For stress, replicate up to ~50M lines. Three sizes: S, M, L.
+CPython + Django (1.6M lines). For stress, replicate up to ~50M lines. Three sizes: S, M, L.
 Prepared by `corpus/make.sh`: S = Django 6.1.2 (0.52M lines), M = + CPython v3.14.10 (1.6M),
 L = M × 31 (49.7M). Parsing rules and output format are in `bench/SPEC.md`; the reference for checksums is `bench/ref.py`.
 
