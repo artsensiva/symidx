@@ -26,7 +26,7 @@ If Goose shows no ≥ 1.3× memory win over the expert Rust version, the larger 
 |---|---|
 | `goose/` | Goose: variable-size name groups with inline occurrences, file spans into one path array, saved with `to_bytes` and loaded with the validating `from_bytes` |
 | `rust-idiomatic/` | Rust: plain structs + serde/bincode |
-| `rust-expert/` | Rust: string arena + `rkyv` (zero-copy, with `bytecheck`) |
+| `rust-expert/` | Rust: string arenas + `rkyv` over mmap (zero-copy, `bytecheck` + explicit validation), streaming build (`SYMIDX_BUILD=batch` for the first version) |
 
 All three must intern names and paths, validate the whole image during load, and
 produce byte-identical `find` output, checked by sha256 against a Python reference.
@@ -40,6 +40,7 @@ the Goose compiler and a Rust toolchain for the implementations.
 goose/build.sh          # build goose/symidx (needs the Goose compiler and clang)
 corpus/make.sh          # clone pinned CPython + Django, build corpora S, M, L (~2.5 GB on disk)
 bench/run.sh S M        # benchmark every built implementation on S and M
+bench/baselines/run.sh M L   # ctags/readtags and SQLite baselines
 ```
 
 | Corpus | Contents | Lines |
@@ -52,62 +53,72 @@ bench/run.sh S M        # benchmark every built implementation on S and M
 `RUNS=10` for hyperfine runs, `COLD=1` to drop the page cache before each load/find
 (needs passwordless sudo). Results go to `bench/results/<timestamp>/summary.csv`.
 
-## Results so far
+## Results
 
-`bench/run.sh S M L`, 2026-11-01, 6 cores, warm page cache, other desktop apps running. All three
-implementations match the reference checksum on every corpus. Times are hyperfine means over whole
-processes; `find` is the mean over prefixes `get_ test Model _`, including the load.
+**Verdict: the large project should be built in Rust.** Goose has no ≥ 1.3× memory win over the
+streaming rust-expert, so the kill criterion is triggered. Full methodology and analysis:
+[bench/REPORT.md](bench/REPORT.md).
 
-| Impl | Corpus | Build | Peak RAM (build) | Image | Load | Find |
+M corpus (1.6M lines), `bench/run.sh`, warm cache. All implementations match the reference checksum on S, M and L.
+
+| Impl | Build | Build RAM | Image | Load | Find | Serve (selective) |
 |---|---|---|---|---|---|---|
-| goose | S | 44 ms | 9.0 MB | 1.18 MB | 5.1 ms | 5.4 ms |
-| rust-idiomatic | S | 34 ms | 12.2 MB | 1.81 MB | 7.4 ms | 7.9 ms |
-| rust-expert | S | 34 ms | 13.4 MB | 1.39 MB | 1.0 ms | 1.4 ms |
-| goose | M | 107 ms | 17.6 MB | 3.00 MB | 11.7 ms | 12.6 ms |
-| rust-idiomatic | M | 94 ms | 29.5 MB | 4.82 MB | 19.3 ms | 20.1 ms |
-| rust-expert | M | 78 ms | 30.2 MB | 3.62 MB | 1.2 ms | 2.1 ms |
-| goose | L | 5.98 s | 148 MB | 39.3 MB | 132 ms | 147 ms |
-| rust-idiomatic | L | 6.56 s | 443 MB | 61.7 MB | 111 ms | 152 ms |
-| rust-expert | L | 5.64 s | 431 MB | 43.9 MB | 5.3 ms | 19.3 ms |
+| goose | 106 ms | 14.6 MB | 3.00 MB | 12.2 ms | 12.5 ms | 11.4 MB |
+| rust-idiomatic | 90 ms | 29.5 MB | 4.82 MB | 18.6 ms | 20.4 ms | 16.6 MB |
+| rust-expert (streaming) | 74 ms | 14.1 MB | 3.62 MB | 1.3 ms | 2.2 ms | 5.6 MB |
+| rust-expert (batch, first version) | 76 ms | 26.8 MB | 3.62 MB | 1.3 ms | 2.2 ms | 5.6 MB |
 
-Goose against rust-expert: 1.7× (M) and 2.9× (L) less peak build RAM, and a 1.20× (M) and 1.12× (L)
-smaller image. Load is 10× (M) and 25× (L) slower: `from_bytes` copies into fresh memory and verifies at
-about 1 GB/s, while rkyv validates in place over an mmap (`spike/FINDINGS.md`, "Load profile"). The
-rust-expert build keeps every parsed file and a 16-byte sort key per symbol until the end. A leaner
-build is possible, so its RAM figure is an upper bound.
+L corpus (49.7M lines):
 
-Market baselines (`bench/baselines/run.sh M L`), performance only:
+| Impl | Build | Build RAM | Image | Load | Find | Serve (selective) |
+|---|---|---|---|---|---|---|
+| goose | 5.37 s | 111 MB | 39.3 MB | 134 ms | 148 ms | 116 MB |
+| rust-idiomatic | 5.97 s | 442 MB | 61.7 MB | 106 ms | 144 ms | 129 MB |
+| rust-expert (streaming) | 4.84 s | 106 MB | 43.9 MB | 5.3 ms | 20.4 ms | 44 MB |
+| rust-expert (batch) | 4.66 s | 388 MB | 43.9 MB | 5.1 ms | 20.2 ms | 45 MB |
 
-| Baseline | Corpus | Build | Peak RAM (build) | Index | Query |
+Market baselines (`bench/baselines/run.sh`), performance only:
+
+| Baseline | Corpus | Build | Index | Selective query (`Model`) | Serve (selective) |
 |---|---|---|---|---|---|
-| SQLite (Python, plain schema, checksum-matched) | M | 2.39 s | 38 MB | 17.7 MB | 69 ms |
-| SQLite | L | 95.4 s | 673 MB | 612 MB | 1541 ms |
-| universal-ctags + readtags | M, L | not run yet: ctags isn't installed | | | |
+| ctags + readtags | M | 1.23 s | 20.1 MB | 1.3 ms | 2.2 MB |
+| SQLite (Python) | M | 2.26 s | 17.7 MB | 22.6 ms | 12.9 MB |
+| ctags + readtags | L | 51.8 s | 652 MB | 13.8 ms | 4.5 MB |
+| SQLite (Python) | L | 98.1 s | 612 MB | 47.9 ms | 14.4 MB |
 
-SQLite query times include 17 ms of Python startup, and its build is mostly Python parsing. A selective
-query (`Model`) takes 49 ms on L, faster than Goose's one-shot `find` there, because SQLite has no load step.
+The S table and full-index serving numbers are in the report.
 
 ## Assessment
 
-symidx is a decision instrument, not a product. Its real competitors are ctags/readtags (near-zero load
-for a prefix lookup), SQLite (an indexed file, queried without loading) and rkyv (zero-copy). So far
-Goose's advantage is memory and image size, and it grows with the index: 2.9× less build RAM on L. Load
-speed is not proven. Goose loads at about 0.3 GB/s, 10–25× slower than rkyv over mmap. Page faults on
-the copy and the verify walk account for most of that, and the ways to close the gap are measured but
-not applied (pre-faulting: -20–27%; a fixed-size occurrence layout: faster verification, but a larger image).
+symidx is a decision instrument, not a product. The real competitors are ctags/readtags (no load step, a
+1–14 ms selective lookup), SQLite and rkyv. The results:
+
+- **Memory:** Goose's expected advantage didn't hold up against a fair Rust. Build RAM is at parity once
+  rust-expert streams; the earlier 2.9× gap came from my first rust-expert. Serving memory is 2.0–2.6×
+  *higher* for Goose, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
+  over mmap serves at about 1× image size.
+- **Image size:** Goose wins 1.12–1.20×, below the 1.3× target. That comes from its inline varint records.
+- **Load:** Goose is 10–25× slower than rust-expert and can't close that gap: on L, its `read_file` alone
+  takes longer than rust-expert's whole load.
+- **Layout vs language:** the large wins over SQLite, ctags and idiomatic Rust (5–17× smaller indexes, 2–4×
+  less build RAM) belong to the compact layout: interning, grouping, arenas, streaming. Rust uses all of it.
+  Goose's own contributions are a smaller image from inline variable-size records, and a validating loader
+  that comes for free.
 
 ## Plan
 
-1. ~~Load profiling~~ → ~~L run~~ → market baselines (SQLite done, ctags pending) → ~~Rust versions~~ → report.
-2. Report (`bench/REPORT.md`) with the kill criterion: if Goose beats neither rust-expert by ≥ 1.3× in
-   memory nor ctags/SQLite in a meaningful metric, the large project goes to Rust. On current numbers
-   it passes the memory half of that criterion (build RAM) but misses the image-size target (≥ 1.3×).
+1. ~~Load profiling~~ → ~~L run~~ → ~~market baselines~~ → ~~Rust versions + fairness fixes~~ → ~~report~~.
+2. Large project: Rust, with rust-expert's design (arenas, grouped occurrences, rkyv + bytecheck over mmap,
+   explicit eager validation, streaming build). Try a varint-packed occurrence stream if image size matters.
+3. Revisit Goose if `from_bytes` gains an in-place, zero-copy verified view.
 
 ## Known Goose issues
 
 - `from_bytes` rejects valid index types into an array grown with `append`: the verifier reads a stale
-  length. Workaround: grow pinned arrays with `push` (~2% of load). Draft upstream issue:
-  `spike/ISSUE_from_bytes_append.md`.
+  length. Filed as [aardappel/goose#177](https://github.com/aardappel/goose/issues/177). Workaround: grow
+  pinned arrays with `push` (~2% of load).
+- `from_bytes` always copies into fresh memory: load pays page faults plus a verify walk, and serving holds
+  two copies of the image at once (see the report).
 - `varint` is signed (zigzag), so an image can carry negative line numbers; the loader checks `line >= 1`.
 - `os.goose` has no `lstat`, and `list_dir`/`is_dir` follow symlinks: the walk is a small C sidecar.
 - Globals pinned by index types can't be cleared or reassigned, so one process loads one image.
@@ -117,3 +128,6 @@ not applied (pre-faulting: -20–27%; a fixed-size occurrence layout: faster ver
 
 - [CLAUDE.md](CLAUDE.md) — goals, metrics and targets, the Goose design, plan.
 - [bench/SPEC.md](bench/SPEC.md) — exact parsing rules, string storage, image validation, output format.
+- [bench/REPORT.md](bench/REPORT.md) — methodology, full results, kill-criterion verdict, recommendation.
+- [spike/FINDINGS.md](spike/FINDINGS.md) — Goose spike and load profile.
+- [DEVLOG.md](DEVLOG.md) — time per session.
