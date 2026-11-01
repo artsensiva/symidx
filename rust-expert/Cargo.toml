@@ -1,0 +1,16 @@
+[package]
+name = "symidx"
+version = "0.1.0"
+edition = "2021"
+description = "symidx, expert Rust: string arenas + rkyv zero-copy over mmap, bytecheck + explicit validation (see CLAUDE.md)"
+
+[dependencies]
+memmap2 = "0.9"
+rayon = "1.12"
+rkyv = "0.8"
+rustc-hash = "2.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
