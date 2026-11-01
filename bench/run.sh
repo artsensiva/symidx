@@ -8,7 +8,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SIZES=("${@:-S M L}"); SIZES=(${SIZES[*]})
-IMPLS=(${IMPLS:-goose rust-idiomatic rust-expert})
+IMPLS=(${IMPLS:-goose rust-idiomatic rust-expert rust-expert-batch})
 RUNS=${RUNS:-10}
 PREFIXES=(get_ test Model _)
 SELECTIVE=Model          # the selective query for serving memory
@@ -18,7 +18,16 @@ mkdir -p "$OUT"
 bin_of() {
   case "$1" in
     goose) echo "$ROOT/goose/symidx" ;;
+    rust-expert-batch) echo "$ROOT/rust-expert/target/release/symidx" ;;
     rust-*) echo "$ROOT/$1/target/release/symidx" ;;
+  esac
+}
+
+# Environment for the build command: rust-expert-batch is rust-expert's first, non-streaming build.
+build_env_of() {
+  case "$1" in
+    rust-expert-batch) echo "SYMIDX_BUILD=batch" ;;
+    *) echo "SYMIDX_BUILD=default" ;;
   esac
 }
 
@@ -49,9 +58,10 @@ for size in "${SIZES[@]}"; do
     img="$OUT/$impl-$size.img"
     tag="$OUT/$impl-$size"
 
-    /usr/bin/time -v "$bin" build "$corpus" -o "$img" > "$tag.build.out" 2> "$tag.build.time"
+    benv=$(build_env_of "$impl")
+    /usr/bin/time -v env "$benv" "$bin" build "$corpus" -o "$img" > "$tag.build.out" 2> "$tag.build.time"
     rss=$(awk -F': ' '/Maximum resident set size/ {print $2}' "$tag.build.time")
-    hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "$bin build $corpus -o $img" > /dev/null
+    hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "env $benv $bin build $corpus -o $img" > /dev/null
     imgsz=$(stat -c %s "$img")
 
     hyperfine -N -w 3 -r "$RUNS" "${PREPARE[@]}" --export-json "$tag.load.json" "$bin load $img" > /dev/null
