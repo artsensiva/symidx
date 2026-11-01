@@ -39,6 +39,8 @@ Strings and comments are not recognized: `def x` inside a docstring also counts 
   - group/occurrence structure: every group has a non-empty name and at least one occurrence,
     and `kind` is 0 or 1.
 - Sort order (names, paths, occurrences) is not part of the rule: it is guaranteed by `build`, not checked on load.
+  Loaders are not required to check order. An image that is structurally valid but not sorted may return
+  wrong results, but must never crash.
 - How each implementation meets the rule:
   - `goose`: `from_bytes` checks structure, file indexes and each span bound against `paths`; `lo <= hi`,
     non-empty groups and `kind` are checked in the sequential pass that builds `group_at`.
