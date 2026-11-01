@@ -83,9 +83,10 @@ for size in "${SIZES[@]}"; do
     sum=$("$bin" find "$img" "" | sha256)
     ok=$([ "$sum" = "$ref" ] && echo yes || echo NO)
 
-    mean() { python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1]))["results"]; print("%.3f" % (sum(x["mean"] for x in r)/len(r)*float(sys.argv[2])))' "$@"; }
-    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$impl" "$size" "$(mean "$tag.build.json" 1)" "$rss" "$imgsz" \
-      "$(mean "$tag.load.json" 1000)" "$(mean "$tag.find.json" 1000)" "$serve_full" "$serve_sel" "$ok" | tee -a "$CSV"
+    # Assigned first so that a parse failure stops the run instead of leaving an empty column.
+    build_s=$(hf_mean "$tag.build.json" 1); load_ms=$(hf_mean "$tag.load.json" 1000); find_ms=$(hf_mean "$tag.find.json" 1000)
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$impl" "$size" "$build_s" "$rss" "$imgsz" \
+      "$load_ms" "$find_ms" "$serve_full" "$serve_sel" "$ok" | tee -a "$CSV"
   done
 done
 

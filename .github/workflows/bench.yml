@@ -68,6 +68,14 @@ jobs:
       - name: Benchmark (few runs; relative comparisons only)
         run: RUNS=3 bench/run.sh S M
 
+      - name: Check the summary is complete
+        run: |
+          csv=$(ls bench/results/*/summary.csv | tail -1)
+          # 4 implementations x 2 corpora, every field filled, every checksum matching.
+          awk -F, 'NR > 1 { rows++; for (i = 1; i <= NF; i++) if ($i == "") { print "empty field " i ": " $0; bad = 1 }
+                            if ($NF != "yes") { print "checksum: " $0; bad = 1 } }
+                   END { if (rows != 8) { print "rows: " rows " (want 8)"; bad = 1 }; exit bad }' "$csv"
+
       - name: Machine report
         if: always()
         run: bench/check-machine.sh || true

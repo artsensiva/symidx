@@ -25,6 +25,22 @@ peak_rss_kb() {
   esac
 }
 
+# hf_mean <hyperfine.json> <scale>: mean wall-clock time over all commands in the export, times scale
+# (1 = seconds, 1000 = ms). Reads both hyperfine 1.x exports and the schema-2 exports of hyperfine 2.x.
+hf_mean() {
+  python3 -I -c '
+import json, sys
+d = json.load(open(sys.argv[1]))
+def mean(r):
+    if "summary" in r:                       # schema 2 (hyperfine 2.x)
+        m = r["summary"]["time_wall_clock"]
+        assert m["unit"] == "second", m["unit"]
+        return m["mean"]
+    return r["mean"]                         # hyperfine 1.x
+rs = d["results"]
+print("%.3f" % (sum(mean(r) for r in rs) / len(rs) * float(sys.argv[2])))' "$@"
+}
+
 # Cold-cache support. COLD=1 empties the page cache before each timed run (hyperfine --prepare):
 # Linux drop_caches or macOS purge, via passwordless sudo restricted to that one command
 # (bench/check-machine.sh prints the sudoers line).
@@ -59,20 +75,22 @@ pinned() { ${PINPFX[@]+"${PINPFX[@]}"} "$@"; }
 # probe <cmd-string>: output of a shell snippet, first non-empty value, or "unknown" on any failure.
 probe() {
   local v
-  v=$( (eval "$1") 2> /dev/null | sed -n '/./{p;q;}' ) || v=
+  # Capture everything first: piping into `sed q` would SIGPIPE multi-line commands under pipefail.
+  v=$( (eval "$1") 2> /dev/null ) || v=
+  v=$(printf '%s\n' "$v" | sed -n '/./{p;q;}')
   echo "${v:-unknown}"
 }
 
 # Storage behind a path: "<fstype> on <device> (<kind>)", kind = nvme / ssd / hdd / network / virtual disk.
 storage_of() {
-  local p=$1 src fs kind=unknown disk tran rota
+  local p=$1 src fs kind=unknown disk tran rota proto info
   case "$OS" in
     Darwin)
       src=$(df "$p" | awk 'NR == 2 {print $1}')
       fs=$(mount | awk -v d="$src" '$1 == d {sub(/^\(/, "", $4); sub(/,$/, "", $4); print $4; exit}')
       if info=$(diskutil info "$src" 2> /dev/null); then
         case "$(echo "$info" | awk -F': *' '/Solid State/ {print $2}')" in
-          Yes) kind="ssd, $(echo "$info" | awk -F': *' '/Protocol/ {print $2; exit}')" ;;
+          Yes) proto=$(echo "$info" | awk -F': *' '/Protocol/ {print $2; exit}'); kind="ssd${proto:+, $proto}" ;;
           No) kind=hdd ;;
         esac
       fi ;;
@@ -88,7 +106,7 @@ storage_of() {
           rota=$(lsblk -dno ROTA "/dev/$disk" 2> /dev/null | tr -d ' ')
           case "$tran:$rota:$disk" in
             nvme:*|*:*:nvme*) kind=nvme ;;
-            *:1:*) kind=hdd ;;
+            *:1:*) kind="rotational per the kernel; VM disks often claim this" ;;
             *:*:vd*|*:*:xvd*) kind="virtual disk" ;;
             *:0:*) kind=ssd ;;
           esac ;;
@@ -109,6 +127,25 @@ power_linux() {
   [ "$seen" = 1 ] && echo battery
 }
 
+# Available RAM in KiB: Linux MemAvailable; macOS free + inactive + speculative pages (memory the
+# kernel can hand out without swapping, the closest analogue).
+ram_free_kb() {
+  case "$OS" in
+    Darwin) vm_stat | awk '/page size of/ {for (i = 1; i <= NF; i++) if ($i == "of") ps = $(i + 1)}
+                         /^Pages (free|inactive|speculative)/ {v = $NF; sub(/\./, "", v); n += v}
+                         END {if (n && ps) print int(n * ps / 1024)}' ;;
+    *) awk '/^MemAvailable/ {print $2}' /proc/meminfo ;;
+  esac
+}
+
+# Hypervisor, if any: "none" on bare metal.
+virtualization() {
+  case "$OS" in
+    Darwin) [ "$(sysctl -n kern.hv_vmm_present 2> /dev/null)" = 1 ] && echo vm || echo none ;;
+    *) local v; v=$(systemd-detect-virt 2> /dev/null); echo "${v:-none}" ;;
+  esac
+}
+
 # write_env <file> <corpus-dir>: the machine and toolchain a result came from. Never fails.
 write_env() {
   local f=$1 corpus=$2 goose
@@ -125,7 +162,7 @@ write_env() {
         echo "cores_physical: $(probe 'sysctl -n hw.physicalcpu')"
         echo "cpu_governor: unknown (macOS has no governor)"
         echo "ram_total_kb: $(probe 'echo $(( $(sysctl -n hw.memsize) / 1024 ))')"
-        echo "ram_free_kb: $(probe 'vm_stat | awk -v ps=$(sysctl -n hw.pagesize) "/Pages (free|inactive|speculative)/ {gsub(/\\./, \"\", \$NF); n += \$NF} END {if (n) print int(n * ps / 1024)}"')"
+        echo "ram_free_kb: $(probe ram_free_kb)"
         echo "power: $(probe "pmset -g batt | sed -n \"1s/.*'\\(.*\\)'.*/\\1/p\"")" ;;
       *)
         echo "os: $(probe '. /etc/os-release && echo "$PRETTY_NAME"')"
@@ -134,9 +171,10 @@ write_env() {
         echo "cores_physical: $(probe "lscpu -p=CORE,SOCKET | grep -v '^#' | sort -u | wc -l | tr -d ' '")"
         echo "cpu_governor: $(probe 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort | uniq -c | awk "{printf \"%s%s x%s\", s, \$2, \$1; s=\", \"} END {print \"\"}"')"
         echo "ram_total_kb: $(probe "awk '/^MemTotal/ {print \$2}' /proc/meminfo")"
-        echo "ram_free_kb: $(probe "awk '/^MemAvailable/ {print \$2}' /proc/meminfo")"
+        echo "ram_free_kb: $(probe ram_free_kb)"
         echo "power: $(probe 'power_linux')" ;;
     esac
+    echo "virtualization: $(probe virtualization)"
     echo "load_avg: $(probe "uptime | sed 's/.*load averages*: //'")"
     echo "corpus_storage: $(storage_of "$corpus")"
     echo "goose: $(probe "'$goose' version")"

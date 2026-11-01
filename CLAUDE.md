@@ -42,7 +42,7 @@ CPython + Django (1.6M lines). For stress, replicate up to ~50M lines. Three siz
 Prepared by `corpus/make.sh`: S = Django 6.1.2 (0.52M lines), M = + CPython v3.14.10 (1.6M),
 L = M × 31 (49.7M). Parsing rules and output format are in `bench/SPEC.md`; the reference for checksums is `bench/ref.py`.
 
-## Metrics (script `bench/run.sh`: hyperfine + /usr/bin/time -v)
+## Metrics (script `bench/run.sh`: hyperfine + GNU `time` on Linux, `/usr/bin/time -l` on macOS)
 | Metric | Goose target vs Rust idiomatic | vs Rust expert |
 |---|---|---|
 | Peak RAM (build) | ≥ 2× less | ≥ 1.3× less |

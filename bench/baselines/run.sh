@@ -23,11 +23,11 @@ write_env "$OUT/env.txt" "$ROOT/corpus"
 
 CSV="$OUT/summary.csv"
 echo "baseline,size,build_s,build_maxrss_kb,index_bytes,query_ms,serve_full_kb,serve_sel_kb,checksum_ok" > "$CSV"
-mean() { python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1]))["results"]; print("%.3f" % (sum(x["mean"] for x in r)/len(r)*float(sys.argv[2])))' "$@"; }
 
 # Process start of the query tools alone, for reading the query column.
 pinned hyperfine -N -w 3 -r "$RUNS" --export-json "$OUT/python-startup.json" "python3 -I -c pass" > /dev/null
-echo "python3 startup: $(mean "$OUT/python-startup.json" 1000) ms (included in sqlite query_ms)"
+py_ms=$(hf_mean "$OUT/python-startup.json" 1000)
+echo "python3 startup: $py_ms ms (included in sqlite query_ms)"
 
 for size in "${SIZES[@]}"; do
   corpus="$ROOT/corpus/$size"
@@ -68,8 +68,9 @@ for size in "${SIZES[@]}"; do
       sum=$(python3 -I "$ROOT/bench/baselines/sqlite_index.py" find "$idx" "" | sha256)
       ok=$([ "$sum" = "$ref" ] && echo yes || echo NO)
     fi
-    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$b" "$size" "$(mean "$tag.build.json" 1)" "$rss" "$size_b" \
-      "$(mean "$tag.query.json" 1000)" "$serve_full" "$serve_sel" "$ok" | tee -a "$CSV"
+    build_s=$(hf_mean "$tag.build.json" 1); query_ms=$(hf_mean "$tag.query.json" 1000)
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$b" "$size" "$build_s" "$rss" "$size_b" \
+      "$query_ms" "$serve_full" "$serve_sel" "$ok" | tee -a "$CSV"
   done
 done
 

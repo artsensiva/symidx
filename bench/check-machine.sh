@@ -14,7 +14,7 @@ ok()   { printf '  ok    %s\n' "$1"; }
 bad()  { printf '  FIX   %s\n' "$1"; shift; for c in "$@"; do printf '%s\n' "$c" | sed 's/^/          /'; done; problems=$((problems + 1)); }
 info() { printf '  info  %s\n' "$1"; }
 
-echo "== $(probe 'uname -srm'), $(probe 'nproc || sysctl -n hw.logicalcpu') logical CPUs"
+echo "== $(probe 'uname -srm'), $(probe 'nproc || sysctl -n hw.logicalcpu') logical CPUs, virtualization: $(probe virtualization)"
 
 echo "-- CPU frequency"
 if [ "$OS" = Linux ]; then
@@ -48,10 +48,7 @@ case "$src" in
 esac
 
 echo "-- memory"
-case "$OS" in
-  Darwin) free_kb=$(probe 'vm_stat | awk -v ps=$(sysctl -n hw.pagesize) "/Pages (free|inactive|speculative)/ {gsub(/\\./, \"\", \$NF); n += \$NF} END {if (n) print int(n * ps / 1024)}"') ;;
-  *) free_kb=$(probe "awk '/^MemAvailable/ {print \$2}' /proc/meminfo") ;;
-esac
+free_kb=$(probe ram_free_kb)
 if [ "$free_kb" = unknown ]; then
   info "free RAM unknown"
 elif [ "$free_kb" -lt $((MIN_FREE_GB * 1024 * 1024)) ]; then

@@ -33,13 +33,17 @@ produce byte-identical `find` output, checked by sha256 against a Python referen
 
 ## Running the benchmarks
 
-Requirements: git, Python 3, [hyperfine](https://github.com/sharkdp/hyperfine), GNU `time`, `cpio`;
-the Goose compiler and a Rust toolchain for the implementations.
+Linux (x86-64) or macOS (Apple Silicon). Requirements: git, Python 3, [hyperfine](https://github.com/sharkdp/hyperfine),
+`cpio`, clang, a Rust toolchain; on Linux also GNU `time` (macOS uses its own `/usr/bin/time -l`).
 
 ```
-goose/build.sh          # build goose/symidx (needs the Goose compiler and clang)
-corpus/make.sh          # clone pinned CPython + Django, build corpora S, M, L (~2.5 GB on disk)
-bench/run.sh S M        # benchmark every built implementation on S and M
+goose/fetch-toolchain.sh     # download the pinned Goose release, check its sha256 (goose/toolchain.sha256)
+goose/build.sh               # build goose/symidx with clang
+cargo build --release --manifest-path rust-expert/Cargo.toml     # likewise rust-idiomatic
+corpus/make.sh               # clone pinned CPython + Django, build corpora S, M, L (~2.5 GB on disk); or: corpus/make.sh S M
+bench/check-sums.sh S M      # correctness: every implementation against bench/ref-checksums.txt
+bench/check-machine.sh       # is this machine ready for reliable numbers? (read-only; prints fix commands)
+bench/run.sh S M             # benchmark every built implementation on S and M
 bench/baselines/run.sh M L   # ctags/readtags and SQLite baselines
 ```
 
@@ -49,9 +53,29 @@ bench/baselines/run.sh M L   # ctags/readtags and SQLite baselines
 | M | + CPython v3.14.10 | 1.6M |
 | L | M × 31 | 49.7M |
 
-`bench/run.sh` options: `IMPLS="goose rust-expert"` to choose implementations,
-`RUNS=10` for hyperfine runs, `COLD=1` to drop the page cache before each load/find
-(needs passwordless sudo). Results go to `bench/results/<timestamp>/summary.csv`.
+`bench/run.sh` options: `IMPLS="goose rust-expert"` to choose implementations, `RUNS=10` for hyperfine runs,
+`COLD=1` to empty the page cache before each load/find (Linux `drop_caches`, macOS `purge`; needs passwordless
+sudo for that one command, and `bench/check-machine.sh` prints the sudoers line), `PIN=2,3` to run every
+measurement on those CPUs (Linux `taskset`; all three implementations size their worker pools from the affinity,
+so builds then use only those cores). Results go to `bench/results/<timestamp>/`: `summary.csv`, plus `env.txt`
+with the CPU, cores, governor, RAM, OS, the storage holding the corpus, tool versions and the COLD/PIN settings.
+
+## Benchmarking environments
+
+| Tier | What it is for | What it is not for |
+|---|---|---|
+| Local development machine | developing, profiling, quick comparisons; run `bench/check-machine.sh` first | published absolute numbers: governor, background load and free RAM vary |
+| CI (`.github/workflows/bench.yml`, ubuntu-latest and macos-latest) | correctness on both platforms (checksums on S and M), and relative comparisons **within one run** | comparing numbers across runs or with local results: shared runners are noisy and vary between jobs |
+| Dedicated or bare-metal Linux server | numbers to publish: `performance` governor, `PIN=`, `COLD=1`, nothing else running, `perf` available | — |
+| Real user environments | the cold-start worst case and platform effects: an Apple Silicon Mac (16 KB pages, APFS, `purge`), a cloud VM with network storage | tight comparisons: these are for checking that the conclusions hold, not for ranking |
+
+Every result directory carries its `env.txt`, so a number can always be traced to the machine it came from.
+
+The Phase 1 numbers come from one development machine (a 6-core desktop, `powersave` governor, warm cache).
+The verdict holds despite that noise: the gaps that decide it are 2.0–2.6× in serving memory and 10–25× in load
+time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
+(`from_bytes` copies the image, rkyv maps it), not from this machine. The numbers that would move on other
+hardware are the absolute ones, and the close ones (build time and build RAM at parity) are not claimed as wins.
 
 ## Results
 
