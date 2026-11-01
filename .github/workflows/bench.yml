@@ -1,0 +1,82 @@
+# Correctness and relative comparisons on shared runners: every implementation is built, must match the
+# reference checksum on S and M, and bench/run.sh runs with few repetitions. Shared runners are noisy:
+# compare numbers only within one run, never across runs or with local results (README, "Benchmarking environments").
+name: bench
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -yq hyperfine time clang
+      - name: Install tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install hyperfine
+
+      - name: Cache Goose toolchain download
+        uses: actions/cache@v4
+        with:
+          path: toolchain/dl
+          key: goose-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('goose/toolchain.sha256') }}
+      - name: Cache corpus sources
+        uses: actions/cache@v4
+        with:
+          path: corpus/src
+          key: corpus-src-${{ hashFiles('corpus/make.sh') }}
+      - name: Cache cargo builds
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust-idiomatic -> target
+            rust-expert -> target
+
+      - name: Build Goose implementation (pinned release, sha256-checked)
+        run: goose/fetch-toolchain.sh && goose/build.sh
+      - name: Build Rust implementations
+        run: |
+          rustc -V
+          cargo build --release --locked --manifest-path rust-idiomatic/Cargo.toml
+          cargo build --release --locked --manifest-path rust-expert/Cargo.toml
+
+      - name: Corpora S and M
+        run: corpus/make.sh S M
+
+      - name: Checksums
+        run: bench/check-sums.sh S M
+
+      - name: Benchmark (few runs; relative comparisons only)
+        run: RUNS=3 bench/run.sh S M
+
+      - name: Machine report
+        if: always()
+        run: bench/check-machine.sh || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ matrix.os }}
+          path: |
+            bench/results/*/summary.csv
+            bench/results/*/env.txt
+          if-no-files-found: warn

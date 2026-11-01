@@ -2,11 +2,16 @@
 # symidx benchmarks: build (time + peak RAM), image size, load, find, checksum.
 #   bench/run.sh [S M L]            — corpus sizes (default: all)
 #   IMPLS="goose rust-expert" ...   — which implementations (default: all three; missing ones are skipped)
-#   COLD=1                          — drop the page cache before load/find (needs passwordless sudo)
+#   COLD=1                          — empty the page cache before each load/find run: Linux drop_caches,
+#                                     macOS purge (passwordless sudo for that command; see bench/check-machine.sh)
 #   RUNS=10                         — number of hyperfine runs
+#   PIN=2,3                         — run every measurement on these CPUs (Linux, taskset); builds then see
+#                                     only these cores, so compare builds only between runs with the same PIN
+# Writes summary.csv and env.txt (machine and toolchain) to bench/results/<timestamp>/. Linux and macOS.
 # serve_*_kb: peak RSS of `find` (load + query) for the whole index ("") and for $SELECTIVE.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+. "$ROOT/bench/lib.sh"
 SIZES=("${@:-S M L}"); SIZES=(${SIZES[*]})
 IMPLS=(${IMPLS:-goose rust-idiomatic rust-expert rust-expert-batch})
 RUNS=${RUNS:-10}
@@ -33,14 +38,16 @@ build_env_of() {
 
 PREPARE=()
 if [ "${COLD:-0}" = 1 ]; then
-  sudo -n true || { echo "COLD=1 requires passwordless sudo" >&2; exit 1; }
-  PREPARE=(--prepare 'sync; echo 3 | sudo -n tee /proc/sys/vm/drop_caches >/dev/null')
+  cold_allowed || { echo "COLD=1 needs passwordless sudo for: $(cold_prepare_cmd) (see bench/check-machine.sh)" >&2; exit 1; }
+  PREPARE=(--prepare "$(cold_prepare_cmd)")
 fi
+setup_pin
+write_env "$OUT/env.txt" "$ROOT/corpus"
 
 # Reference checksums are computed once per corpus and cached.
 ref_sum() {
   local cache="$ROOT/bench/results/ref-$1.sha256"
-  [ -s "$cache" ] || python3 -I "$ROOT/bench/ref.py" "$ROOT/corpus/$1" | sha256sum | cut -d' ' -f1 > "$cache"
+  [ -s "$cache" ] || python3 -I "$ROOT/bench/ref.py" "$ROOT/corpus/$1" | sha256 > "$cache"
   cat "$cache"
 }
 
@@ -59,22 +66,21 @@ for size in "${SIZES[@]}"; do
     tag="$OUT/$impl-$size"
 
     benv=$(build_env_of "$impl")
-    /usr/bin/time -v env "$benv" "$bin" build "$corpus" -o "$img" > "$tag.build.out" 2> "$tag.build.time"
-    rss=$(awk -F': ' '/Maximum resident set size/ {print $2}' "$tag.build.time")
+    # `env` execs the binary, so the peak RSS is the binary's own.
+    rss=$(peak_rss_kb "$tag.build.out" "$tag.build.time" env "$benv" "$bin" build "$corpus" -o "$img")
     # The variable goes to hyperfine, not into the timed command: an `env` wrapper adds an exec (~2 ms).
-    env "$benv" hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "$bin build $corpus -o $img" > /dev/null
-    imgsz=$(stat -c %s "$img")
+    env "$benv" ${PINPFX[@]+"${PINPFX[@]}"} hyperfine -N -w 1 -r 3 --export-json "$tag.build.json" "$bin build $corpus -o $img" > /dev/null
+    imgsz=$(file_size "$img")
 
-    hyperfine -N -w 3 -r "$RUNS" "${PREPARE[@]}" --export-json "$tag.load.json" "$bin load $img" > /dev/null
+    pinned hyperfine -N -w 3 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$tag.load.json" "$bin load $img" > /dev/null
     finds=(); for p in "${PREFIXES[@]}"; do finds+=("$bin find $img $p"); done
-    hyperfine -N -w 3 -r "$RUNS" "${PREPARE[@]}" --export-json "$tag.find.json" "${finds[@]}" > /dev/null
+    pinned hyperfine -N -w 3 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$tag.find.json" "${finds[@]}" > /dev/null
 
     # Serving memory: peak RSS of one process that loads and answers a full-index query, and a selective one.
-    serve_rss() { /usr/bin/time -f %M "$bin" find "$img" "$1" 2>&1 > /dev/null | tail -1; }
-    serve_full=$(serve_rss "")
-    serve_sel=$(serve_rss "$SELECTIVE")
+    serve_full=$(peak_rss_kb /dev/null "$tag.serve.time" "$bin" find "$img" "")
+    serve_sel=$(peak_rss_kb /dev/null "$tag.serve.time" "$bin" find "$img" "$SELECTIVE")
 
-    sum=$("$bin" find "$img" "" | sha256sum | cut -d' ' -f1)
+    sum=$("$bin" find "$img" "" | sha256)
     ok=$([ "$sum" = "$ref" ] && echo yes || echo NO)
 
     mean() { python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1]))["results"]; print("%.3f" % (sum(x["mean"] for x in r)/len(r)*float(sys.argv[2])))' "$@"; }
