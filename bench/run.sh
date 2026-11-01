@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Замеры symidx: build (время + пиковая RAM), размер образа, load, find, контрольная сумма.
-#   bench/run.sh [S M L]            — размеры корпуса (по умолчанию все)
-#   IMPLS="goose rust-expert" ...   — какие реализации (по умолчанию все три; отсутствующие пропускаются)
-#   COLD=1                          — сбрасывать page cache перед load/find (нужен sudo без пароля)
-#   RUNS=10                         — число прогонов hyperfine
+# symidx benchmarks: build (time + peak RAM), image size, load, find, checksum.
+#   bench/run.sh [S M L]            — corpus sizes (default: all)
+#   IMPLS="goose rust-expert" ...   — which implementations (default: all three; missing ones are skipped)
+#   COLD=1                          — drop the page cache before load/find (needs passwordless sudo)
+#   RUNS=10                         — number of hyperfine runs
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SIZES=("${@:-S M L}"); SIZES=(${SIZES[*]})
@@ -22,11 +22,11 @@ bin_of() {
 
 PREPARE=()
 if [ "${COLD:-0}" = 1 ]; then
-  sudo -n true || { echo "COLD=1 требует sudo без пароля" >&2; exit 1; }
+  sudo -n true || { echo "COLD=1 requires passwordless sudo" >&2; exit 1; }
   PREPARE=(--prepare 'sync; echo 3 | sudo -n tee /proc/sys/vm/drop_caches >/dev/null')
 fi
 
-# Эталонные контрольные суммы считаются один раз на корпус и кешируются.
+# Reference checksums are computed once per corpus and cached.
 ref_sum() {
   local cache="$ROOT/bench/results/ref-$1.sha256"
   [ -s "$cache" ] || python3 -I "$ROOT/bench/ref.py" "$ROOT/corpus/$1" | sha256sum | cut -d' ' -f1 > "$cache"
@@ -38,12 +38,12 @@ echo "impl,size,build_s,build_maxrss_kb,image_bytes,load_ms,find_ms,checksum_ok"
 
 for size in "${SIZES[@]}"; do
   corpus="$ROOT/corpus/$size"
-  [ -d "$corpus" ] || { echo "нет корпуса $corpus — запустите corpus/make.sh" >&2; exit 1; }
+  [ -d "$corpus" ] || { echo "no corpus $corpus — run corpus/make.sh" >&2; exit 1; }
   ref=$(ref_sum "$size")
   echo "== $size (ref sha256 $ref)"
   for impl in "${IMPLS[@]}"; do
     bin=$(bin_of "$impl")
-    [ -x "$bin" ] || { echo "  $impl: нет $bin, пропуск"; continue; }
+    [ -x "$bin" ] || { echo "  $impl: no $bin, skipping"; continue; }
     img="$OUT/$impl-$size.img"
     tag="$OUT/$impl-$size"
 
@@ -66,4 +66,4 @@ for size in "${SIZES[@]}"; do
 done
 
 command -v column >/dev/null && column -s, -t "$CSV"
-echo "результаты: $OUT"
+echo "results: $OUT"

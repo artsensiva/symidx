@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Готовит корпуса corpus/{S,M,L}: только обычные *.py файлы.
-#   S = Django, M = CPython + Django (~1.6 млн строк), L = M × 31 (~50 млн строк).
+# Prepares corpora corpus/{S,M,L}: regular *.py files only.
+#   S = Django, M = CPython + Django (~1.6M lines), L = M × 31 (~50M lines).
 set -euo pipefail
 cd "$(dirname "$0")"
 

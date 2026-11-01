@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Эталонная реализация symidx (см. bench/SPEC.md). Нужна только для контрольных сумм, не для замеров.
+"""Reference implementation of symidx (see bench/SPEC.md). Used only for checksums, not for benchmarks.
 
-    ref.py <dir> [prefix]   -> печатает результат `find` по индексу <dir> в формате SPEC
+    ref.py <dir> [prefix]   -> prints the `find` result over the index of <dir> in SPEC format
 """
 import os
 import sys

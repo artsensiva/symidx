@@ -1,60 +1,62 @@
-# symidx — индекс символов кода с мгновенной загрузкой
+All code, comments, docs and commit messages are in English.
 
-## Цель
-Микропроект для практической проверки языка Goose (https://github.com/aardappel/goose).
-Это слой хранения будущего языкового сервера с мгновенным стартом для монорепозиториев.
+# symidx — a code symbol index with instant loading
 
-Гипотеза: Goose даёт заметно меньшую RAM и размер образа, а также намного более быстрый холодный старт,
-чем Rust, за счёт записей переменного размера, относительных ссылок и загрузки образа без парсинга.
+## Goal
+A micro-project to test the Goose language (https://github.com/aardappel/goose) in practice.
+It is the storage layer of a future instant-start language server for monorepos.
 
-## Что делает утилита
-- `symidx build <dir> -o index.img` — обходит *.py, находит `def`/`class`, строит индекс
-  (name, kind, file, line), сохраняет образ на диск.
-- `symidx load index.img` — загружает образ, печатает число символов и время загрузки.
-- `symidx find index.img <prefix>` — поиск по префиксу имени (бинарный поиск по отсортированному массиву ссылок).
+Hypothesis: Goose gives noticeably lower RAM and image size, and a much faster cold start,
+than Rust, thanks to variable-size records, relative references and loading the image without parsing.
 
-## Реализации для сравнения
-Все три обязаны интернировать имена и пути (см. `bench/SPEC.md`, «Хранение строк»).
-1. `goose/` — Goose: таблица уникальных имён (inline-строки `u8[varint]`), таблица файлов, отсортированный
-   массив относительных ссылок `Sym&<u32>`, сохранение через `to_bytes`, загрузка через `from_bytes`
-   (проверяющий загрузчик). Парсинг файлов — в `thread_fn`-воркерах, записи передаются через очереди
-   как плоские значения (относительные ссылки через очереди передавать нельзя).
+## What the tool does
+- `symidx build <dir> -o index.img` — walks *.py, finds `def`/`class`, builds an index
+  (name, kind, file, line), saves the image to disk.
+- `symidx load index.img` — loads the image, prints the symbol count and the load time.
+- `symidx find index.img <prefix>` — name prefix search (binary search over a sorted array of references).
+
+## Implementations to compare
+All three must intern names and paths (see `bench/SPEC.md`, "String storage").
+1. `goose/` — Goose: a table of unique names (inline strings `u8[varint]`), a file table, a sorted
+   array of relative references `Sym&<u32>`, saving via `to_bytes`, loading via `from_bytes`
+   (validating loader). Files are parsed in `thread_fn` workers; records are passed through queues
+   as flat values (relative references cannot be passed through queues).
 2. `rust-idiomatic/` — `Vec<Symbol { name: String, file: String, … }>` + serde/bincode.
-3. `rust-expert/` — строковая арена + `rkyv` (zero-copy загрузка).
+3. `rust-expert/` — string arena + `rkyv` (zero-copy loading).
 
-Все три реализации обязаны выдавать одинаковую контрольную сумму результатов.
+All three implementations must produce the same result checksum.
 
-## Корпус
-CPython + Django (~2 млн строк). Для стресса — размножить до ~50 млн строк. Три размера: S, M, L.
-Готовится `corpus/make.sh`: S = Django 6.1.2 (0.52 млн строк), M = + CPython v3.14.10 (1.6 млн),
-L = M × 31 (49.7 млн). Правила разбора и формат вывода — `bench/SPEC.md`, эталон для контрольных сумм — `bench/ref.py`.
+## Corpus
+CPython + Django (~2M lines). For stress, replicate up to ~50M lines. Three sizes: S, M, L.
+Prepared by `corpus/make.sh`: S = Django 6.1.2 (0.52M lines), M = + CPython v3.14.10 (1.6M),
+L = M × 31 (49.7M). Parsing rules and output format are in `bench/SPEC.md`; the reference for checksums is `bench/ref.py`.
 
-## Метрики (скрипт `bench/run.sh`: hyperfine + /usr/bin/time -v)
-| Метрика | Цель Goose vs Rust idiomatic | vs Rust expert |
+## Metrics (script `bench/run.sh`: hyperfine + /usr/bin/time -v)
+| Metric | Goose target vs Rust idiomatic | vs Rust expert |
 |---|---|---|
-| Пиковая RAM (build) | ≥ 2× меньше | ≥ 1.3× меньше |
-| Размер образа | ≥ 2× меньше | ≥ 1.3× меньше |
-| Холодная загрузка | ≥ 10× быстрее | ≈ паритет |
-| Время build | ≥ 1.2× быстрее | ≈ паритет |
-| find по префиксу | паритет | паритет |
-Также фиксируем часы разработки на каждую версию.
+| Peak RAM (build) | ≥ 2× less | ≥ 1.3× less |
+| Image size | ≥ 2× smaller | ≥ 1.3× smaller |
+| Cold load | ≥ 10× faster | ≈ parity |
+| Build time | ≥ 1.2× faster | ≈ parity |
+| Prefix find | parity | parity |
+We also record development hours for each version.
 
-**Kill-критерий:** нет выигрыша ≥ 1.3× по памяти против rust-expert → большой проект делаем на Rust.
+**Kill criterion:** no ≥ 1.3× memory win over rust-expert → the big project is done in Rust.
 
-## План
-1. Дни 1–2: сборка компилятора Goose, корпус, скрипт замеров.
-2. Дни 3–5: версия на Goose.
-3. Дни 6–7: две версии на Rust.
-4. Дни 8–10: прогоны S/M/L, отчёт `bench/REPORT.md`.
+## Plan
+1. Days 1–2: build the Goose compiler, corpus, benchmark script.
+2. Days 3–5: the Goose version.
+3. Days 6–7: the two Rust versions.
+4. Days 8–10: S/M/L runs, report `bench/REPORT.md`.
 
-## Заметки по Goose
-- Установка: релиз с GitHub Releases в PATH; на Linux нужны `libc6-dev`, для `goose build` — gcc или clang.
-  Либо из исходников: CMake ≥ 3.27, C++20-компилятор, Python 3.
-- Программы с потоками собирать только через `goose build` (TinyCC не поддерживает TLS).
-- `goose check` — только проверка типов; `--bce-lines` — оставшиеся проверки границ; `--debug` — доп. проверки.
-- Каждый data stack резервирует 2 ГБ адресного пространства (`--stack-reserve` меняет).
-- Массивы элементов переменного размера нельзя индексировать — только итерировать или держать
-  отдельный массив ссылок как индекс.
-- Нет move для resizable-значений: присваивание больших значений = копия.
-- Обход директорий может потребовать `extern fn` на `opendir`/`readdir` (C ABI).
-- Документация: https://aardappel.github.io/goose/docs/index.html
+## Goose notes
+- Installation: a release from GitHub Releases on PATH; on Linux it needs `libc6-dev`, and `goose build` needs gcc or clang.
+  Or from source: CMake ≥ 3.27, a C++20 compiler, Python 3.
+- Build programs with threads only via `goose build` (TinyCC does not support TLS).
+- `goose check` — type checking only; `--bce-lines` — remaining bounds checks; `--debug` — extra checks.
+- Each data stack reserves 2 GB of address space (`--stack-reserve` changes it).
+- Arrays of variable-size elements cannot be indexed — only iterated, or indexed through
+  a separate array of references.
+- No move for resizable values: assigning large values = a copy.
+- Directory walking may require an `extern fn` for `opendir`/`readdir` (C ABI).
+- Documentation: https://aardappel.github.io/goose/docs/index.html
