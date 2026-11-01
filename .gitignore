@@ -13,3 +13,4 @@ target/
 /goose/symidx
 /spike/fault_probe
 /spike/load_layouts
+__pycache__/

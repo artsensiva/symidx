@@ -14,4 +14,4 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-01 | rust-expert v1 | rust-expert | 13:11 | 13:12 | 1 | FxHash interning, string arenas + sentinel offset tables, 8-byte occs, rkyv over mmap + explicit validation; checksums match on S and M |
 | 2026-11-01 | Full S/M/L run, README | - | 13:12 | 13:15 | 3 | all three match on S/M/L; README results, assessment, plan, known issues |
 | 2026-11-01 | Fairness, serving memory, layout D′ | all | 13:19 | 13:25 | 6 | filed aardappel/goose#177; serving-RSS columns; streaming rust-expert build (batch kept); goose writes frames without an image copy; D′ measured, not adopted |
-| 2026-11-01 | Final S/M/L + baselines, report | - | 13:25 | 13:40 | 15 | all checksums match; ctags + SQLite baselines; `bench/REPORT.md`: kill criterion triggered, recommend Rust |
+| 2026-11-01 | Final S/M/L + baselines, report | - | 13:25 | 13:39 | 14 | all checksums match; ctags + SQLite baselines; `bench/REPORT.md`: kill criterion triggered, recommend Rust |
