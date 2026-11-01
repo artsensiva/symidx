@@ -2,6 +2,7 @@
 name = "symidx"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "symidx, idiomatic Rust: owned Strings and Vecs, serde + bincode (see CLAUDE.md)"
 
 [dependencies]

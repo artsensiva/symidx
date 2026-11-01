@@ -131,3 +131,8 @@ symidx is a decision instrument, not a product. The real competitors are ctags/r
 - [bench/REPORT.md](bench/REPORT.md) — methodology, full results, kill-criterion verdict, recommendation.
 - [spike/FINDINGS.md](spike/FINDINGS.md) — Goose spike and load profile.
 - [DEVLOG.md](DEVLOG.md) — time per session.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Goose itself is Apache-2.0; the corpora (CPython, Django) are cloned at
+build time and not redistributed here.
