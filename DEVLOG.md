@@ -8,3 +8,4 @@ Times are wall clock from the session's tool timestamps.
 | 2026-11-01 | Goose spike | goose | 12:34 | 12:45 | 11 | hello, serialization + tampering, threads, C directory walk; see `spike/FINDINGS.md` |
 | 2026-11-01 | Goose v1 | goose | 12:45 | 12:48 | 3 | `goose/symidx.goose` compiled first try; checksums match on S and M; corruption fuzz: exit 0/1 only |
 | 2026-11-01 | Load profiling, L run | goose | 12:54 | 13:00 | 6 | `SYMIDX_PROFILE`; page faults + verify dominate; prefault and layout options measured, not applied; L checksum matches |
+| 2026-11-01 | Issue draft, SQLite baseline | - | 13:00 | 13:03 | 3 | `spike/ISSUE_from_bytes_append.md` (root cause: stale register-cached length); SQLite matches checksum; ctags waits on install |
