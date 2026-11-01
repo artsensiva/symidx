@@ -98,21 +98,160 @@ fn build(root: &str, out: &str) {
     let mut files = Vec::new();
     walk(root, &mut Vec::new(), &mut files);
     files.sort_unstable();
+    if std::env::var_os("SYMIDX_BUILD").is_some_and(|v| v == "batch") {
+        build_batch(root, files, out)
+    } else {
+        build_streaming(root, files, out)
+    }
+}
 
-    let parsed: Vec<Parsed> = files
-        .par_iter()
-        .map(|rel| {
-            let src = fs::read(root.join(std::ffi::OsStr::from_bytes(rel))).unwrap_or_default();
-            let mut p = Parsed { text: Vec::new(), syms: Vec::new() };
-            for (n, line) in src.split(|&c| c == b'\n').enumerate() {
-                if let Some((lo, hi, kind)) = parse_line(line) {
-                    p.text.extend_from_slice(&line[lo..hi]);
-                    p.syms.push((p.text.len() as u32, n as u32 + 1, kind));
+fn parse_file(root: &Path, rel: &[u8]) -> Parsed {
+    let src = fs::read(root.join(std::ffi::OsStr::from_bytes(rel))).unwrap_or_default();
+    let mut p = Parsed { text: Vec::new(), syms: Vec::new() };
+    for (n, line) in src.split(|&c| c == b'\n').enumerate() {
+        if let Some((lo, hi, kind)) = parse_line(line) {
+            p.text.extend_from_slice(&line[lo..hi]);
+            p.syms.push((p.text.len() as u32, n as u32 + 1, kind));
+        }
+    }
+    p
+}
+
+/// Names interned into one arena; the table holds ids and hashes the arena bytes, so no name is stored twice.
+struct Interner {
+    arena: Vec<u8>,
+    spans: Vec<(u32, u32)>,
+    table: hashbrown::HashTable<u32>,
+    hasher: rustc_hash::FxBuildHasher,
+}
+
+impl Interner {
+    fn name(&self, id: u32) -> &[u8] {
+        let (lo, hi) = self.spans[id as usize];
+        &self.arena[lo as usize..hi as usize]
+    }
+
+    fn intern(&mut self, name: &[u8]) -> u32 {
+        use std::hash::BuildHasher;
+        let h = self.hasher.hash_one(name);
+        let Self { arena, spans, table, hasher } = self;
+        let name_of = |id: &u32| {
+            let (lo, hi) = spans[*id as usize];
+            &arena[lo as usize..hi as usize]
+        };
+        if let Some(&id) = table.find(h, |id| name_of(id) == name) {
+            return id;
+        }
+        let id = spans.len() as u32;
+        let lo = arena.len() as u32;
+        arena.extend_from_slice(name);
+        spans.push((lo, arena.len() as u32));
+        let (arena, spans) = (&*arena, &*spans);
+        table.insert_unique(h, id, |id| {
+            let (lo, hi) = spans[*id as usize];
+            hasher.hash_one(&arena[lo as usize..hi as usize])
+        });
+        id
+    }
+}
+
+/// Workers take files from a shared counter and send each file's symbols through a bounded
+/// channel; the main thread interns them and drops the text, like goose/'s job window.
+fn build_streaming(root: &Path, files: Vec<Vec<u8>>, out: &str) {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let workers = std::thread::available_parallelism().map_or(4, |n| n.get());
+    let next = AtomicUsize::new(0);
+    let mut it = Interner {
+        arena: Vec::new(),
+        spans: Vec::new(),
+        table: hashbrown::HashTable::new(),
+        hasher: Default::default(),
+    };
+    let mut syms: Vec<(u32, u32, u32)> = Vec::new();
+    std::thread::scope(|s| {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<(u32, Parsed)>(4 * workers);
+        for _ in 0..workers {
+            let tx = tx.clone();
+            let (next, files) = (&next, &files);
+            s.spawn(move || loop {
+                let i = next.fetch_add(1, Ordering::Relaxed);
+                if i >= files.len() {
+                    break;
                 }
+                if tx.send((i as u32, parse_file(root, &files[i]))).is_err() {
+                    break;
+                }
+            });
+        }
+        drop(tx);
+        for (file, p) in rx {
+            let mut lo = 0usize;
+            for &(hi, line, kind) in &p.syms {
+                let id = it.intern(&p.text[lo..hi as usize]);
+                lo = hi as usize;
+                syms.push((id, file, line << 1 | kind));
             }
-            p
-        })
-        .collect();
+        }
+    });
+
+    let mut order: Vec<u32> = (0..it.spans.len() as u32).collect();
+    order.par_sort_unstable_by(|&a, &b| it.name(a).cmp(it.name(b)));
+    let mut rank = vec![0u32; order.len()];
+    for (r, &id) in order.iter().enumerate() {
+        rank[id as usize] = r as u32;
+    }
+    // In place: (rank, file, line << 1 | kind) sorts by (name, file, line), lines being unique per file.
+    for s in &mut syms {
+        s.0 = rank[s.0 as usize];
+    }
+    drop(rank);
+    syms.par_sort_unstable();
+
+    let mut index = Index {
+        paths: Vec::new(),
+        path_at: vec![0],
+        names: Vec::with_capacity(it.arena.len()),
+        name_at: vec![0],
+        occ_at: vec![0],
+        occs: Vec::with_capacity(syms.len()),
+    };
+    for f in &files {
+        index.paths.extend_from_slice(f);
+        index.path_at.push(index.paths.len() as u32);
+    }
+    drop(files);
+    for &id in &order {
+        index.names.extend_from_slice(it.name(id));
+        index.name_at.push(index.names.len() as u32);
+    }
+    drop(it);
+    for (i, &(r, file, lk)) in syms.iter().enumerate() {
+        if i > 0 && r != syms[i - 1].0 {
+            index.occ_at.push(index.occs.len() as u32);
+        }
+        index.occs.push(Occ { file, line_kind: lk });
+    }
+    if !syms.is_empty() {
+        index.occ_at.push(index.occs.len() as u32);
+    }
+    let count = syms.len();
+    drop(syms);
+    let nfiles = index.path_at.len() - 1;
+    write_image(&index, out);
+    println!("symbols={count} files={nfiles}");
+}
+
+/// Magic, then the rkyv bytes, written in two parts rather than concatenated.
+fn write_image(index: &Index, out: &str) {
+    let bytes = rkyv::to_bytes::<Error>(index).unwrap_or_else(|e| fail(&e.to_string()));
+    let mut f = fs::File::create(out).unwrap_or_else(|e| fail(&format!("cannot write {out}: {e}")));
+    f.write_all(MAGIC).and_then(|_| f.write_all(&bytes)).unwrap_or_else(|e| fail(&format!("cannot write {out}: {e}")));
+}
+
+/// The first version, kept for the build-RAM comparison: every file's parsed text is held
+/// until interning, and symbols are sorted as separate 16-byte keys.
+fn build_batch(root: &Path, files: Vec<Vec<u8>>, out: &str) {
+    let parsed: Vec<Parsed> = files.par_iter().map(|rel| parse_file(root, rel)).collect();
 
     // Intern names into an arena; symbols become (name id, file, line << 1 | kind).
     let mut arena: Vec<u8> = Vec::new();
@@ -179,11 +318,7 @@ fn build(root: &str, out: &str) {
         index.occ_at.push(index.occs.len() as u32);
     }
 
-    let bytes = rkyv::to_bytes::<Error>(&index).unwrap_or_else(|e| fail(&e.to_string()));
-    let mut img = Vec::with_capacity(MAGIC.len() + bytes.len());
-    img.extend_from_slice(MAGIC);
-    img.extend_from_slice(&bytes);
-    fs::write(out, img).unwrap_or_else(|e| fail(&format!("cannot write {out}: {e}")));
+    write_image(&index, out);
     println!("symbols={} files={}", keys.len(), files.len());
 }
 

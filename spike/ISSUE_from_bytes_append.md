@@ -1,4 +1,4 @@
-<!-- Draft, not filed. Title: -->
+<!-- Filed as https://github.com/aardappel/goose/issues/177 on 2026-11-01. Title: -->
 # from_bytes rejects valid index types into a global grown with `append` (stale length in the verifier)
 
 **Version:** goose v2026.3 release (`goose version`: runtime `4d3da949e563`), Linux x64.

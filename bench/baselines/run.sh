@@ -14,7 +14,7 @@ OUT="$ROOT/bench/results/baselines-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUT"
 
 CSV="$OUT/summary.csv"
-echo "baseline,size,build_s,build_maxrss_kb,index_bytes,query_ms,checksum_ok" > "$CSV"
+echo "baseline,size,build_s,build_maxrss_kb,index_bytes,query_ms,serve_full_kb,serve_sel_kb,checksum_ok" > "$CSV"
 mean() { python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1]))["results"]; print("%.3f" % (sum(x["mean"] for x in r)/len(r)*float(sys.argv[2])))' "$@"; }
 
 # Process start of the query tools alone, for reading the query column.
@@ -33,12 +33,14 @@ for size in "${SIZES[@]}"; do
         idx="$tag.db"
         build=(python3 -I "$ROOT/bench/baselines/sqlite_index.py" build "$corpus" -o "$idx")
         query() { echo "python3 -I $ROOT/bench/baselines/sqlite_index.py find $idx $1"; }
+        full=(python3 -I "$ROOT/bench/baselines/sqlite_index.py" find "$idx" "")
         ;;
       ctags)
         command -v ctags > /dev/null && command -v readtags > /dev/null || { echo "  ctags: not installed, skipping"; continue; }
         idx="$tag.tags"
         build=(ctags -R --languages=Python --kinds-Python=cfm -f "$idx" "$corpus")
         query() { echo "readtags -t $idx -p $1"; }
+        full=(readtags -t "$idx" -l)
         ;;
     esac
 
@@ -50,13 +52,17 @@ for size in "${SIZES[@]}"; do
     qs=(); for p in "${PREFIXES[@]}"; do qs+=("$(query "$p")"); done
     hyperfine -N -w 3 -r "$RUNS" --export-json "$tag.query.json" "${qs[@]}" > /dev/null
 
+    # Serving memory, as in bench/run.sh: peak RSS of one full-index query and one selective query.
+    serve_full=$(/usr/bin/time -f %M "${full[@]}" 2>&1 > /dev/null | tail -1)
+    serve_sel=$(/usr/bin/time -f %M $(query Model) 2>&1 > /dev/null | tail -1)
+
     ok=n/a
     if [ "$b" = sqlite ]; then
       sum=$(python3 -I "$ROOT/bench/baselines/sqlite_index.py" find "$idx" "" | sha256sum | cut -d' ' -f1)
       ok=$([ "$sum" = "$ref" ] && echo yes || echo NO)
     fi
-    printf '%s,%s,%s,%s,%s,%s,%s\n' "$b" "$size" "$(mean "$tag.build.json" 1)" "$rss" "$size_b" \
-      "$(mean "$tag.query.json" 1000)" "$ok" | tee -a "$CSV"
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$b" "$size" "$(mean "$tag.build.json" 1)" "$rss" "$size_b" \
+      "$(mean "$tag.query.json" 1000)" "$serve_full" "$serve_sel" "$ok" | tee -a "$CSV"
   done
 done
 

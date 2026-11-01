@@ -221,12 +221,19 @@ fn build(root: u8[:], out_path: u8[:]) {
         i = j;
     }
 
-    var img: u8[>..] = [];
-    img.append(MAGIC);
-    to_bytes(paths, img);
-    to_bytes(files, img);
-    to_bytes(groups, img);
-    guard write_file(out_path, img) else { fail(str("cannot write ", out_path)); }
+    // The same bytes as to_bytes of each array after the magic, written frame by frame so that
+    // no copy of the image is built in memory.
+    var head: u8[>..] = [];
+    head.append(MAGIC);
+    format_uleb(head, bytes_of(paths).len);
+    var ok = write_file(out_path, head) && append_file(out_path, bytes_of(paths));
+    head.clear();
+    format_uleb(head, bytes_of(files).len);
+    ok = ok && append_file(out_path, head) && append_file(out_path, bytes_of(files));
+    head.clear();
+    format_uleb(head, bytes_of(groups).len);
+    ok = ok && append_file(out_path, head) && append_file(out_path, bytes_of(groups));
+    guard ok else { fail(str("cannot write ", out_path)); }
     print("symbols=", syms.len, " files=", files.len);
 }
 
