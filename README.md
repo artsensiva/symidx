@@ -76,6 +76,10 @@ The verdict holds despite that noise: the gaps that decide it are 2.0–2.6× in
 time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
 (`from_bytes` copies the image, rkyv maps it), not from this machine. The numbers that would move on other
 hardware are the absolute ones, and the close ones (build time and build RAM at parity) are not claimed as wins.
+One exception to watch: in CI on a macOS VM (3 cores), streaming rust-expert's build RAM on M was 18.7–20.8 MB
+against Goose's 13.9 MB in both runs so far, while on Linux the two are at parity. It is not investigated yet
+and doesn't change the verdict (serving memory on the same VM is still about 3× higher for Goose), but build
+RAM is only at parity on Linux.
 
 ## Results
 
