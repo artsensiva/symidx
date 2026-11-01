@@ -255,32 +255,59 @@ fn frame(img: u8[:], at: i64) -> u8[:], i64 {
     return img[at..body + n], body + n;
 }
 
+// SYMIDX_PROFILE=1: time and throughput of each load phase, on stderr.
+var profile = false;
+var prof_t = 0.0;
+
+fn phase(name: u8[:], bytes: i64) {
+    guard profile else { return; }
+    let now = clock();
+    let ms = (now - prof_t) * 1000.0;
+    var line: u8[>..] = [];
+    format(line, "profile ", name, ": ");
+    format_flt(line, ms, 3);
+    format(line, " ms, ", bytes, " bytes");
+    if ms > 0.0 { line.append(", "); format_flt(line, bytes / 1000.0 / ms, 1); line.append(" MB/s"); }
+    line.push('\n');
+    write_stderr(line);
+    prof_t = clock();
+}
+
 // Verifies the whole image and builds group_at (bench/SPEC.md "Image validation"):
 // from_bytes checks structure and every index and bound; this pass checks the rest.
 fn load(path: u8[:]) -> i64 {
+    var flag: u8[>..] = [];
+    profile = env("SYMIDX_PROFILE", flag) && flag == "1";
+    prof_t = clock();
     var img: u8[>..] = [];
     guard read_file(path, img) else { fail(str("cannot read ", path)); }
+    phase("read_file", img.len);
     guard starts_with(img, MAGIC) else { fail("not a symidx image"); }
     var at = MAGIC.len;
 
     let fp, a1 = frame(img, at);
     var p, pok = from_bytes<u8[>..]>(fp);
     guard pok else { fail("invalid image: paths"); }
+    phase("from_bytes paths", fp.len);
     for c in p { paths.push(c); }
+    phase("push-copy paths", p.len);
 
     let ff, a2 = frame(img, a1);
     var f, fok = from_bytes<File[>..]>(ff);
     guard fok else { fail("invalid image: files"); }
+    phase("from_bytes files", ff.len);
     for x in f {
         guard x.lo <= x.hi else { fail("invalid image: file span"); }
         files.push(x);
     }
+    phase("push-copy+check files", ff.len);
 
     let fg, a3 = frame(img, a2);
     var gok = false;
     groups, gok = from_bytes<NameGroup[>..]>(fg);
     guard gok else { fail("invalid image: groups"); }
     guard a3 == img.len else { fail("invalid image: trailing bytes"); }
+    phase("from_bytes groups", fg.len);
 
     var count = 0;
     for g in groups {
@@ -291,6 +318,7 @@ fn load(path: u8[:]) -> i64 {
         count += g.occs.len;
         group_at.push(g);
     }
+    phase("validate+group_at", fg.len);
     return count;
 }
 

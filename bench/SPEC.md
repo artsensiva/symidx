@@ -49,7 +49,9 @@ Strings and comments are not recognized: `def x` inside a docstring also counts 
   - `rust-idiomatic`: `bincode` deserialization checks structure only; an explicit validation pass follows.
 - All validation, and any other pass a loader needs before it can answer `find` (e.g. building an in-memory
   index), counts toward load time.
-- A truncated or corrupted image must be rejected with a non-zero exit, never crash or read out of bounds.
+- A structurally invalid image (truncated, bad framing or lengths, an index or span out of range, a bad
+  `kind` or line) must be rejected with a non-zero exit. Other corruption (e.g. edited name or path bytes)
+  may give wrong results but must never crash or read out of bounds. There is no integrity checksum.
 - Rust implementations may use the same grouped layout as Goose (see `CLAUDE.md`):
   name groups in name order, each holding its occurrences, and files as spans into one path byte array.
 

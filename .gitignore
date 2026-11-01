@@ -11,3 +11,5 @@ target/
 /spike/thread
 /spike/spike.img
 /goose/symidx
+/spike/fault_probe
+/spike/load_layouts
