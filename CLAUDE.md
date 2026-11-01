@@ -7,7 +7,7 @@ A micro-project to test the Goose language (https://github.com/aardappel/goose) 
 It is the storage layer of a future instant-start language server for monorepos.
 
 Hypothesis: Goose gives noticeably lower RAM and image size, and a much faster cold start,
-than Rust, thanks to variable-size records, relative references and loading the image without parsing.
+than Rust, thanks to variable-size records, checked indices and loading the image without parsing.
 
 ## What the tool does
 - `symidx build <dir> -o index.img` — walks *.py, finds `def`/`class`, builds an index
