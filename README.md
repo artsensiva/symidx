@@ -1,20 +1,22 @@
 # symidx
 
+[![bench](https://github.com/artsensiva/symidx/actions/workflows/bench.yml/badge.svg)](https://github.com/artsensiva/symidx/actions/workflows/bench.yml)
+
 **TL;DR.** symidx tested whether [Goose](https://github.com/aardappel/goose) beats Rust on memory, image size and
 start-up as the storage layer of an instant-start code index, with three byte-identical implementations.
 **Verdict: Rust.** Goose's `from_bytes` copies the image, giving 2–3× the serving memory and 10–25× slower load
 (warm; 1–2× cold) than rkyv over mmap; the verdict rests on serving memory, which replaced the original build-RAM
 criterion mid-experiment. Practical finding: the compact layout gives 5–15× smaller indexes and 10–17× faster
-builds than ctags, with lookups as fast or faster. Details: [bench/REPORT.md](bench/REPORT.md); upstream:
-[goose#177](https://github.com/aardappel/goose/issues/177) (bug found), [goose#221](https://github.com/aardappel/goose/issues/221) (zero-copy view request).
+builds than ctags, with lookups as fast or faster. Details: [bench/REPORT.md](bench/REPORT.md); where Goose could
+fit instead: [docs/GOOSE_OPPORTUNITIES.md](docs/GOOSE_OPPORTUNITIES.md); upstream: [goose#177](https://github.com/aardappel/goose/issues/177) (bug found),
+[goose#221](https://github.com/aardappel/goose/issues/221) (zero-copy view request).
 
-A code symbol index with instant loading, built three ways to test the
-[Goose](https://github.com/aardappel/goose) language against Rust.
+## What it is
 
-`symidx` walks a tree of `*.py` files, finds every `def` and `class`, and saves an index
-(name, kind, file, line) as a binary image. Loading the image and answering a name-prefix
-query should be close to instant. It is the storage layer of a future instant-start
-language server for monorepos.
+A code symbol index with instant loading, built three ways to test the Goose language against Rust.
+`symidx` walks a tree of `*.py` files, finds every `def` and `class`, and saves an index (name, kind, file,
+line) as a binary image. Loading the image and answering a name-prefix query should be close to instant. It
+was meant as the storage layer of a future instant-start language server for monorepos.
 
 ```
 symidx build <dir> -o index.img    # build and save the index
@@ -22,81 +24,81 @@ symidx load index.img              # load it, print symbol count and load time
 symidx find index.img <prefix>     # list symbols whose name starts with <prefix>
 ```
 
-## Hypothesis
-
-Goose gives noticeably lower RAM and image size, and a much faster cold start, than Rust,
-thanks to variable-size records, checked indices and loading the image without parsing.
-If Goose shows no ≥ 1.3× memory win over the expert Rust version, the larger project is done in Rust.
-
-## Implementations
-
 | Directory | Approach |
 |---|---|
 | `goose/` | Goose: variable-size name groups with inline occurrences, file spans into one path array, saved with `to_bytes` and loaded with the validating `from_bytes` |
-| `rust-idiomatic/` | Rust: plain structs + serde/bincode |
-| `rust-expert/` | Rust: string arenas + `rkyv` over mmap (zero-copy, `bytecheck` + explicit validation), streaming build (`SYMIDX_BUILD=batch` for the first version) |
+| `rust-idiomatic/` | Rust: plain structs + serde/bincode, then a validation pass |
+| `rust-expert/` | Rust: interned string arenas + `rkyv` over mmap (zero-copy, `bytecheck` + explicit validation), streaming build (`SYMIDX_BUILD=batch` for the first, non-streaming version) |
 
-All three must intern names and paths, validate the whole image during load, and
-produce byte-identical `find` output, checked by sha256 against a Python reference.
+## Hypothesis
 
-## Running the benchmarks
+**Original** (CLAUDE.md): Goose gives noticeably lower RAM and image size, and a much faster cold start, than
+Rust, thanks to variable-size records, checked indices and loading the image without parsing. Kill criterion:
+no ≥ 1.3× memory win over the expert Rust version → the larger project is done in Rust. The target table
+measured memory as **peak build RAM** and image size.
 
-Linux (x86-64) or macOS (Apple Silicon). Requirements: git, Python 3, [hyperfine](https://github.com/sharkdp/hyperfine),
-`cpio`, clang, a Rust toolchain; on Linux also GNU `time` (macOS uses its own `/usr/bin/time -l`).
+**Refined** mid-experiment: **serving memory** (peak RSS of a process that loads the image and answers a query)
+became the primary memory metric, because an always-resident server pays it constantly while builds are rare.
+The report gives both readings side by side ([bench/REPORT.md](bench/REPORT.md), "Criterion refinement"):
 
-```
-goose/fetch-toolchain.sh     # download the pinned Goose release, check its sha256 (goose/toolchain.sha256)
-goose/build.sh               # build goose/symidx with clang
-cargo build --release --manifest-path rust-expert/Cargo.toml     # likewise rust-idiomatic
-corpus/make.sh               # clone pinned CPython + Django, build corpora S, M, L (~2.5 GB on disk); or: corpus/make.sh S M
-bench/check-sums.sh S M      # correctness: every implementation against bench/ref-checksums.txt
-bench/check-machine.sh       # is this machine ready for reliable numbers? (read-only; prints fix commands)
-bench/run.sh S M             # benchmark every built implementation on S and M
-bench/baselines/run.sh M L   # ctags/readtags and SQLite baselines
-```
-
-| Corpus | Contents | Lines |
+| Reading | Linux (local, CI) | macOS CI VM |
 |---|---|---|
-| S | Django 6.1.2 | 0.52M |
-| M | + CPython v3.14.10 | 1.6M |
-| L | M × 31 | 49.7M |
+| Literal: build RAM, Goose ≥ 1.3× less? | not met (parity) | met in 3 of 4 runs (1.28–1.50×, low confidence, uninvestigated) |
+| Refined: serving memory, Goose ≥ 1.3× less? | not met: 2.0–2.7× **more** | not met: 3.1× **more** |
 
-`bench/run.sh` options: `IMPLS="goose rust-expert"` to choose implementations, `RUNS=10` for hyperfine runs,
-`COLD=1` to empty the page cache before each load/find (Linux `drop_caches`, macOS `purge`; needs passwordless
-sudo for that one command, and `bench/check-machine.sh` prints the sudoers line), `PIN=2,3` to run every
-measurement on those CPUs (Linux `taskset`; all three implementations size their worker pools from the affinity,
-so builds then use only those cores). Results go to `bench/results/<timestamp>/`: `summary.csv`, plus `env.txt`
-with the CPU, cores, governor, RAM, OS, the storage holding the corpus, tool versions and the COLD/PIN settings.
+The verdict rests on the refined reading, and says so.
 
-## Benchmarking environments
+## Methodology
 
-| Tier | What it is for | What it is not for |
-|---|---|---|
-| Local development machine | developing, profiling, quick comparisons; run `bench/check-machine.sh` first | published absolute numbers: governor, background load and free RAM vary |
-| CI (`.github/workflows/bench.yml`, ubuntu-latest and macos-latest) | correctness on both platforms (checksums on S and M), and relative comparisons **within one run** | comparing numbers across runs or with local results: shared runners are noisy and vary between jobs |
-| Dedicated or bare-metal Linux server | numbers to publish: `performance` governor, `PIN=`, `COLD=1`, nothing else running, `perf` available | — |
-| Real user environments | the cold-start worst case and platform effects: an Apple Silicon Mac (16 KB pages, APFS, `purge`), a cloud VM with network storage | tight comparisons: these are for checking that the conclusions hold, not for ranking |
+- **Task and output** ([bench/SPEC.md](bench/SPEC.md)): exact parsing rules (`def`, `class`, `async def`; identifier
+  bytes), output `name\tkind\tfile\tline` sorted by name, file, line. Every implementation's `find ""` output
+  must match the Python reference (`bench/ref.py`) by sha256 on every corpus; the reference checksums are
+  recorded in `bench/ref-checksums.txt` and match on Linux and macOS (S and M, in CI).
+- **Corpora** (`corpus/make.sh`, pinned tags):
 
-Every result directory carries its `env.txt`, so a number can always be traced to the machine it came from.
+  | Corpus | Contents | Files | Lines |
+  |---|---|---|---|
+  | S | Django 6.1.2 | 2,919 | 0.52M |
+  | M | S + CPython v3.14.10 | 5,077 | 1.6M |
+  | L | M × 31 | 157k | 49.7M |
 
-The Phase 1 numbers come from one development machine (a 6-core desktop, `powersave` governor, warm cache).
-The verdict holds despite that noise: the gaps that decide it are 2.0–3.1× in serving memory and 10–25× in warm
-load time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
-(`from_bytes` copies the image, rkyv maps it), not from this machine. The numbers that would move on other
-hardware are the absolute ones, and the close ones (build time and build RAM at parity) are not claimed as wins.
-One exception, open and not investigated: in four CI runs on a macOS VM (3 cores), streaming rust-expert's
-build RAM on M was 17.9–20.8 MB against Goose's 13.9 MB (1.28–1.50×), while on Linux the two are at parity. That
-meets the literal (build-RAM) kill criterion on that VM in 3 of 4 runs. The verdict rests on serving memory instead, which is
-3.1× higher for Goose on the same VM ([bench/REPORT.md](bench/REPORT.md), "Criterion refinement").
+  L repeats M's names 31 times, so M is the primary memory comparison and L the scaling check.
+- **Fairness rules:**
+  - every implementation interns names and paths;
+  - any tuning given to one is given to all: pre-faulting was measured for Goose and applied to none;
+  - the same harness for everyone, each in its optimized build: Rust release + LTO + one codegen unit, Goose's default `goose build` with clang;
+  - nothing extra exec'd inside a timed command;
+  - the kill criterion uses the better Rust number.
+  A fairness audit is part of the method: see "Lessons learned".
+- **Validation rules:** every loader validates the whole image eagerly, before any query; lazy bounds checks at
+  query time don't count. A structurally invalid image is rejected with a non-zero exit. Other corruption may
+  give wrong results but must never crash. There's no integrity checksum, and sort order isn't checked.
+  rust-idiomatic adds a validation pass after bincode; rust-expert runs bytecheck plus an explicit pass; Goose
+  gets most of it from `from_bytes`.
+- **Measurements** (`bench/run.sh`):
+  - times are hyperfine means of whole processes;
+  - build and serving RSS come from GNU `time` on Linux and `/usr/bin/time -l` on macOS;
+  - "find" is the mean over the prefixes `get_ test Model _`, with load included;
+  - "serving" is the peak RSS for a full-index query (`""`) and a selective one (`Model`);
+  - each result directory carries an `env.txt` with the machine, OS, storage, tool versions and COLD/PIN settings.
+- **Environments:**
+
+  | Tier | What it is for | What it is not for |
+  |---|---|---|
+  | Local development machine (here: i5-8400T, 6 cores, NVMe, `powersave`, 2–4 GB free RAM) | developing, profiling, quick comparisons; run `bench/check-machine.sh` first | published absolute numbers |
+  | CI (`.github/workflows/bench.yml`: ubuntu-latest and macos-latest, warm and cold) | correctness on both platforms, and relative comparisons **within one run** | comparing across runs or with local numbers: shared runners are noisy |
+  | Dedicated or bare-metal Linux server | numbers to publish: `performance` governor, `PIN=`, `COLD=1`, `perf` | — |
+  | Real user environments (an Apple Silicon Mac, a cloud VM with network storage) | the cold-start worst case and platform effects | tight rankings |
+
+  The verdict holds despite local noise: the deciding gaps (2.0–3.1× in serving memory, 10–25× in warm load)
+  are far beyond run-to-run variation of a few percent. They come from how each implementation works
+  (`from_bytes` copies the image, rkyv maps it), not from the machine.
 
 ## Results
 
-**Verdict: the large project should be built in Rust.** Goose's serving memory is 2.0–3.1× worse than the
-streaming rust-expert's on every platform measured, warm and cold. The original build-RAM reading of the kill
-criterion is met on Linux and not on the macOS CI VM; the report gives both readings. Full methodology,
-cross-platform and cold-cache tables: [bench/REPORT.md](bench/REPORT.md).
+All implementations match the reference checksum on S, M and L, locally and in CI.
 
-M corpus (1.6M lines), `bench/run.sh`, warm cache. All implementations match the reference checksum on S, M and L.
+**Local Linux, warm cache, M corpus** (the Phase 1 run):
 
 | Impl | Build | Build RAM | Image | Load | Find | Serve (selective) |
 |---|---|---|---|---|---|---|
@@ -105,7 +107,7 @@ M corpus (1.6M lines), `bench/run.sh`, warm cache. All implementations match the
 | rust-expert (streaming) | 74 ms | 14.1 MB | 3.62 MB | 1.3 ms | 2.2 ms | 5.6 MB |
 | rust-expert (batch, first version) | 76 ms | 26.8 MB | 3.62 MB | 1.3 ms | 2.2 ms | 5.6 MB |
 
-L corpus (49.7M lines):
+**Local Linux, warm cache, L corpus:**
 
 | Impl | Build | Build RAM | Image | Load | Find | Serve (selective) |
 |---|---|---|---|---|---|---|
@@ -114,7 +116,21 @@ L corpus (49.7M lines):
 | rust-expert (streaming) | 4.84 s | 106 MB | 43.9 MB | 5.3 ms | 20.4 ms | 44 MB |
 | rust-expert (batch) | 4.66 s | 388 MB | 43.9 MB | 5.1 ms | 20.2 ms | 45 MB |
 
-Market baselines (`bench/baselines/run.sh`), performance only:
+**Goose / rust-expert on M across environments**, warm and cold (CI [run 41640770345](https://github.com/artsensiva/symidx/actions/runs/41640770345),
+RUNS=3; cold = page cache emptied before every timed run). Local cold isn't measured: there's no passwordless
+sudo on that machine.
+
+| Environment | Load | Find | Serving RSS (selective) | Image |
+|---|---|---|---|---|
+| Local Linux, warm (re-run 2026-11-03) | 11.8 / 1.2 ms (9.5×) | 12.9 / 2.3 ms | 11.6 / 5.7 MB (2.0×) | 3.00 / 3.62 MB |
+| CI Linux, warm | 10.8 / 1.0 ms (10.5×) | 12.8 / 1.8 ms | 11.3 / 5.6 MB (2.0×) | 3.00 / 3.62 MB |
+| CI Linux, cold | 18.4 / 9.3 ms (2.0×) | 20.1 / 12.5 ms | 11.3 / 4.1 MB (2.7×) | 3.00 / 3.62 MB |
+| CI macOS, warm (low confidence) | 9.4 / 2.9 ms (3.3×) | 10.0 / 4.4 ms | 10.6 / 3.5 MB (3.1×) | 3.00 / 3.62 MB |
+| CI macOS, cold (low confidence) | 121.8 / 119.7 ms (parity) | 129 / 193 ms | 10.6 / 3.5 MB (3.1×) | 3.00 / 3.62 MB |
+
+macOS numbers come from a 3-core VM with a load average above 40, over 3 runs.
+
+**Market baselines** (`bench/baselines/run.sh`, local Linux, performance only):
 
 | Baseline | Corpus | Build | Index | Selective query (`Model`) | Serve (selective) |
 |---|---|---|---|---|---|
@@ -123,63 +139,136 @@ Market baselines (`bench/baselines/run.sh`), performance only:
 | ctags + readtags | L | 51.8 s | 652 MB | 13.8 ms | 4.5 MB |
 | SQLite (Python) | L | 98.1 s | 612 MB | 47.9 ms | 14.4 MB |
 
-The S table and full-index serving numbers are in the report.
+Against ctags, rust-expert builds 10–17× faster and its index is 5.6× (M) to 15× (L) smaller. Its `Model` query
+takes 1.3 ms (M, the same as readtags) and 5.9 ms (L, against 13.8 ms). The S table, full-index serving
+numbers and the Goose load profile are in [bench/REPORT.md](bench/REPORT.md).
 
-## Assessment
+## Lessons learned
 
-symidx is a decision instrument, not a product. The real competitors are ctags/readtags (no load step, a
-1–14 ms selective lookup), SQLite and rkyv. The results:
+- **Layout beats language.** The large wins over SQLite, ctags and idiomatic Rust (5–17× smaller indexes,
+  2–4× less build RAM) come from the compact layout: interning, grouping by name, arenas, streaming. Rust can
+  use all of it, and rust-expert does. What belongs to Goose itself is a 1.12–1.20× smaller image from inline
+  varint records, and a validating loader for free. Against that, `from_bytes` copies, which costs serving
+  memory and warm load.
+- **Fairness audits reversed results.** An early run showed Goose with 2.9× less build RAM. The audit found
+  my first rust-expert held all parsed text before building. Once it streamed like Goose, the gap vanished.
+  rust-idiomatic's load on M fell from about 40 to 13 ms once its byte vectors used `serde_bytes`. An `env`
+  wrapper inside timed builds added about 2 ms to everyone. Every one of these was a harness or implementation
+  mistake, not a language property.
+- **Benchmarks fail silently.**
+  - CI's first run was green while every macOS time column was empty: Homebrew's hyperfine 2.0 changed its
+    JSON format, and the parse error inside `$(...)` didn't stop the script.
+  - `COLD=1` had never worked on Linux: with `-N`, hyperfine 1.x runs `--prepare` without a shell.
+  - Under `pipefail`, a `sed q` probe randomly turned multi-line tool output into "unknown".
 
-- **Memory:** Goose's expected advantage didn't hold up against a fair Rust. Build RAM is at parity on Linux
-  once rust-expert streams (the earlier 2.9× gap came from my first rust-expert); on the macOS CI VM Goose's is
-  1.28–1.50× lower, uninvestigated. Serving memory is 2.0–3.1× *higher* for Goose everywhere, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
-  over mmap serves at about 1× image size.
-- **Image size:** Goose wins 1.12–1.20×, below the 1.3× target. That comes from its inline varint records.
-- **Load:** with a warm cache, Goose is 10–25× slower than rust-expert and can't close that gap: on L, its
-  `read_file` alone takes longer than rust-expert's whole load. Cold, storage dominates both: 1–2× (parity on
-  the macOS VM).
-- **Layout vs language:** the large wins over SQLite, ctags and idiomatic Rust (5–17× smaller indexes, 2–4×
-  less build RAM) belong to the compact layout: interning, grouping, arenas, streaming. Rust uses all of it.
-  Goose's own contributions are a smaller image from inline variable-size records, and a validating loader
-  that comes for free.
+  The fixes: assert that every column is filled, run every mode in CI at least once, and record `env.txt`.
+- **Fix the metric before the experiment.** The kill criterion named "memory", and the target table meant
+  build RAM. The metric that matters for a resident server is serving memory. Reporting both readings kept
+  the verdict honest when a second platform disagreed on the first.
+- **Warm and cold tell different stories.** Warm load is 10–25× worse for Goose; cold, storage dominates and
+  the gap is 1–2×. Serving memory doesn't depend on cache state, which is part of why it's the better
+  deciding metric.
+- **A young compiler shows up fast.** A 384-line port, written in about 20 minutes, found goose#177. A
+  minimal repro and its control (`spike/bug_from_bytes_append*.goose`) made it fileable.
+
+## Where Goose could fit
+
+symidx looked like a strong fit for Goose and failed against a well-built Rust. [docs/GOOSE_OPPORTUNITIES.md](docs/GOOSE_OPPORTUNITIES.md)
+applies that lesson to 11 candidates, scored against the best Rust a competent team would write, with sources
+and a 1–2 day falsification test each. Only three are strong. All of them share one shape: parse many small
+variable-size records, transform them, emit, drop everything at once.
+
+| Rank | Candidate | Composite (of 20) | Verdict |
+|---|---|---|---|
+| 1 | Request-scoped API/RPC transform kernels | 13 | strong: test first |
+| 2 | Log and telemetry parsing and transformation | 13 | strong: test with 1 |
+| 3 | Memory-safe parsers for untrusted input, shipped as C | 11 | strong on demand, blocked on embedding |
+| 4 | Genomics record processing | 11 | plausible |
+| 5 | Batch dev-tool front-ends | 11 | plausible |
+| 6 | Markup rendering | 10 | plausible |
+| 7–11 | ETL, policy evaluation, graph analytics, search segment building, game frame data | 6–10 | speculative |
+
+Poor fits: serving large read-mostly images (until something like goose#221 exists), long-lived mutable
+shared state, libraries for multithreaded hosts, WebAssembly and microcontrollers, flat numeric kernels.
+
+## Reproducing
+
+From a clean checkout, on Linux x86-64 or macOS on Apple Silicon. CI runs the same steps on every push.
+
+```
+git clone https://github.com/artsensiva/symidx && cd symidx
+# tools: Linux  sudo apt install git python3 hyperfine time clang cpio
+#        macOS  brew install hyperfine   (clang, cpio and git come with the Xcode command-line tools)
+#        both   a Rust toolchain (rustup), and universal-ctags only for the baselines
+goose/fetch-toolchain.sh          # pinned Goose v2026.3, sha256-checked against goose/toolchain.sha256
+goose/build.sh                    # builds goose/symidx with clang
+cargo build --release --locked --manifest-path rust-idiomatic/Cargo.toml
+cargo build --release --locked --manifest-path rust-expert/Cargo.toml
+corpus/make.sh                    # clones pinned Django and CPython, builds S, M, L (~2.5 GB); or: corpus/make.sh S M
+bench/check-sums.sh S M L         # correctness: every implementation against bench/ref-checksums.txt
+bench/check-machine.sh            # read-only readiness check; prints the commands to fix what it finds
+bench/run.sh S M L                # the main benchmark; results in bench/results/<timestamp>/
+COLD=1 bench/run.sh M             # cold cache (passwordless sudo for drop_caches or purge only)
+bench/baselines/run.sh M L        # ctags/readtags and SQLite baselines
+```
+
+`bench/run.sh` options: `IMPLS="goose rust-expert"`, `RUNS=10`, `COLD=1`, `PIN=2,3` (Linux `taskset`; all
+three implementations size their worker pools from the affinity), `OUT=<dir>`.
+
+## Project structure
+
+```
+goose/                 Goose implementation, C directory walker, pinned toolchain fetch + hashes
+rust-idiomatic/        Rust: serde + bincode
+rust-expert/           Rust: arenas + rkyv over mmap, streaming build, SYMIDX_VALIDATE=lazy experiment
+bench/                 run.sh, lib.sh (portable helpers, env.txt), check-sums.sh, check-machine.sh,
+                       ref.py + ref-checksums.txt, SPEC.md, REPORT.md
+bench/baselines/       ctags/readtags and SQLite baselines
+corpus/make.sh         pinned corpora S, M, L
+spike/                 Goose spike programs, load-layout experiments, bug repro, upstream issue texts
+docs/                  PHASE2.md (draft plan), GOOSE_OPPORTUNITIES.md
+.github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
+CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
+```
+
+## Upstream contributions
+
+- [goose#177](https://github.com/aardappel/goose/issues/177): `from_bytes` rejects valid index types into a
+  global grown with `append`, because the verifier reads a stale length. Filed with a minimal repro and a
+  control. Workaround: grow pinned arrays with `push`. Open.
+- [goose#221](https://github.com/aardappel/goose/issues/221): a feature request for a verified, zero-copy view
+  over foreign bytes (such as an mmap), motivated by serving memory, with this project's warm and cold
+  numbers. Open. Text kept in `spike/ISSUE_zero_copy_view.md`.
 
 ## Status
 
-- **Phase 1 (this experiment): complete**, released as
-  [v1.0](https://github.com/artsensiva/symidx/releases/tag/v1.0). Verdict: Rust.
+- **Phase 1 (this experiment): complete.** Released as [v1.0](https://github.com/artsensiva/symidx/releases/tag/v1.0)
+  (verdict, cross-platform confirmation) and v1.1 (opportunity analysis, this README).
   [`v0.1-experiment`](https://github.com/artsensiva/symidx/tree/v0.1-experiment) marks the state of the first report.
-- **Since then:**
-  - a segmented-validation experiment for rust-expert (`SYMIDX_VALIDATE=lazy`, not SPEC-conformant):
-    3.5× less serving RSS on selective queries on L (`bench/REPORT.md`);
-  - reproducible benchmarking: `env.txt` per result, `bench/check-machine.sh`, macOS support, and CI on Linux
-    and macOS, warm and cold;
-  - a Goose feature request for a verified zero-copy view, filed as
-    [goose#221](https://github.com/aardappel/goose/issues/221) (`spike/ISSUE_zero_copy_view.md`).
 - **Open item:** rust-expert's higher build RAM on the macOS CI VM, not investigated.
 - **Phase 2: draft, not started, pending decision.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start
   code navigation index for AI coding agents, as an MCP server in Rust, built on rust-expert's design.
 
 ## Known Goose issues
 
-- `from_bytes` rejects valid index types into an array grown with `append`: the verifier reads a stale
-  length. Filed as [aardappel/goose#177](https://github.com/aardappel/goose/issues/177). Workaround: grow
-  pinned arrays with `push` (~2% of load).
+- `from_bytes` rejects valid index types into an array grown with `append` (goose#177).
 - `from_bytes` always copies into fresh memory: load pays page faults plus a verify walk, and serving holds
-  two copies of the image at once (see the report).
+  two copies of the image at once (goose#221).
 - `varint` is signed (zigzag), so an image can carry negative line numbers; the loader checks `line >= 1`.
 - `os.goose` has no `lstat`, and `list_dir`/`is_dir` follow symlinks: the walk is a small C sidecar.
 - Globals pinned by index types can't be cleared or reassigned, so one process loads one image.
 - The default `cc` may be a wrapper (here, `zig cc`). Build with `--cc clang`; `goose/build.sh` does.
 
-## Details
+## Further reading
 
-- [CLAUDE.md](CLAUDE.md) — goals, metrics and targets, the Goose design, plan.
-- [bench/SPEC.md](bench/SPEC.md) — exact parsing rules, string storage, image validation, output format.
-- [bench/REPORT.md](bench/REPORT.md) — methodology, full results, kill-criterion verdict, recommendation.
-- [spike/FINDINGS.md](spike/FINDINGS.md) — Goose spike and load profile.
-- [DEVLOG.md](DEVLOG.md) — time per session.
+- [bench/REPORT.md](bench/REPORT.md): methodology, full results, kill-criterion verdict, recommendation.
+- [bench/SPEC.md](bench/SPEC.md): exact parsing rules, string storage, image validation, output format.
+- [docs/GOOSE_OPPORTUNITIES.md](docs/GOOSE_OPPORTUNITIES.md): where Goose could fit, ranked, with sources.
+- [spike/FINDINGS.md](spike/FINDINGS.md): Goose spike and load profile.
+- [CLAUDE.md](CLAUDE.md): goals, metrics and targets, the Goose design. [DEVLOG.md](DEVLOG.md): time per session.
+  [CHANGELOG.md](CHANGELOG.md): releases.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Goose itself is Apache-2.0; the corpora (CPython, Django) are cloned at
-build time and not redistributed here.
+MIT, see [LICENSE](LICENSE). Goose itself is Apache-2.0; the corpora (CPython, Django) are cloned at build
+time and not redistributed here.
