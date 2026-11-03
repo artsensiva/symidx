@@ -86,7 +86,7 @@ The verdict rests on the refined reading, and says so.
   | Tier | What it is for | What it is not for |
   |---|---|---|
   | Local development machine (here: i5-8400T, 6 cores, NVMe, `powersave`, 2–4 GB free RAM) | developing, profiling, quick comparisons; run `bench/check-machine.sh` first | published absolute numbers |
-  | CI (`.github/workflows/bench.yml`: ubuntu-latest and macos-latest, warm and cold) | correctness on both platforms, and relative comparisons **within one run** | comparing across runs or with local numbers: shared runners are noisy |
+  | CI (`.github/workflows/bench.yml`: ubuntu-24.04 and macos-26, pinned; warm and cold) | correctness on both platforms, and relative comparisons **within one run** | comparing across runs or with local numbers: shared runners are noisy |
   | Dedicated or bare-metal Linux server | numbers to publish: `performance` governor, `PIN=`, `COLD=1`, `perf` | — |
   | Real user environments (an Apple Silicon Mac, a cloud VM with network storage) | the cold-start worst case and platform effects | tight rankings |
 
