@@ -39,7 +39,8 @@ build_env_of() {
 PREPARE=()
 if [ "${COLD:-0}" = 1 ]; then
   cold_allowed || { echo "COLD=1 needs passwordless sudo for: $(cold_prepare_cmd) (see bench/check-machine.sh)" >&2; exit 1; }
-  PREPARE=(--prepare "$(cold_prepare_cmd)")
+  # Wrapped in sh -c: with -N, hyperfine 1.x runs --prepare without a shell too (2.x uses one).
+  PREPARE=(--prepare "sh -c '$(cold_prepare_cmd)'")
   sh -c "$(cold_prepare_cmd)" || { echo "COLD=1: emptying the page cache failed: $(cold_prepare_cmd)" >&2; exit 1; }
 fi
 setup_pin
