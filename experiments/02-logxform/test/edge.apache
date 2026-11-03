@@ -1,0 +1,18 @@
+[Thu Jun 09 06:07:04 2005] [notice] LDAP: Built with OpenLDAP LDAP SDK
+[Sat Jun 11 03:03:03 2005] [error] [client 202.133.98.6] script not found or unable to stat: /var/www/cgi-bin/awstats
+script not found or unable to stat
+[Xyz Jun 11 03:03:03 2005] [error] bad weekday
+[Sat Jun 1 03:03:03 2005] [error] day not two digits
+[Sat Jun 11 03:03:03 05] [error] year not four digits
+[Sat Jun 11 03:03:03 2005] [crit] crit is FATAL
+[Sat Jun 11 03:03:03 2005] [emerg] emerg
+[Sat Jun 11 03:03:03 2005] [alert] alert
+[Sat Jun 11 03:03:03 2005] [info] info
+[Sat Jun 11 03:03:03 2005] [debug] debug dropped
+[Sat Jun 11 03:03:03 2005] [trace] unknown level
+[Sat Jun 11 03:03:03 2005] [error]
+[Sat Jun 11 03:03:03 2005] [error] 
+[Sat Jun 11 03:03:03 2005] [error]no space
+[Sat Jun 11 03:03:03 2005]  [error] two spaces
+[Sat Jun 11 03:03:03 2005] [warn] error_code=104 ok
+[Sat Jun 11 03:03:60 2005] [warn] second 60

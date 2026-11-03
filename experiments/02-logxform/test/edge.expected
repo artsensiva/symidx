@@ -1,0 +1,26 @@
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.DataNode$DataXceiver","msg":"Receiving block blk_-160 src: /<ip>:54106 dest: /<ip>:50010","kv":{"pid":"143","blk":"blk_-160"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"a:b","msg":"colon inside the component","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.X","msg":"","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.PacketResponder","msg":"blk_ blk_123 first blk_ token has no digits","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.X","msg":"blk_-12ab. cut, and 1.2.3.4.5 and <ip>. and <ip>..x and a<ip> and 1.2.3 and 1234.1.1.1 and .1.2.3.4","kv":{"pid":"143","blk":"blk_-12"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.X","msg":"k=v k=w x=1=2 =bad 9a=ok a@b=no  user=  dup=1 dup=2 tab\tx quote\" back\\ ctl","kv":{"pid":"143","k":"w","x":"1=2","9a":"ok","user":"","dup":"2"}}
+{"ts":"2008-11-09T20:35:18Z","level":"WARN","sev":4,"component":"dfs.DataNode$PacketResponder","msg":"kept: WARN","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"FATAL","sev":2,"component":"dfs.FSDataset","msg":"fatal kept","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"INFO","sev":6,"component":"dfs.X","msg":"two CRs at the end\r","kv":{"pid":"143"}}
+{"ts":"2008-11-09T20:35:18Z","level":"ERROR","sev":3,"component":"dfs.X","msg":"last line, no newline, ctrl \u0001 \u001f del ","kv":{"pid":"143"}}
+{"ts":"2017-12-10T06:55:46Z","level":"WARN","sev":4,"component":"sshd","msg":"reverse mapping checking getaddrinfo for <ip>.ifibertv.com [<ip>] failed - POSSIBLE BREAK-IN ATTEMPT!","kv":{"host":"LabSZ","pid":"24200"}}
+{"ts":"2018-01-01T00:12:28Z","level":"INFO","sev":6,"component":"sshd","msg":"pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=<ip>  user=root","kv":{"host":"LabSZ","pid":"3117","logname":"","uid":"0","euid":"0","tty":"ssh","ruser":"","rhost":"<ip>","user":"root"}}
+{"ts":"2018-06-30T23:59:59Z","level":"ERROR","sev":3,"component":"p","msg":"error: year 2018","kv":{"host":"h","pid":"1"}}
+{"ts":"2017-07-01T00:00:00Z","level":"FATAL","sev":2,"component":"p","msg":"fatal: year 2017","kv":{"host":"h","pid":"1"}}
+{"ts":"2018-02-29T00:00:00Z","level":"WARN","sev":4,"component":"p","msg":"Failed password","kv":{"host":"h","pid":"1"}}
+{"ts":"2018-03-10T00:00:00Z","level":"INFO","sev":6,"component":"p","msg":"","kv":{"host":"h","pid":"1"}}
+{"ts":"2018-03-10T00:00:00Z","level":"WARN","sev":4,"component":"p","msg":"Invalid user x from <ip> host=a host=b","kv":{"host":"b","pid":"1"}}
+{"ts":"2018-03-10T00:00:00Z","level":"INFO","sev":6,"component":"p","msg":"pid=override host=override2","kv":{"host":"override2","pid":"override"}}
+{"ts":"2005-06-09T06:07:04Z","level":"NOTICE","sev":5,"component":"httpd","msg":"LDAP: Built with OpenLDAP LDAP SDK","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"ERROR","sev":3,"component":"httpd","msg":"[client <ip>] script not found or unable to stat: /var/www/cgi-bin/awstats","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"FATAL","sev":2,"component":"httpd","msg":"crit is FATAL","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"FATAL","sev":2,"component":"httpd","msg":"emerg","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"FATAL","sev":2,"component":"httpd","msg":"alert","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"INFO","sev":6,"component":"httpd","msg":"info","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"ERROR","sev":3,"component":"httpd","msg":"","kv":{}}
+{"ts":"2005-06-11T03:03:03Z","level":"WARN","sev":4,"component":"httpd","msg":"error_code=104 ok","kv":{"error_code":"104"}}

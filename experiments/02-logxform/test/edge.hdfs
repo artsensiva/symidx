@@ -1,0 +1,24 @@
+081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-160 src: /10.250.19.102:54106 dest: /10.250.19.102:50010
+081309 203518 143 INFO dfs.X: month 13
+081100 203518 143 INFO dfs.X: day 0
+081132 203518 143 INFO dfs.X: day 32
+081109 243518 143 INFO dfs.X: hour 24
+081109 206018 143 INFO dfs.X: minute 60
+081109 203560 143 INFO dfs.X: second 60
+081109 203518 143 INFO dfs.X : space before colon
+081109 203518 143 INFO : empty component
+081109 203518 143 INFO a:b: colon inside the component
+081109 203518 143 NOTE dfs.X: unknown level
+081109 203518 x INFO dfs.X: pid not digits
+081109 203518 143 INFO dfs.X:no space after colon
+081109 203518 143 INFO dfs.X: 
+081109 203518 143 INFO dfs.PacketResponder: blk_ blk_123 first blk_ token has no digits
+081109 203518 143 INFO dfs.X: blk_-12ab. cut, and 1.2.3.4.5 and 1.2.3.4. and 1.2.3.4..x and a1.2.3.4 and 1.2.3 and 1234.1.1.1 and .1.2.3.4
+081109 203518 143 INFO dfs.X: k=v k=w x=1=2 =bad 9a=ok a@b=no  user=  dup=1 dup=2 tab	x quote" back\ ctl
+081109 203518 143 INFO dfs.DataNode$PacketResponder: dropped: INFO below WARN
+081109 203518 143 WARN dfs.DataNode$PacketResponder: kept: WARN
+081109 203518 143 DEBUG dfs.X: dropped: DEBUG
+081109 203518 143 FATAL dfs.FSDataset: fatal kept
+
+081109 203518 143 INFO dfs.X: two CRs at the end
+081109 203518 143 ERROR dfs.X: last line, no newline, ctrl   del 

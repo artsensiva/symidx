@@ -1,0 +1,19 @@
+Dec 10 06:55:46 LabSZ sshd[24200]: reverse mapping checking getaddrinfo for 74.82.254.191.ifibertv.com [173.234.31.186] failed - POSSIBLE BREAK-IN ATTEMPT!
+Jan  1 00:12:28 LabSZ sshd[3117]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=74.82.254.191  user=root
+Jun 30 23:59:59 h p[1]: error: year 2018
+Jul  1 00:00:00 h p[1]: fatal: year 2017
+Feb 29 00:00:00 h p[1]: Failed password
+Mar 1 00:00:00 h p[1]: day not padded
+Mar 00 00:00:00 h p[1]: day 0
+Mar  0 00:00:00 h p[1]: day 0
+Foo 10 00:00:00 h p[1]: bad month
+Mar 10 00:00:00 h p[x]: pid not digits
+Mar 10 00:00:00 h p[1] missing colon
+Mar 10 00:00:00 h p q[1]: space in prog
+Mar 10 00:00:00  p[1]: empty host
+Mar 10 00:00:00 h [1]: empty prog
+Mar 10 00:00:00 h p[]: empty pid
+Mar 10 00:00:00 h p[1]: 
+Mar 10 00:00:00 h p[1]: Invalid user x from 1.2.3.4 host=a host=b
+Mar 10 00:00:00 h p[1]: pid=override host=override2
+Mar 10 24:00:00 h p[1]: hour 24
