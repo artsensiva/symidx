@@ -1,4 +1,4 @@
-<!-- Draft, not filed. For aardappel/goose. Title: -->
+<!-- Filed as https://github.com/aardappel/goose/issues/221 on 2026-11-03. Kept here as filed. -->
 # Feature request: a verified, zero-copy view over foreign bytes (e.g. an mmap)
 
 Thanks for Goose. `from_bytes` is the nicest serialization story I've used: one call, a verifier

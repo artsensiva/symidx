@@ -2,6 +2,9 @@ All code, comments, docs and commit messages are in English.
 
 # symidx — a code symbol index with instant loading
 
+**Status: Phase 1 complete** (v1.0; verdict Rust, see `bench/REPORT.md`). Phase 2 (`docs/PHASE2.md`) is a draft,
+not started, pending decision.
+
 ## Goal
 A micro-project to test the Goose language (https://github.com/aardappel/goose) in practice.
 It is the storage layer of a future instant-start language server for monorepos.

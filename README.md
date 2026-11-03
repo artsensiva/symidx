@@ -1,5 +1,13 @@
 # symidx
 
+**TL;DR.** symidx tested whether [Goose](https://github.com/aardappel/goose) beats Rust on memory, image size and
+start-up as the storage layer of an instant-start code index, with three byte-identical implementations.
+**Verdict: Rust.** Goose's `from_bytes` copies the image, giving 2–3× the serving memory and 10–25× slower load
+(warm; 1–2× cold) than rkyv over mmap; the verdict rests on serving memory, which replaced the original build-RAM
+criterion mid-experiment. Practical finding: the compact layout gives 5–15× smaller indexes and 10–17× faster
+builds than ctags, with lookups as fast or faster. Details: [bench/REPORT.md](bench/REPORT.md); upstream:
+[goose#177](https://github.com/aardappel/goose/issues/177) (bug found), [goose#221](https://github.com/aardappel/goose/issues/221) (zero-copy view request).
+
 A code symbol index with instant loading, built three ways to test the
 [Goose](https://github.com/aardappel/goose) language against Rust.
 
@@ -72,20 +80,21 @@ with the CPU, cores, governor, RAM, OS, the storage holding the corpus, tool ver
 Every result directory carries its `env.txt`, so a number can always be traced to the machine it came from.
 
 The Phase 1 numbers come from one development machine (a 6-core desktop, `powersave` governor, warm cache).
-The verdict holds despite that noise: the gaps that decide it are 2.0–2.6× in serving memory and 10–25× in load
-time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
+The verdict holds despite that noise: the gaps that decide it are 2.0–3.1× in serving memory and 10–25× in warm
+load time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
 (`from_bytes` copies the image, rkyv maps it), not from this machine. The numbers that would move on other
 hardware are the absolute ones, and the close ones (build time and build RAM at parity) are not claimed as wins.
-One exception to watch: in CI on a macOS VM (3 cores), streaming rust-expert's build RAM on M was 18.7–20.8 MB
-against Goose's 13.9 MB in both runs so far, while on Linux the two are at parity. It is not investigated yet
-and doesn't change the verdict (serving memory on the same VM is still about 3× higher for Goose), but build
-RAM is only at parity on Linux.
+One exception, open and not investigated: in three CI runs on a macOS VM (3 cores), streaming rust-expert's
+build RAM on M was 18.6–20.8 MB against Goose's 13.9 MB (1.34–1.50×), while on Linux the two are at parity. That
+meets the literal (build-RAM) kill criterion on that VM. The verdict rests on serving memory instead, which is
+3.1× higher for Goose on the same VM ([bench/REPORT.md](bench/REPORT.md), "Criterion refinement").
 
 ## Results
 
-**Verdict: the large project should be built in Rust.** Goose has no ≥ 1.3× memory win over the
-streaming rust-expert, so the kill criterion is triggered. Full methodology and analysis:
-[bench/REPORT.md](bench/REPORT.md).
+**Verdict: the large project should be built in Rust.** Goose's serving memory is 2.0–3.1× worse than the
+streaming rust-expert's on every platform measured, warm and cold. The original build-RAM reading of the kill
+criterion is met on Linux and not on the macOS CI VM; the report gives both readings. Full methodology,
+cross-platform and cold-cache tables: [bench/REPORT.md](bench/REPORT.md).
 
 M corpus (1.6M lines), `bench/run.sh`, warm cache. All implementations match the reference checksum on S, M and L.
 
@@ -121,13 +130,14 @@ The S table and full-index serving numbers are in the report.
 symidx is a decision instrument, not a product. The real competitors are ctags/readtags (no load step, a
 1–14 ms selective lookup), SQLite and rkyv. The results:
 
-- **Memory:** Goose's expected advantage didn't hold up against a fair Rust. Build RAM is at parity once
-  rust-expert streams; the earlier 2.9× gap came from my first rust-expert. Serving memory is 2.0–2.6×
-  *higher* for Goose, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
+- **Memory:** Goose's expected advantage didn't hold up against a fair Rust. Build RAM is at parity on Linux
+  once rust-expert streams (the earlier 2.9× gap came from my first rust-expert); on the macOS CI VM Goose's is
+  1.34–1.50× lower, uninvestigated. Serving memory is 2.0–3.1× *higher* for Goose everywhere, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
   over mmap serves at about 1× image size.
 - **Image size:** Goose wins 1.12–1.20×, below the 1.3× target. That comes from its inline varint records.
-- **Load:** Goose is 10–25× slower than rust-expert and can't close that gap: on L, its `read_file` alone
-  takes longer than rust-expert's whole load.
+- **Load:** with a warm cache, Goose is 10–25× slower than rust-expert and can't close that gap: on L, its
+  `read_file` alone takes longer than rust-expert's whole load. Cold, storage dominates both: 1–2× (parity on
+  the macOS VM).
 - **Layout vs language:** the large wins over SQLite, ctags and idiomatic Rust (5–17× smaller indexes, 2–4×
   less build RAM) belong to the compact layout: interning, grouping, arenas, streaming. Rust uses all of it.
   Goose's own contributions are a smaller image from inline variable-size records, and a validating loader
@@ -135,14 +145,19 @@ symidx is a decision instrument, not a product. The real competitors are ctags/r
 
 ## Status
 
-- **Phase 1 (this experiment): closed**, tagged
-  [`v0.1-experiment`](https://github.com/artsensiva/symidx/tree/v0.1-experiment). Verdict: Rust.
-- **Follow-ups since the tag:**
+- **Phase 1 (this experiment): complete**, released as
+  [v1.0](https://github.com/artsensiva/symidx/releases/tag/v1.0). Verdict: Rust.
+  [`v0.1-experiment`](https://github.com/artsensiva/symidx/tree/v0.1-experiment) marks the state of the first report.
+- **Since then:**
   - a segmented-validation experiment for rust-expert (`SYMIDX_VALIDATE=lazy`, not SPEC-conformant):
     3.5× less serving RSS on selective queries on L (`bench/REPORT.md`);
-  - a draft Goose feature request for a verified zero-copy view (`spike/ISSUE_zero_copy_view.md`, not filed).
-- **Phase 2: planned, not started.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start code navigation
-  index for AI coding agents, as an MCP server in Rust, built on rust-expert's design. It's awaiting approval.
+  - reproducible benchmarking: `env.txt` per result, `bench/check-machine.sh`, macOS support, and CI on Linux
+    and macOS, warm and cold;
+  - a Goose feature request for a verified zero-copy view, filed as
+    [goose#221](https://github.com/aardappel/goose/issues/221) (`spike/ISSUE_zero_copy_view.md`).
+- **Open item:** rust-expert's higher build RAM on the macOS CI VM, not investigated.
+- **Phase 2: draft, not started, pending decision.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start
+  code navigation index for AI coding agents, as an MCP server in Rust, built on rust-expert's design.
 
 ## Known Goose issues
 

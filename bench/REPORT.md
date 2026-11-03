@@ -130,7 +130,7 @@ Against the CLAUDE.md targets (Goose vs rust-expert, M):
 |---|---|---|
 | Peak RAM (build) | ≥ 1.3× less | 1.04× more: missed |
 | Image size | ≥ 1.3× smaller | 1.20× smaller: missed |
-| Cold load | ≈ parity | 10× slower (warm cache): missed |
+| Cold load | ≈ parity | 10× slower warm; 2× slower cold on CI Linux, parity on the macOS CI VM: missed on Linux |
 | Build time | ≈ parity | 1.43× slower |
 | Prefix find | parity | 5.6× slower (load included) |
 

@@ -1,6 +1,6 @@
 # Phase 2 plan: an instant-start code navigation index for AI coding agents
 
-Status: **draft for approval**. Nothing here is implemented yet.
+Status: **draft, not started, pending decision.** Nothing here is implemented.
 
 ## Goal
 
@@ -103,4 +103,4 @@ re-plan resolution before adding TypeScript.
 5. **Validation:** amend SPEC to allow segmented validation (3.5× less serving RSS on selective queries,
    Phase 1 experiment), or keep eager?
 6. **Packaging and licensing:** MCP over stdio only, or also an HTTP transport? Is MIT fine for the product too?
-7. **Repo:** continue in this repository (Phase 1 kept under `v0.1-experiment`), or start a new one?
+7. **Repo:** continue in this repository (Phase 1 released as v1.0), or start a new one?
