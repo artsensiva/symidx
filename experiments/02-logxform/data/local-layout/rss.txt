@@ -1,0 +1,6 @@
+goose-0 36708
+goose-1 36788
+goose-2 36712
+arena-0 39004
+arena-1 39136
+arena-2 39128

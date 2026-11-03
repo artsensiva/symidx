@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.2 (2026-11-03)
+
+Experiment 2, logxform. **Verdict: kill criterion not met; the Goose track ends.**
+
+- **Added** `experiments/02-logxform/`, a pre-registered test of the top two candidates in
+  `docs/GOOSE_OPPORTUNITIES.md`:
+  - `SPEC.md`: the task, corpus, metrics, fairness rules and kill criterion, committed before any code,
+    plus one amendment after the audit (A1);
+  - a sha256-pinned Loghub corpus (`corpus/fetch.sh`), a Python reference, recorded checksums, and an
+    edge-case corpus;
+  - three implementations: `goose/`, `rust-arena/` and `rust-idiomatic/`;
+  - `run.sh` and `check-sums.sh`;
+  - `REPORT.md`, with results, the fairness audit and the verdict, and committed `data/`.
+- **Result** (M, after the audit): Goose reached 0.88× rust-arena's single-thread throughput and used
+  1.07× less peak RSS; the criterion needed ≥ 1.3×. CI Linux agrees. On the macOS CI VM, Goose used 1.9×
+  less RSS (open item).
+- **Changed** `docs/GOOSE_OPPORTUNITIES.md`: candidates 1 and 2 are falsified, and 4 and 7 lose their main
+  argument. README, DEVLOG.
+- **CI:**
+  - actions on Node 24 (checkout v7, cache v6, upload-artifact v7);
+  - runners pinned to `ubuntu-24.04` and `macos-26`;
+  - logxform checksums on S and M, and a short M benchmark.
+
 ## v1.1 (2026-11-03)
 
 Documentation release. No code, harness or benchmark changes: every number is the same as in v1.0.

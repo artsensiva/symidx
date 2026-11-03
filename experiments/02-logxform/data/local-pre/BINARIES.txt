@@ -1,0 +1,1 @@
+Binaries: built at 318650e (before the fairness audit; rust-arena v1) and run with BIN_DIR=; env.txt's git_commit is the checkout at run time.

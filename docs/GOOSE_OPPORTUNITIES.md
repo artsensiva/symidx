@@ -2,6 +2,17 @@
 
 2026-11-03. Written after symidx Phase 1 ([bench/REPORT.md](../bench/REPORT.md)). Goose v2026.3.
 
+> **Outcome (experiment 2, 2026-11-03): candidates 1 and 2 are falsified; 4 and 7 lose their main
+> argument. The Goose track ends.** The shared test recommended in section 5 was run as
+> [experiments/02-logxform](../experiments/02-logxform/REPORT.md): Loghub HDFS, OpenSSH and Apache logs
+> (1.66 GB) parsed into variable-size records per 65,536-line batch, filtered, normalized, redacted,
+> rendered as NDJSON and dropped, pre-registered with a kill criterion of ≥ 1.3× over arena Rust. After a
+> fairness audit, Goose reached 0.88× rust-arena's single-thread throughput and used 1.07× less peak RSS on
+> the reference machine (CI Linux: 0.93× and 1.07×). It beat idiomatic Rust by 2.2× and 2.7×, which, as in
+> Phase 1, is the memory layout's win, and Rust can use that layout too. The one qualification is the
+> macOS CI VM, where Goose used 1.9× less RSS, probably through the system allocator; uninvestigated. The
+> analysis below is kept as it was written, before the test.
+
 **Bottom line, up front.** None of these candidates is proven. Three are strong enough to deserve a cheap
 experiment (ranks 1–3), three are plausible but weaker, and the rest are speculative. That's fewer than ten
 genuinely strong candidates, and the list says so instead of padding. The best candidates share one shape:
@@ -327,13 +338,13 @@ modules, but there's no console or engine ecosystem.
 
 | Rank | Candidate | Fit | Win | Commercial | Risk | Composite | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1 | Request-scoped API/RPC transform kernels | 4 | 3 | 4 | 4 | 13 | strong: test first |
-| 2 | Log and telemetry parsing and transformation | 4 | 3 | 4 | 4 | 13 | strong: test with 1 |
+| 1 | Request-scoped API/RPC transform kernels | 4 | 3 | 4 | 4 | 13 | ~~strong: test first~~ **falsified** (experiment 2) |
+| 2 | Log and telemetry parsing and transformation | 4 | 3 | 4 | 4 | 13 | ~~strong: test with 1~~ **falsified** (experiment 2) |
 | 3 | Memory-safe parsers for untrusted input, as C | 3 | 3 | 4 | 5 | 11 | strong on demand, blocked on embedding |
-| 4 | Genomics record processing | 4 | 3 | 2 | 4 | 11 | plausible: best shape, weak market |
+| 4 | Genomics record processing | 4 | 3 | 2 | 4 | 11 | ~~plausible~~ main argument gone (experiment 2) |
 | 5 | Batch dev-tool front-ends | 3 | 2 | 4 | 4 | 11 | plausible: arena Rust is the bar |
 | 6 | Markup rendering | 4 | 2 | 2 | 4 | 10 | plausible: a product for 3 |
-| 7 | ETL of semi-structured data | 3 | 2 | 3 | 4 | 10 | speculative |
+| 7 | ETL of semi-structured data | 3 | 2 | 3 | 4 | 10 | ~~speculative~~ main argument gone (experiment 2) |
 | 8 | Expression and policy evaluation | 3 | 2 | 3 | 5 | 9 | speculative |
 | 9 | Batch graph analytics | 2 | 2 | 2 | 4 | 8 | speculative |
 | 10 | Search index segment building | 2 | 2 | 3 | 5 | 8 | speculative until #221 |
@@ -350,7 +361,8 @@ Ties at 11 are broken by expected win, then commercial score.
    written by someone who'd write rust-expert, not rust-idiomatic. Use byte-identical output, symidx's
    harness (`env.txt`, CI on Linux and macOS), and the kill criterion **≥ 1.3× on throughput per core or on
    peak RSS against the better Rust**. If it fails, candidates 1, 2, 4 and 7 all lose their main argument,
-   which makes this the highest-information experiment available.
+   which makes this the highest-information experiment available. **Run as experiment 2: it failed**
+   (0.88× throughput, 1.07× RSS; [report](../experiments/02-logxform/REPORT.md)).
 3. **Memory-safe parsers as C.** The demand is the strongest on the list, and the blockers are documented
    rather than measured. **First experiment:** port cmark-gfm's table extension as a `--standalone` library
    (candidate 3's test). Answer three questions in a day: speed against C, error return against abort, and

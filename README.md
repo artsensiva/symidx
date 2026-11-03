@@ -11,6 +11,12 @@ builds than ctags, with lookups as fast or faster. Details: [bench/REPORT.md](be
 fit instead: [docs/GOOSE_OPPORTUNITIES.md](docs/GOOSE_OPPORTUNITIES.md); upstream: [goose#177](https://github.com/aardappel/goose/issues/177) (bug found),
 [goose#221](https://github.com/aardappel/goose/issues/221) (zero-copy view request).
 
+**Experiment 2** ([experiments/02-logxform](experiments/02-logxform/REPORT.md), pre-registered) tested the two
+strongest remaining candidates, transform kernels and log processing, on 1.66 GB of Loghub logs. After a
+fairness audit, Goose reached 0.88× arena Rust's single-thread throughput and used 1.07× less peak RSS,
+against a ≥ 1.3× kill criterion: **not met; the Goose track ends.** Goose beat idiomatic Rust 2.2× and
+2.7×, the layout's win again. Qualification: on the macOS CI VM Goose used 1.9× less RSS (uninvestigated).
+
 ## What it is
 
 A code symbol index with instant loading, built three ways to test the Goose language against Rust.
@@ -180,10 +186,10 @@ variable-size records, transform them, emit, drop everything at once.
 
 | Rank | Candidate | Composite (of 20) | Verdict |
 |---|---|---|---|
-| 1 | Request-scoped API/RPC transform kernels | 13 | strong: test first |
-| 2 | Log and telemetry parsing and transformation | 13 | strong: test with 1 |
+| 1 | Request-scoped API/RPC transform kernels | 13 | **falsified** by experiment 2 |
+| 2 | Log and telemetry parsing and transformation | 13 | **falsified** by experiment 2 |
 | 3 | Memory-safe parsers for untrusted input, shipped as C | 11 | strong on demand, blocked on embedding |
-| 4 | Genomics record processing | 11 | plausible |
+| 4 | Genomics record processing | 11 | main argument gone (experiment 2) |
 | 5 | Batch dev-tool front-ends | 11 | plausible |
 | 6 | Markup rendering | 10 | plausible |
 | 7–11 | ETL, policy evaluation, graph analytics, search segment building, game frame data | 6–10 | speculative |
@@ -227,6 +233,8 @@ bench/baselines/       ctags/readtags and SQLite baselines
 corpus/make.sh         pinned corpora S, M, L
 spike/                 Goose spike programs, load-layout experiments, bug repro, upstream issue texts
 docs/                  PHASE2.md (draft plan), GOOSE_OPPORTUNITIES.md
+experiments/02-logxform/  experiment 2: SPEC (pre-registered), REPORT, ref.py, goose/, rust-arena/,
+                       rust-idiomatic/, run.sh, check-sums.sh, corpus/fetch.sh (Loghub), test/ (edge cases), data/
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
 CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
 ```
@@ -246,6 +254,8 @@ CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
   (verdict, cross-platform confirmation) and v1.1 (opportunity analysis, this README).
   [`v0.1-experiment`](https://github.com/artsensiva/symidx/tree/v0.1-experiment) marks the state of the first report.
 - **Open item:** rust-expert's higher build RAM on the macOS CI VM, not investigated.
+- **Experiment 2 (logxform): complete**, released as v1.2: kill criterion not met, the Goose track ends
+  ([experiments/02-logxform/REPORT.md](experiments/02-logxform/REPORT.md)). Open item: macOS RSS.
 - **Phase 2: draft, not started, pending decision.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start
   code navigation index for AI coding agents, as an MCP server in Rust, built on rust-expert's design.
 

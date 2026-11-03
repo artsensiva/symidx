@@ -1,0 +1,4 @@
+impl,size,input_bytes,st_s,st_mbps,threads,mt_s,mt_mbps,st_rss_kb,mt_rss_kb,checksum_ok
+goose,M,1656536288,4.004,413.7,4,2.036,813.6,36616,348964,yes
+rust-arena,M,1656536288,3.721,445.2,4,1.697,976.2,39164,257020,yes
+rust-idiomatic,M,1656536288,10.997,150.6,4,4.719,351.0,105704,422784,yes

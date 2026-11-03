@@ -1,0 +1,148 @@
+{
+  "results": [
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/goose-0 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.3369624058,
+      "stddev": 0.07487607794089522,
+      "median": 7.350054098,
+      "user": 7.008585599999999,
+      "system": 0.30476919999999996,
+      "min": 7.2654622920000005,
+      "max": 7.448143585,
+      "times": [
+        7.448143585,
+        7.350054098,
+        7.269415895,
+        7.351736159,
+        7.2654622920000005
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/goose-1 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.2375974848,
+      "stddev": 0.18585814943812942,
+      "median": 7.291587881,
+      "user": 6.933409,
+      "system": 0.27256,
+      "min": 6.995878027,
+      "max": 7.482494473,
+      "times": [
+        7.482494473,
+        7.291587881,
+        7.296252065,
+        6.995878027,
+        7.121774978
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/goose-2 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.2937297118,
+      "stddev": 0.053624028543611334,
+      "median": 7.300844666,
+      "user": 6.997838999999999,
+      "system": 0.2853658,
+      "min": 7.220593255,
+      "max": 7.360830181,
+      "times": [
+        7.26491014,
+        7.321470317,
+        7.220593255,
+        7.300844666,
+        7.360830181
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/arena-0 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.943596516400001,
+      "stddev": 0.6375142623722649,
+      "median": 6.754528144,
+      "user": 6.4818878,
+      "system": 0.33134220000000003,
+      "min": 6.366652299,
+      "max": 7.9988384020000005,
+      "times": [
+        6.366652299,
+        6.573455784,
+        6.754528144,
+        7.024507953,
+        7.9988384020000005
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/arena-1 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.432281562999999,
+      "stddev": 0.46722448439517117,
+      "median": 7.162980862,
+      "user": 6.999497,
+      "system": 0.3238625999999999,
+      "min": 7.001389736,
+      "max": 8.076045719,
+      "times": [
+        8.076045719,
+        7.775916002,
+        7.162980862,
+        7.001389736,
+        7.145075496
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/tmp/claude-1000/-home-artem-symidx/30cef7fb-2b50-469b-9764-5f92dbc3974a/scratchpad/layout/bin/arena-2 -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.8120552996,
+      "stddev": 0.02439923184075784,
+      "median": 6.808643465,
+      "user": 6.5772182,
+      "system": 0.23254380000000002,
+      "min": 6.775788605,
+      "max": 6.83495309,
+      "times": [
+        6.808643465,
+        6.775788605,
+        6.83495309,
+        6.806494488,
+        6.83439685
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
