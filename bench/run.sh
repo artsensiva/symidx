@@ -40,6 +40,7 @@ PREPARE=()
 if [ "${COLD:-0}" = 1 ]; then
   cold_allowed || { echo "COLD=1 needs passwordless sudo for: $(cold_prepare_cmd) (see bench/check-machine.sh)" >&2; exit 1; }
   PREPARE=(--prepare "$(cold_prepare_cmd)")
+  sh -c "$(cold_prepare_cmd)" || { echo "COLD=1: emptying the page cache failed: $(cold_prepare_cmd)" >&2; exit 1; }
 fi
 setup_pin
 write_env "$OUT/env.txt" "$ROOT/corpus"
