@@ -14,3 +14,7 @@ target/
 __pycache__/
 # Index images anywhere (after the spike re-includes, so it wins).
 *.img
+# Experiment 2: downloaded corpus, results, binaries.
+/experiments/02-logxform/corpus/src/
+/experiments/02-logxform/results/
+/experiments/02-logxform/goose/logxform
