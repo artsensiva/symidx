@@ -1,0 +1,196 @@
+{
+  "results": [
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/goose-base -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.0891276996000006,
+      "stddev": 0.055520248016867765,
+      "median": 7.082115905,
+      "user": 6.8374792,
+      "system": 0.24503679999999997,
+      "min": 7.014788802,
+      "max": 7.163030081,
+      "times": [
+        7.163030081,
+        7.067699776,
+        7.014788802,
+        7.118003934,
+        7.082115905
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/goose-native -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.238153167799998,
+      "stddev": 0.08395155356493456,
+      "median": 7.240086306,
+      "user": 6.949847399999999,
+      "system": 0.2657736,
+      "min": 7.136594262,
+      "max": 7.367734582,
+      "times": [
+        7.136594262,
+        7.2409727,
+        7.205377989,
+        7.240086306,
+        7.367734582
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/goose-lto -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.4999247996000005,
+      "stddev": 0.036884342740041945,
+      "median": 7.499225087,
+      "user": 7.242223200000001,
+      "system": 0.24591599999999997,
+      "min": 7.466221141,
+      "max": 7.560220803,
+      "times": [
+        7.466221141,
+        7.560220803,
+        7.499225087,
+        7.499912364,
+        7.474044603
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/goose-pgo -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.6097832806,
+      "stddev": 0.053166498633653816,
+      "median": 6.595216841,
+      "user": 6.3481402000000005,
+      "system": 0.2527488,
+      "min": 6.546955063,
+      "max": 6.66515444,
+      "times": [
+        6.576984884,
+        6.66515444,
+        6.546955063,
+        6.595216841,
+        6.664605175
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/rust-arena-base -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 7.0696928926,
+      "stddev": 0.05051207589677021,
+      "median": 7.050248988,
+      "user": 6.7975894,
+      "system": 0.24759279999999997,
+      "min": 7.041042537,
+      "max": 7.159723756,
+      "times": [
+        7.159723756,
+        7.0454023,
+        7.050248988,
+        7.052046882,
+        7.041042537
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/rust-arena-native -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.363459446,
+      "stddev": 0.03727532683021062,
+      "median": 6.347983714,
+      "user": 6.0881929999999995,
+      "system": 0.252344,
+      "min": 6.328018492,
+      "max": 6.405702581,
+      "times": [
+        6.347983714,
+        6.334328754,
+        6.401263689,
+        6.328018492,
+        6.405702581
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/rust-arena-lto -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.3812730654,
+      "stddev": 0.05154407566244498,
+      "median": 6.373395832,
+      "user": 6.1214010000000005,
+      "system": 0.2515666,
+      "min": 6.318473297,
+      "max": 6.44450445,
+      "times": [
+        6.318473297,
+        6.373395832,
+        6.44450445,
+        6.348972419,
+        6.421019329
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "command": "/home/artem/symidx/experiments/02-logxform/flags/bin/rust-arena-pgo -t 1 apache /home/artem/symidx/experiments/02-logxform/corpus/src/Apache.log ssh /home/artem/symidx/experiments/02-logxform/corpus/src/SSH.log hdfs /home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log",
+      "mean": 6.6754151866,
+      "stddev": 0.039637589573365405,
+      "median": 6.660636232,
+      "user": 6.4111633999999995,
+      "system": 0.2546322,
+      "min": 6.6356642180000005,
+      "max": 6.73360792,
+      "times": [
+        6.660636232,
+        6.650207568,
+        6.6356642180000005,
+        6.73360792,
+        6.696959995
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

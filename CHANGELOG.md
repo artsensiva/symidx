@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.2.1 (2026-11-03)
+
+Audit preparation and the first step of the Goose improvement track. No verdict changes.
+
+- **Added** `AUDIT.md`, a brief for an independent auditor: scope, both experiments, reproducing from a
+  clean checkout, known limitations, and questions.
+- **Added** `CLAIMS.md`: every headline claim in the README and both reports, with its evidence. It flags
+  two soft spots:
+  - "10–25× slower load" is 9.4–9.5× on local M;
+  - the `serde_bytes` 40 → 13 ms figure comes from the development log, not a recorded result.
+- **Added** to experiment 2:
+  - a build-flag row (`flags/`; -O3/-march=native, LTO, PGO; best against best 0.96×);
+  - a phase-timed profile of the single-thread gap (parsing, rendering, newline scan; record copies cost
+    nothing extra).
+- **Added** `docs/GOOSE_IMPROVEMENT_PLAN.md`: four gaps with root causes, evidence, effort, benchmarks,
+  pre-registered targets and kill criteria, and the order of work.
+- **Added** `spike/COMMENT_221.md`, a draft comment for goose#221 offering to prototype a verified view.
+  Not posted.
+- The release carries a repomix bundle of the repository (no corpora, toolchain or results) and `AUDIT.md`.
+
 ## v1.2 (2026-11-03)
 
 Experiment 2, logxform. **Verdict: kill criterion not met; the Goose track ends.**

@@ -151,6 +151,63 @@ huge pages on either side, identical algorithms for every parsing and transform 
 both to the processing model (records materialized before rendering, 2N in-flight bound, N workers plus
 the main thread).
 
+## Amendment row: build flags (added after v1.2; doesn't change the verdict)
+
+Does a different build configuration close the single-thread gap? `flags/build.sh` builds four
+configurations of each, and `flags/measure.sh` times all eight in one hyperfine invocation (M, `-t 1`, warm,
+RUNS=5, load average 1.6; every variant matches the S checksum; `data/flags/`):
+- Goose's configurations recompile its generated C together with the runtime source and `io.c`.
+- No LTO-capable linker is installed (no lld or gold), so Goose's LTO is done by hand with clang 21's own
+  LLVM: bitcode per file, `llvm-link`, then whole-program `-O3` codegen.
+- Rust already has fat LTO, so its "lto" row equals "native".
+- PGO trains on S for both.
+- All four Rust builds link with system clang, because the default `cc` here, a zig wrapper, breaks PGO
+  links. That makes this Rust "base" 5% slower than the main run's: code layout again.
+
+| Configuration | Goose | rust-arena | Ratio |
+|---|---|---|---|
+| base (Goose `-O2`; Rust release + fat LTO) | 233.7 MB/s | 234.3 MB/s | 1.00 |
+| -O3 -march=native / `-C target-cpu=native` | 228.9 MB/s | 260.3 MB/s | 0.88 |
+| + LTO (whole program incl. Goose's runtime) | 220.9 MB/s | 259.6 MB/s | 0.85 |
+| + PGO | 250.6 MB/s | 248.2 MB/s | 1.01 |
+
+The best of each against each other: 250.6 / 260.3 = **0.96**. Native code generation helps Rust (+11%)
+and not Goose (−2%); PGO helps Goose (+7%) and not Rust. No configuration comes near 1.3×.
+
+## Profile of the single-thread gap
+
+perf couldn't be used: `kernel.perf_event_paranoid` reads 4 from this session's shell, and valgrind isn't
+installed. So the gap was split with phase timers instead. These are copies of both programs with timers
+around each per-batch phase (`data/profile/`), run alternately 3 times on M at `-t 1`. Then an ablation
+that stops after parsing and the filter, building no records, splits the record phase.
+
+| Phase (M, `-t 1`, median of 3) | Goose | rust-arena | Goose ÷ Rust |
+|---|---|---|---|
+| read(2) + newline scan for batching | 0.49 s | 0.43 s | 1.13 |
+| parse + filter (ablation, no records) | 1.80 s | 1.51 s | 1.19 |
+| build records: redact, pairs, copies, push | 3.24 s | 3.34 s | 0.97 |
+| render NDJSON | 1.72 s | 1.59 s | 1.08 |
+| carry + write | 0.02 s | 0.01 s | — |
+| total (timed builds) | 7.27 s | 6.89 s | 1.055 |
+
+Where Goose spends its extra time:
+- **Parsing (+0.29 s, most of the gap).** The field checks are scalar byte loops on both sides. Goose
+  keeps bounds checks in them: `--bce-lines` reports 21 of 83 index checks and 44 of 65 slice checks kept,
+  concentrated in the redaction, pair and line loops. Its parsers also fill a `Head` through a reference,
+  where Rust returns an `Option` that inlines and partly folds away. Caveat: in the ablation the unused
+  parse results may be eliminated differently by the two compilers.
+- **Rendering (+0.13 s).** `json::format_string` scans each string twice (`plain`, then `append`); the
+  Rust version scans once.
+- **Newline scan (+0.06 s).** Goose's runtime `find_any` tests 16 bytes at a time, and it sits in a
+  separately compiled runtime object, so it can't be inlined. `memchr` dispatches to AVX2.
+- **Not a cost: copies.** Building inline records, which copies every kept message and its pairs about
+  twice, is as fast as rust-arena's span bookkeeping (0.97×).
+- **Vectorization.** clang vectorizes 2 of the 96 loops in Goose's generated C. The other 94 are
+  early-exit byte loops that neither compiler vectorizes; the Rust side relies on `memchr` for the one
+  hot loop that benefits.
+
+This session's gap (5.5%) is smaller than the main run's (14%). That's within the code-layout spread above.
+
 ## What this means for docs/GOOSE_OPPORTUNITIES.md
 
 - **1 (request-scoped transform kernels)** and **2 (log and telemetry processing)**: falsified by their

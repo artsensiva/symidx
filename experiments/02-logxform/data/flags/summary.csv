@@ -1,0 +1,9 @@
+impl,config,st_s,st_mbps
+goose,base,7.089,233.7
+goose,native,7.238,228.9
+goose,lto,7.500,220.9
+goose,pgo,6.610,250.6
+rust-arena,base,7.070,234.3
+rust-arena,native,6.363,260.3
+rust-arena,lto,6.381,259.6
+rust-arena,pgo,6.675,248.2

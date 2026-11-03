@@ -197,6 +197,20 @@ variable-size records, transform them, emit, drop everything at once.
 Poor fits: serving large read-mostly images (until something like goose#221 exists), long-lived mutable
 shared state, libraries for multithreaded hosts, WebAssembly and microcontrollers, flat numeric kernels.
 
+## Next: improving Goose
+
+[docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md) names the four gaps behind both verdicts:
+a zero-copy verified view, embedding, parallelism and single-thread code generation. Each has its evidence,
+an effort estimate, the benchmark that measures it, and a pre-registered target and kill criterion.
+- **Done: profiling.** The single-thread gap is in parsing, the two-pass JSON escape and the newline scan,
+  not in record copies. Build flags don't close it: the best of each reaches 0.96×.
+- **Next: asking upstream.** A comment for goose#221 offering to prototype the view is drafted in
+  `spike/COMMENT_221.md` and not yet posted.
+- **Then:** the view, embedding, parallelism.
+
+For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, limitations, questions) and
+[CLAIMS.md](CLAIMS.md) (every headline claim with its evidence).
+
 ## Reproducing
 
 From a clean checkout, on Linux x86-64 or macOS on Apple Silicon. CI runs the same steps on every push.
@@ -232,7 +246,8 @@ bench/                 run.sh, lib.sh (portable helpers, env.txt), check-sums.sh
 bench/baselines/       ctags/readtags and SQLite baselines
 corpus/make.sh         pinned corpora S, M, L
 spike/                 Goose spike programs, load-layout experiments, bug repro, upstream issue texts
-docs/                  PHASE2.md (draft plan), GOOSE_OPPORTUNITIES.md
+docs/                  PHASE2.md (draft plan), GOOSE_OPPORTUNITIES.md, GOOSE_IMPROVEMENT_PLAN.md
+AUDIT.md, CLAIMS.md    brief for an independent audit; every headline claim with its evidence
 experiments/02-logxform/  experiment 2: SPEC (pre-registered), REPORT, ref.py, goose/, rust-arena/,
                        rust-idiomatic/, run.sh, check-sums.sh, corpus/fetch.sh (Loghub), test/ (edge cases), data/
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
