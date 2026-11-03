@@ -1,14 +1,16 @@
 # symidx report: Goose vs Rust for an instant-start symbol index
 
-2026-11-01. Data: `bench/results/20261101-132456/` (implementations) and
-`bench/results/baselines-20261101-132720/` (market baselines).
+2026-11-01, cross-platform and cold-cache confirmation added 2026-11-03. Data: `bench/results/20261101-132456/`
+(implementations) and `bench/results/baselines-20261101-132720/` (market baselines); CI runs as linked below.
 
 ## Verdict
 
-**The kill criterion is triggered: the large project should be built in Rust.**
+**The large project should be built in Rust.** The verdict rests on the refined reading of the kill
+criterion (below): Goose's serving memory is 2.0–3.1× worse than rust-expert's on every platform measured,
+warm and cold.
 
-The criterion is "no ≥ 1.3× memory win over rust-expert". Against the fairness-corrected (streaming)
-rust-expert, Goose has none:
+The criterion is "no ≥ 1.3× memory win over rust-expert". On the reference machine (Linux), against the
+fairness-corrected (streaming) rust-expert, Goose has none:
 
 | Memory metric | M | L |
 |---|---|---|
@@ -18,9 +20,24 @@ rust-expert, Goose has none:
 | Image size | 1.20× smaller (3.00 vs 3.62 MB) | 1.12× smaller (39.3 vs 43.9 MB) |
 
 Image size is the only memory-like metric Goose wins, and it's below the 1.3× target on both corpora.
-Goose also loads 10× (M) and 25× (L) slower than rust-expert.
+Goose also loads 10–25× slower than rust-expert with a warm cache, and 1–2× slower cold (parity on the
+macOS CI VM; see "Cross-platform and cold-cache confirmation").
 
-This is a clear negative result. The experiment did its job.
+### Criterion refinement
+
+The original kill criterion (CLAUDE.md's target table) targeted **build RAM**. Serving memory was added
+mid-experiment as the primary metric, because an always-resident server pays it constantly, while builds
+are rare. Both readings, side by side:
+
+| Reading | Linux (local, CI) | macOS CI VM |
+|---|---|---|
+| **Literal:** build RAM, Goose ≥ 1.3× less? | not met (parity, within ±4%) | **met**: 1.34–1.50× less (low confidence, uninvestigated) |
+| **Refined:** serving memory, Goose ≥ 1.3× less? | not met: 2.0–2.7× **more** | not met: 3.1× **more** |
+
+So the literal criterion is not met on Linux and is met on the macOS CI VM. The refined criterion is not
+met anywhere, warm or cold. **The verdict (Rust) rests on the refined criterion**, and on the load gap; the
+literal one alone would not decide it on macOS. This is a negative result for Goose for this workload, and
+the experiment did its job.
 
 ## What belongs to Goose, and what to the layout
 
@@ -80,7 +97,8 @@ change would remove both its load and serving-memory deficits.
   prefixes `get_ test Model _`, one process each, load included. "Serving" is the peak RSS of one process
   that loads and answers `""` (the whole index) or `Model` (selective).
 - **Machine:** 6 cores, 15 GB RAM with only 2–4 GB free (desktop apps open), `powersave` governor, warm page
-  cache. Cold-cache runs (`COLD=1`) were not done: they need passwordless sudo. Expect noise of a few percent.
+  cache. Expect noise of a few percent. Cold-cache runs need passwordless sudo, which this machine lacks;
+  they were done in CI instead ("Cross-platform and cold-cache confirmation").
 - **Timing caveat:** in this run every build command was wrapped in `env` (one extra exec, ~2 ms), equally for
   all implementations. That's under 3% of an M build; `bench/run.sh` has since been fixed.
 - **Tuning parity:** no Linux-specific tuning in any implementation. Pre-faulting (`madvise` populate +
@@ -164,6 +182,48 @@ Layout D′ (`spike/layout_dprime/`) is 27–30% faster to load. But it's larger
 and memory is the primary metric. Even its load is 17× slower than rust-expert's on L. Neither option
 changes the verdict.
 
+## Cross-platform and cold-cache confirmation
+
+Goose vs rust-expert on M, one table per environment. CI is `.github/workflows/bench.yml`
+([run 41640770345](https://github.com/artsensiva/symidx/actions/runs/41640770345)), RUNS=3; cold means the
+page cache is emptied before every timed load and find run (`COLD=1`: `drop_caches` on Linux, `purge` on
+macOS). Serving RSS and image size don't depend on the cache state; they're shown for both rows. Each row's
+`env.txt` is in the run's artifacts.
+
+**Local Linux** (i5-8400T, 6 cores, NVMe, `powersave`; `bench/results/local-warm-final/`, RUNS=10). Cold:
+not measured, no passwordless sudo.
+
+| Goose / rust-expert | Load | Find | Serving RSS (selective) | Image |
+|---|---|---|---|---|
+| warm | 11.8 / 1.2 ms (9.5×) | 12.9 / 2.3 ms | 11.6 / 5.7 MB (2.0×) | 3.00 / 3.62 MB |
+
+**CI Linux** (ubuntu-latest: AMD EPYC 7763, 4 vCPUs, Azure VM).
+
+| Goose / rust-expert | Load | Find | Serving RSS (selective) | Image |
+|---|---|---|---|---|
+| warm | 10.8 / 1.0 ms (10.5×) | 12.8 / 1.8 ms | 11.3 / 5.6 MB (2.0×) | 3.00 / 3.62 MB |
+| cold | 18.4 / 9.3 ms (2.0×) | 20.1 / 12.5 ms | 11.3 / 4.1 MB (2.7×) | 3.00 / 3.62 MB |
+
+**CI macOS** (macos-latest: Apple M1, virtual, 3 vCPUs). **Low confidence:** a 3-core VM with a load
+average above 40, and 3 runs.
+
+| Goose / rust-expert | Load | Find | Serving RSS (selective) | Image |
+|---|---|---|---|---|
+| warm | 9.4 / 2.9 ms (3.3×) | 10.0 / 4.4 ms | 10.6 / 3.5 MB (3.1×) | 3.00 / 3.62 MB |
+| cold | 121.8 / 119.7 ms (parity) | 129 / 193 ms (Goose faster) | 10.6 / 3.5 MB (3.1×) | 3.00 / 3.62 MB |
+
+Does the verdict hold?
+- **Local Linux, CI Linux:** yes, on both readings of the criterion. Serving memory is 2.0–2.7× worse for
+  Goose, and build RAM is at parity.
+- **CI macOS:** yes on the refined criterion (serving memory 3.1× worse); the literal one is met (below).
+- **Cold cache:** the load gap shrinks from 10× to 2× on Linux and to parity on macOS: reading the image from
+  storage dominates both, and rust-expert's advantage is not copying it. Serving memory doesn't change.
+
+**Open item, not investigated: macOS build RAM.** In three CI runs on the macOS VM, streaming rust-expert's
+build peaked at 18.6–20.8 MB on M against Goose's 13.9 MB (1.34–1.50×), while
+on Linux the two are at parity. Possible causes: macOS's allocator keeping freed memory resident, 16 KB pages
+coarsening RSS, or the build's buffering on 3 cores.
+
 ## Experiment: segmented validation for rust-expert
 
 rust-expert's serving memory roughly equals the parts of the image its eager validation touches: all
@@ -172,6 +232,8 @@ offset tables and every occurrence. `SYMIDX_VALIDATE=lazy` (`rust-expert/src/mai
 chunk of groups spans, is checked the first time a query touches it, and before anything from that segment
 is returned. The output is identical to eager mode on S, M and L. 1,200 corrupted-image runs gave exit
 0 or 1 only. **This doesn't conform to SPEC's eager-validation rule, so it's an experiment, not the default.**
+
+Measured in a separate session from the main run (so eager L numbers differ slightly from the Results tables).
 
 | L (43.9 MB image) | Eager | Lazy |
 |---|---|---|

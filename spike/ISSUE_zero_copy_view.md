@@ -3,7 +3,7 @@
 
 Thanks for Goose. `from_bytes` is the nicest serialization story I've used: one call, a verifier
 generated from the type, and a corrupt file is a `false` rather than a wild reference. This request is
-about the one place where it costs a lot, with measurements from a small comparison project.
+about the one place where it costs a lot, serving memory, with measurements from a small comparison project.
 
 ## Context
 
@@ -13,20 +13,31 @@ an mmap, bytecheck plus an explicit validation pass). The Goose image is the mos
 thanks to inline `u8[varint]` names and `varint` fields. While building it we also hit #177
 (`from_bytes` and `append`).
 
-The full write-up is in `bench/REPORT.md` there. The relevant numbers:
+The full write-up is in `bench/REPORT.md` there. The main problem is **serving memory**: a long-running
+tool (a language server, an index) keeps the loaded data resident for its whole life, and with `from_bytes`
+that costs about twice the image.
 
-| | Goose (`read_file` + `from_bytes`) | Rust (rkyv over mmap) |
+| Peak RSS while serving one selective query | Goose (`read_file` + `from_bytes`) | Rust (rkyv over mmap) |
 |---|---|---|
-| Load, 3 MB image | 12.2 ms | 1.3 ms |
-| Load, 39 MB image | 134 ms | 5.3 ms |
-| Peak RSS, one selective query, 3 MB image | 11.4 MB | 5.6 MB |
-| Peak RSS, one selective query, 39 MB image | 116 MB | 44 MB |
+| 3 MB image, Linux | 11.4 MB | 5.6 MB |
+| 39 MB image, Linux | 116 MB | 44 MB |
+| 3 MB image, macOS (CI VM) | 10.6 MB | 3.5 MB |
 
-So serving memory is 2.0–2.6× higher and load is 10–25× slower, although Goose's image is 1.1–1.2× smaller.
+So serving memory is 2.0–3.1× higher, although Goose's image is 1.1–1.2× smaller. Load time follows the
+same cause. With a warm page cache:
+
+| Load, warm cache | Goose | Rust (rkyv over mmap) |
+|---|---|---|
+| 3 MB image | 12.2 ms | 1.3 ms |
+| 39 MB image | 134 ms | 5.3 ms |
+
+That's 10–25× slower. For completeness, with a cold cache (3 MB image, CI runners, 3 runs) reading from
+storage dominates both: 18.4 vs 9.3 ms on Linux (2×) and 122 vs 120 ms on a macOS VM (parity). Cold load
+isn't the problem; resident memory and warm restarts are.
 
 ## Where the cost comes from
 
-Profiling the 3 MB case (`SYMIDX_PROFILE=1` in `goose/symidx.goose`):
+Profiling the 3 MB case with a warm cache (`SYMIDX_PROFILE=1` in `goose/symidx.goose`):
 
 - `from_bytes` copies the payload into the result, so the read buffer and the copy are resident at once.
   Serving costs at least about 2× the image.
@@ -74,6 +85,6 @@ optional, and separable from the main proposal.
 
 The pitch in the tutorial ("your data is already a file format") is exactly what a fast-starting tool
 wants: a language server, an index, a cache. With a verified view, Goose would keep its compactness and
-safety and match zero-copy loaders on start-up time and memory. Today it loses the comparison on those two
-metrics, so we went with Rust for the larger project. I'd be glad to test a prototype against this
+safety and match zero-copy loaders on serving memory and warm start-up time. Today it loses the comparison
+on those two metrics, so we went with Rust for the larger project. I'd be glad to test a prototype against this
 benchmark.
