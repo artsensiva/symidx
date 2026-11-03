@@ -23,7 +23,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-26]   # pinned: a "-latest" label migration would change the numbers silently
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
 
@@ -50,6 +50,8 @@ jobs:
           workspaces: |
             rust-idiomatic -> target
             rust-expert -> target
+            experiments/02-logxform/rust-arena -> target
+            experiments/02-logxform/rust-idiomatic -> target
 
       - name: Build Goose implementation (pinned release, sha256-checked)
         run: goose/fetch-toolchain.sh && goose/build.sh
@@ -81,6 +83,33 @@ jobs:
           check bench/results/ci-warm/summary.csv 8
           check bench/results/ci-cold/summary.csv 4
 
+      # Experiment 2, logxform (experiments/02-logxform/): checksums on S and M, a short benchmark on M.
+      - name: logxform corpus archives (Zenodo, sha256-checked)
+        uses: actions/cache@v6
+        with:
+          path: |
+            experiments/02-logxform/corpus/src/*.zip
+            experiments/02-logxform/corpus/src/*.tar.gz
+          key: logxform-corpus-${{ hashFiles('experiments/02-logxform/corpus/fetch.sh') }}
+      - name: logxform build
+        run: |
+          experiments/02-logxform/corpus/fetch.sh
+          experiments/02-logxform/goose/build.sh
+          cargo build --release --locked --manifest-path experiments/02-logxform/rust-arena/Cargo.toml
+          cargo build --release --locked --manifest-path experiments/02-logxform/rust-idiomatic/Cargo.toml
+      - name: logxform checksums (ref.py rerun on S; everyone against the record on S and M)
+        run: |
+          REF=1 experiments/02-logxform/check-sums.sh S
+          experiments/02-logxform/check-sums.sh M
+      - name: logxform benchmark, warm cache, M (few runs; relative comparisons only)
+        run: OUT=experiments/02-logxform/results/ci-warm RUNS=3 experiments/02-logxform/run.sh M
+      - name: logxform summary complete
+        run: |
+          awk -F, 'NR > 1 { rows++; for (i = 1; i <= NF; i++) if ($i == "") { print "empty field " i ": " $0; bad = 1 }
+                           if ($NF != "yes") { print "checksum: " $0; bad = 1 } }
+                   END { if (rows != 3) { print "rows: " rows " (want 3)"; bad = 1 }; exit bad }' \
+            experiments/02-logxform/results/ci-warm/summary.csv
+
       - name: Machine report
         if: always()
         run: bench/check-machine.sh || true
@@ -100,4 +129,12 @@ jobs:
           path: |
             bench/results/ci-cold/summary.csv
             bench/results/ci-cold/env.txt
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: logxform-warm-${{ matrix.os }}
+          path: |
+            experiments/02-logxform/results/ci-warm/summary.csv
+            experiments/02-logxform/results/ci-warm/env.txt
           if-no-files-found: warn

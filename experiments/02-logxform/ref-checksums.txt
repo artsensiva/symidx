@@ -1,0 +1,4 @@
+# corpus  sha256-of-stdout  stderr-summary   (from ref.py; experiments/02-logxform/SPEC.md "Reference")
+S 5bdaf7541e57d9a8a528d0082f3eb48ec821dcbda381233a6a713e0cf4b8d67f lines=1211629 kept=989056 dropped=218095 malformed=4478
+M ff0ea733568d372e800590fc7016a72fc09b1cac1e9b8a65b6d38b57bf496911 lines=11887258 kept=7067378 dropped=4815402 malformed=4478
+L 24ffdab922fbb92d3232beadf06365213a3bfbf6935691a8d8bdb744fe2140f8 lines=47549032 kept=28269512 dropped=19261608 malformed=17912
