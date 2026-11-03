@@ -444,10 +444,9 @@ fn next_batch(fd: i64, buf: u8[>..]&, eof_in: bool) -> i64, bool {
 }
 
 fn drop_front(buf: u8[>..]&, n: i64) {
-    var rest: u8[>..] = [];
-    rest.append(buf[n..]);
-    buf.clear();
-    buf.append(rest);
+    let k = buf.len - n;
+    for i in k { buf[i] = buf[n + i]; }
+    buf.pop_n(n);
 }
 
 // --- threads ----------------------------------------------------------------------
@@ -511,7 +510,15 @@ fn receive() {
         }
     }
     guard wrote else { return; }
-    // Compact: keep only what is still waiting.
+    var live = 0;
+    for p in spans { if p.seq >= 0 { live += p.hi - p.lo; } }
+    if live == 0 {
+        pend.clear();
+        spans.clear();
+        return;
+    }
+    // Compact only when written bytes outweigh the ones still waiting.
+    guard pend.len - live > live else { return; }
     var np: u8[>..] = [];
     var ns: Pend[>..] = [];
     for p in spans {

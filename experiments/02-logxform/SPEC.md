@@ -228,4 +228,14 @@ audit.** Otherwise the Goose track ends, and `docs/GOOSE_OPPORTUNITIES.md` is up
 
 ## Amendments
 
-None yet. Each amendment gets a date, what changed, why, and both readings in the report.
+Each amendment gets a date, what changed, why, and both readings in the report.
+
+**A1 (2026-11-03, after the fairness audit): rust-arena's records.** "Implementations" item 2 described
+rust-arena as using "a per-batch `bumpalo` arena". Version 1 did: fat-pointer records (64 bytes, plus
+32 bytes per key-value pair) in a `bumpalo` arena. The audit found that layout about twice the size a
+memory-minded team would use, which inflates rust-arena's peak RSS. Version 2 keeps every SPEC rule
+(records borrow from the input, a rewritten message is copied once, nothing is fused, no `unsafe`), but
+stores each string as a u32 span into the input or into a per-batch byte arena: a record is 36 bytes and
+a pair 16. Spans need offsets, which `bumpalo` doesn't give, so its per-batch arenas are reused `Vec`s
+cleared for every batch, and `bumpalo` is no longer a dependency. The kill criterion uses version 2, the
+stronger competitor on RSS; the report gives version 1's numbers too. Nothing else in the SPEC changed.

@@ -248,8 +248,7 @@ fn min_level(component: &str) -> Level {
 }
 
 fn is_ipv4(s: &str) -> bool {
-    let groups: Vec<&str> = s.split('.').collect();
-    groups.len() == 4 && groups.iter().all(|g| (1..=3).contains(&g.len()))
+    s.split('.').count() == 4 && s.split('.').all(|g| (1..=3).contains(&g.len()))
 }
 
 fn redact(msg: &str) -> String {

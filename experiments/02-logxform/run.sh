@@ -8,7 +8,8 @@
 #   PIN=2,3                                  — run every measurement on these CPUs (Linux, taskset)
 #   OUT=<dir>                                — results directory (default experiments/02-logxform/results/<timestamp>/)
 # Writes summary.csv and env.txt. Throughput is input MB (10^6 bytes) per second of hyperfine's mean wall
-# time; RSS is the median of 3 runs. Warm: one untimed run first, plus hyperfine warm-up runs.
+# time; RSS is the median of 3 runs. Warm: one untimed run first, plus hyperfine warm-up runs. All
+# implementations share one hyperfine invocation per mode, and RSS rounds interleave them.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 . "$ROOT/bench/lib.sh"
@@ -31,12 +32,13 @@ THREADS=${THREADS:-$(cores)}
 write_env "$OUT/env.txt" "$CORPUS"
 echo "threads (multi-thread runs): $THREADS" >> "$OUT/env.txt"
 
-# median3 <cmd...>: median peak RSS (KiB) of three runs, stdout and stderr discarded.
-median3() {
-  local a b c
-  a=$(peak_rss_kb /dev/null "$OUT/rss.time" "$@"); b=$(peak_rss_kb /dev/null "$OUT/rss.time" "$@")
-  c=$(peak_rss_kb /dev/null "$OUT/rss.time" "$@")
-  printf '%s\n%s\n%s\n' "$a" "$b" "$c" | sort -n | sed -n 2p
+# hf_nth <hyperfine.json> <i>: mean wall time (s) of the i-th command of an export (hyperfine 1.x and 2.x).
+hf_nth() {
+  python3 -I -c '
+import json, sys
+r = json.load(open(sys.argv[1]))["results"][int(sys.argv[2])]
+m = r["summary"]["time_wall_clock"]["mean"] if "summary" in r else r["mean"]
+print("%.3f" % m)' "$@"
 }
 
 CSV="$OUT/summary.csv"
@@ -46,24 +48,36 @@ for size in "${SIZES[@]}"; do
   bytes=$(corpus_bytes "$size")
   want=$(want_sum "$size"); summary=$(want_summary "$size")
   [ -n "$want" ] || { echo "no recorded checksum for $size in ref-checksums.txt" >&2; exit 1; }
-  echo "== $size ($bytes bytes, ref sha256 $want)"
+  echo "== $size ($bytes bytes, ref sha256 $want, load $(uptime | sed 's/.*load averages*: //'))"
+  impls=(); st=(); mt=()
   for impl in "${IMPLS[@]}"; do
     bin=$(bin_of "$impl")
     [ -x "$bin" ] || { echo "  $impl: no $bin, skipping"; continue; }
-    tag="$OUT/$impl-$size"
+    impls+=("$impl"); st+=("$bin -t 1 $args"); mt+=("$bin -t $THREADS $args")
     # Checksum, and the untimed warming run.
-    sum=$(pinned "$bin" -t 1 $args 2> "$tag.err" | sha256)
-    ok=$([ "$sum" = "$want" ] && [ "$(cat "$tag.err")" = "$summary" ] && echo yes || echo NO)
-    pinned hyperfine -N -w 1 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$tag.st.json" "$bin -t 1 $args" > /dev/null
-    pinned hyperfine -N -w 1 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$tag.mt.json" "$bin -t $THREADS $args" > /dev/null
-    st_rss=$(median3 "$bin" -t 1 $args)
-    mt_rss=$(median3 "$bin" -t "$THREADS" $args)
+    sum=$(pinned "$bin" -t 1 $args 2> "$OUT/$impl-$size.err" | sha256)
+    [ "$sum" = "$want" ] && [ "$(cat "$OUT/$impl-$size.err")" = "$summary" ] && echo yes > "$OUT/$impl-$size.ok" || echo NO > "$OUT/$impl-$size.ok"
+  done
+  # All implementations in one hyperfine invocation per mode, so slow drift doesn't land on one of them.
+  pinned hyperfine -N -w 1 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$OUT/$size.st.json" "${st[@]}" > /dev/null
+  pinned hyperfine -N -w 1 -r "$RUNS" ${PREPARE[@]+"${PREPARE[@]}"} --export-json "$OUT/$size.mt.json" "${mt[@]}" > /dev/null
+  # Peak RSS: three rounds, implementations interleaved; the median per implementation.
+  for round in 1 2 3; do
+    for i in "${!impls[@]}"; do
+      bin=$(bin_of "${impls[$i]}")
+      peak_rss_kb /dev/null "$OUT/rss.time" "$bin" -t 1 $args >> "$OUT/${impls[$i]}-$size.st_rss"
+      peak_rss_kb /dev/null "$OUT/rss.time" "$bin" -t "$THREADS" $args >> "$OUT/${impls[$i]}-$size.mt_rss"
+    done
+  done
+  for i in "${!impls[@]}"; do
+    impl=${impls[$i]}
     # Assigned first so that a parse failure stops the run instead of leaving an empty column.
-    st_s=$(hf_mean "$tag.st.json" 1); mt_s=$(hf_mean "$tag.mt.json" 1)
+    st_s=$(hf_nth "$OUT/$size.st.json" "$i"); mt_s=$(hf_nth "$OUT/$size.mt.json" "$i")
+    st_rss=$(sort -n "$OUT/$impl-$size.st_rss" | sed -n 2p); mt_rss=$(sort -n "$OUT/$impl-$size.mt_rss" | sed -n 2p)
     st_mbps=$(awk -v b="$bytes" -v s="$st_s" 'BEGIN {printf "%.1f", b / 1e6 / s}')
     mt_mbps=$(awk -v b="$bytes" -v s="$mt_s" 'BEGIN {printf "%.1f", b / 1e6 / s}')
     printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' "$impl" "$size" "$bytes" "$st_s" "$st_mbps" "$THREADS" \
-      "$mt_s" "$mt_mbps" "$st_rss" "$mt_rss" "$ok" | tee -a "$CSV"
+      "$mt_s" "$mt_mbps" "$st_rss" "$mt_rss" "$(cat "$OUT/$impl-$size.ok")" | tee -a "$CSV"
   done
 done
 rm -f "$OUT/rss.time"

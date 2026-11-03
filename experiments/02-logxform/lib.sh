@@ -23,7 +23,9 @@ corpus_bytes() {
   echo "$n"
 }
 
+# BIN_DIR=<dir> runs <dir>/<impl> instead (e.g. saved pre-audit binaries, or neutral rebuilds).
 bin_of() {
+  [ -n "${BIN_DIR:-}" ] && { echo "$BIN_DIR/$1"; return; }
   case "$1" in
     goose) echo "$X/goose/logxform" ;;
     rust-*) echo "$X/$1/target/release/logxform" ;;

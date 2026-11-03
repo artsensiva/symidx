@@ -1,12 +1,13 @@
 //! logxform, the arena Rust version: see experiments/02-logxform/SPEC.md.
 //!
-//! A hand-written byte parser builds each batch's records in a per-batch `bumpalo` arena. Records borrow
-//! from the batch's input bytes; only a message that redaction rewrites and the key-value lists are
-//! allocated, in the arena. Rendering writes straight into a reused output buffer. The arena is reset
-//! for the next batch, so steady state does no heap allocation at all.
+//! A hand-written byte parser builds each batch's records in per-batch typed arenas: three reused
+//! vectors (records, key-value pairs, and the bytes of rewritten messages), cleared for every batch.
+//! Records are compact: every string is a u32 span into the batch's input bytes or into the batch's
+//! byte arena, so a record is 36 bytes and a pair 16. Only a message that redaction rewrites is copied.
+//! Rendering writes straight into a reused output buffer; steady state does no heap allocation.
+//! (Version 1 kept fat-pointer records in a `bumpalo` arena; the fairness audit found them twice the
+//! size of this layout. See SPEC "Amendments".)
 
-use bumpalo::collections::Vec as BVec;
-use bumpalo::Bump;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -46,12 +47,45 @@ struct Ts {
 
 type Kv<'a> = (&'a [u8], &'a [u8]);
 
-struct Rec<'a> {
+/// A string of the batch: `off` below the input's length is in the input, else in the byte arena.
+#[derive(Clone, Copy)]
+struct Sp {
+    off: u32,
+    len: u32,
+}
+
+/// A record: 36 bytes, its pairs at `kvs[kv_lo..kv_lo + kv_n]`.
+struct Rec {
     ts: Ts,
     level: u8,
-    comp: &'a [u8],
-    msg: &'a [u8],
-    kv: &'a [Kv<'a>],
+    comp: Sp,
+    msg: Sp,
+    kv_lo: u32,
+    kv_n: u32,
+}
+
+/// The per-batch arenas, reused from batch to batch.
+#[derive(Default)]
+struct Arena {
+    recs: Vec<Rec>,
+    kvs: Vec<(Sp, Sp)>,
+    bytes: Vec<u8>,
+    kv: Vec<(Sp, Sp)>,
+}
+
+/// The format keys and Apache's component, at the start of every batch's byte arena.
+const STATIC: &[u8] = b"pidhostblkhttpd";
+
+/// The bytes a span names.
+#[inline]
+fn get<'a>(x: Sp, data: &'a [u8], bytes: &'a [u8]) -> &'a [u8] {
+    let (off, len) = (x.off as usize, x.len as usize);
+    if off < data.len() {
+        &data[off..off + len]
+    } else {
+        let o = off - data.len();
+        &bytes[o..o + len]
+    }
 }
 
 /// What a format parser finds in a line.
@@ -341,10 +375,9 @@ fn next_ip(msg: &[u8], mut i: usize) -> Option<(usize, usize, usize)> {
     None
 }
 
-/// The redacted message: borrowed as is when it has no address, else built once in the arena.
-fn redact<'a>(msg: &'a [u8], bump: &'a Bump) -> &'a [u8] {
-    let Some(mut ip) = next_ip(msg, 0) else { return msg };
-    let mut out = BVec::with_capacity_in(msg.len(), bump);
+/// Appends the redacted message to `out` if it has an address; false (nothing appended) if not.
+fn redact(msg: &[u8], out: &mut Vec<u8>) -> bool {
+    let Some(mut ip) = next_ip(msg, 0) else { return false };
     let mut start = 0;
     loop {
         let (lo, hi, resume) = ip;
@@ -357,7 +390,7 @@ fn redact<'a>(msg: &'a [u8], bump: &'a Bump) -> &'a [u8] {
         }
     }
     out.extend_from_slice(&msg[start..]);
-    out.into_bump_slice()
+    true
 }
 
 #[inline]
@@ -367,8 +400,9 @@ fn is_key_byte(c: u8) -> bool {
 
 /// Dictionary semantics: an existing key keeps its place and takes the new value.
 #[inline]
-fn add_pair<'a>(kv: &mut Vec<Kv<'a>>, k: &'a [u8], v: &'a [u8]) {
-    match kv.iter_mut().find(|(key, _)| *key == k) {
+fn add_pair(kv: &mut Vec<(Sp, Sp)>, data: &[u8], bytes: &[u8], k: Sp, v: Sp) {
+    let key = get(k, data, bytes);
+    match kv.iter_mut().find(|(kk, _)| get(*kk, data, bytes) == key) {
         Some(p) => p.1 = v,
         None => kv.push((k, v)),
     }
@@ -410,7 +444,7 @@ fn put_str(out: &mut Vec<u8>, s: &[u8]) {
     out.push(b'"');
 }
 
-fn render(out: &mut Vec<u8>, r: &Rec) {
+fn render(out: &mut Vec<u8>, r: &Rec, data: &[u8], a: &Arena) {
     let t = &r.ts;
     out.extend_from_slice(b"{\"ts\":\"");
     put2(out, (t.y / 100) as u8);
@@ -430,28 +464,45 @@ fn render(out: &mut Vec<u8>, r: &Rec) {
     out.extend_from_slice(b"\",\"sev\":");
     out.push(SEV[r.level as usize]);
     out.extend_from_slice(b",\"component\":");
-    put_str(out, r.comp);
+    put_str(out, get(r.comp, data, &a.bytes));
     out.extend_from_slice(b",\"msg\":");
-    put_str(out, r.msg);
+    put_str(out, get(r.msg, data, &a.bytes));
     out.extend_from_slice(b",\"kv\":{");
-    for (i, (k, v)) in r.kv.iter().enumerate() {
+    let kvs = &a.kvs[r.kv_lo as usize..(r.kv_lo + r.kv_n) as usize];
+    for (i, &(k, v)) in kvs.iter().enumerate() {
         if i > 0 {
             out.push(b',');
         }
-        put_str(out, k);
+        put_str(out, get(k, data, &a.bytes));
         out.push(b':');
-        put_str(out, v);
+        put_str(out, get(v, data, &a.bytes));
     }
     out.extend_from_slice(b"}}\n");
 }
 
-/// One batch: parse every line into a record in the arena, then render them all into `out`.
-fn process(fmt: Fmt, data: &[u8], bump: &mut Bump, out: &mut Vec<u8>, c: &mut Counts) {
-    bump.reset();
-    let bump = &*bump;
-    let mut recs: BVec<Rec> = BVec::with_capacity_in(BATCH, bump);
-    // Pairs are collected in a reused scratch list, then copied into the arena at their exact size.
-    let mut kv: Vec<Kv> = Vec::with_capacity(16);
+/// One batch: parse every line into a record in the arenas, then render them all into `out`.
+fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, c: &mut Counts) {
+    assert!(data.len() + (1 << 30) < u32::MAX as usize, "batch too large for u32 spans");
+    if a.recs.capacity() == 0 {
+        a.recs.reserve(BATCH);
+    }
+    a.recs.clear();
+    a.kvs.clear();
+    a.bytes.clear();
+    a.bytes.extend_from_slice(STATIC);
+    let base = data.as_ptr() as usize;
+    let dl = data.len() as u32;
+    // Spans of the input (from a subslice of data) and of the byte arena.
+    let in_data = |x: &[u8]| Sp { off: (x.as_ptr() as usize - base) as u32, len: x.len() as u32 };
+    let fixed = |k: &[u8]| {
+        let o = match k {
+            b"pid" => 0,
+            b"host" => 3,
+            b"blk" => 7,
+            _ => 10, // httpd
+        };
+        Sp { off: dl + o, len: k.len() as u32 }
+    };
     let mut start = 0;
     while start < data.len() {
         let e = memchr::memchr(b'\n', &data[start..]).map_or(data.len(), |k| start + k);
@@ -475,23 +526,38 @@ fn process(fmt: Fmt, data: &[u8], bump: &mut Bump, out: &mut Vec<u8>, c: &mut Co
             continue;
         }
         c.kept += 1;
-        let msg = redact(h.msg, bump);
+        let comp = if fmt == Fmt::Apache { fixed(b"httpd") } else { in_data(h.comp) };
+        let at = a.bytes.len();
+        let msg = if redact(h.msg, &mut a.bytes) {
+            Sp { off: dl + at as u32, len: (a.bytes.len() - at) as u32 }
+        } else {
+            in_data(h.msg)
+        };
+        let Arena { kvs, bytes, kv, recs } = &mut *a;
+        let bytes = &bytes[..];
         kv.clear();
         for &(k, v) in &h.fp[..h.nf] {
-            add_pair(&mut kv, k, v);
+            add_pair(kv, data, bytes, fixed(k), in_data(v));
         }
-        for tok in msg.split(|&b| b == b' ') {
+        let m = get(msg, data, bytes);
+        let mut t = 0;
+        for tok in m.split(|&b| b == b' ') {
             let p = tok.iter().position(|&b| b == b'=' || !is_key_byte(b));
             if let Some(p) = p {
                 if p > 0 && tok[p] == b'=' {
-                    add_pair(&mut kv, &tok[..p], &tok[p + 1..]);
+                    let o = msg.off + t as u32;
+                    let (k, v) = (Sp { off: o, len: p as u32 }, Sp { off: o + p as u32 + 1, len: (tok.len() - p - 1) as u32 });
+                    add_pair(kv, data, bytes, k, v);
                 }
             }
+            t += tok.len() + 1;
         }
-        recs.push(Rec { ts: h.ts, level: h.level, comp: h.comp, msg, kv: bump.alloc_slice_copy(&kv) });
+        let kv_lo = kvs.len() as u32;
+        kvs.extend_from_slice(kv);
+        recs.push(Rec { ts: h.ts, level: h.level, comp, msg, kv_lo, kv_n: kv.len() as u32 });
     }
-    for r in &recs {
-        render(out, r);
+    for r in &a.recs {
+        render(out, r, data, a);
     }
 }
 
@@ -507,8 +573,9 @@ struct Reader {
 }
 
 impl Reader {
-    fn new(file: File) -> Reader {
-        Reader { file, buf: Vec::new(), filled: 0, eof: false }
+    /// A reader over `file` that fills `buf` (a buffer from an earlier file, reused).
+    fn new(file: File, buf: Vec<u8>) -> Reader {
+        Reader { file, buf, filled: 0, eof: false }
     }
 
     /// The length of the next batch at the front of `buf[..filled]`: through its 65,536th newline, or
@@ -556,6 +623,7 @@ struct Job {
     seq: u64,
     fmt: Fmt,
     data: Vec<u8>,
+    len: usize,
 }
 
 struct Done {
@@ -609,20 +677,22 @@ fn write_out(w: &mut impl Write, b: &[u8]) {
 
 fn run_single(inputs: &[(Fmt, &str)], w: &mut impl Write) -> Counts {
     let mut total = Counts::default();
-    let mut bump = Bump::new();
+    let mut arena = Arena::default();
     let mut out = Vec::new();
+    let mut buf = Vec::new();
     for &(fmt, path) in inputs {
-        let mut r = Reader::new(open(path));
+        let mut r = Reader::new(open(path), buf);
         loop {
             let end = r.next_batch();
             if end == 0 {
                 break;
             }
             out.clear();
-            process(fmt, &r.buf[..end], &mut bump, &mut out, &mut total);
+            process(fmt, &r.buf[..end], &mut arena, &mut out, &mut total);
             write_out(w, &out);
             r.consume(end);
         }
+        buf = r.buf;
     }
     total
 }
@@ -640,12 +710,12 @@ fn run_threads(inputs: &[(Fmt, &str)], threads: usize, w: &mut impl Write) -> Co
         for _ in 0..threads {
             let (job_rx, done_tx, outbuf_rx) = (job_rx.clone(), done_tx.clone(), outbuf_rx.clone());
             scope.spawn(move || {
-                let mut bump = Bump::new();
+                let mut arena = Arena::default();
                 for job in job_rx {
                     let mut out = outbuf_rx.try_recv().unwrap_or_default();
                     out.clear();
                     let mut c = Counts::default();
-                    process(job.fmt, &job.data, &mut bump, &mut out, &mut c);
+                    process(job.fmt, &job.data[..job.len], &mut arena, &mut out, &mut c);
                     if done_tx.send(Done { seq: job.seq, c, data: job.data, out }).is_err() {
                         break;
                     }
@@ -669,7 +739,7 @@ fn run_threads(inputs: &[(Fmt, &str)], threads: usize, w: &mut impl Write) -> Co
             }
         };
         for &(fmt, path) in inputs {
-            let mut r = Reader::new(open(path));
+            let mut r = Reader::new(open(path), free_in.pop().unwrap_or_default());
             loop {
                 let end = r.next_batch();
                 if end == 0 {
@@ -678,17 +748,21 @@ fn run_threads(inputs: &[(Fmt, &str)], threads: usize, w: &mut impl Write) -> Co
                 while in_flight >= cap {
                     receive(&mut free_in, &mut in_flight, &mut total);
                 }
-                // Hand over the reader's buffer; the remainder moves to a recycled one.
+                // Hand over the reader's buffer; the remainder moves to a recycled one, which keeps its
+                // length (already-written bytes), so the next read needs no zero-fill.
+                let rest = r.filled - end;
                 let mut next = free_in.pop().unwrap_or_default();
-                next.clear();
-                next.extend_from_slice(&r.buf[end..r.filled]);
-                let mut data = std::mem::replace(&mut r.buf, next);
-                r.filled -= end;
-                data.truncate(end);
-                job_tx.send(Job { seq, fmt, data }).expect("workers alive");
+                if next.len() < rest {
+                    next.resize(rest, 0);
+                }
+                next[..rest].copy_from_slice(&r.buf[end..r.filled]);
+                let data = std::mem::replace(&mut r.buf, next);
+                r.filled = rest;
+                job_tx.send(Job { seq, fmt, data, len: end }).expect("workers alive");
                 seq += 1;
                 in_flight += 1;
             }
+            free_in.push(std::mem::take(&mut r.buf));
         }
         while in_flight > 0 {
             receive(&mut free_in, &mut in_flight, &mut total);
