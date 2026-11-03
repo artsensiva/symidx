@@ -84,9 +84,9 @@ The verdict holds despite that noise: the gaps that decide it are 2.0–3.1× in
 load time, far beyond run-to-run variation of a few percent, and they come from how each implementation works
 (`from_bytes` copies the image, rkyv maps it), not from this machine. The numbers that would move on other
 hardware are the absolute ones, and the close ones (build time and build RAM at parity) are not claimed as wins.
-One exception, open and not investigated: in three CI runs on a macOS VM (3 cores), streaming rust-expert's
-build RAM on M was 18.6–20.8 MB against Goose's 13.9 MB (1.34–1.50×), while on Linux the two are at parity. That
-meets the literal (build-RAM) kill criterion on that VM. The verdict rests on serving memory instead, which is
+One exception, open and not investigated: in four CI runs on a macOS VM (3 cores), streaming rust-expert's
+build RAM on M was 17.9–20.8 MB against Goose's 13.9 MB (1.28–1.50×), while on Linux the two are at parity. That
+meets the literal (build-RAM) kill criterion on that VM in 3 of 4 runs. The verdict rests on serving memory instead, which is
 3.1× higher for Goose on the same VM ([bench/REPORT.md](bench/REPORT.md), "Criterion refinement").
 
 ## Results
@@ -132,7 +132,7 @@ symidx is a decision instrument, not a product. The real competitors are ctags/r
 
 - **Memory:** Goose's expected advantage didn't hold up against a fair Rust. Build RAM is at parity on Linux
   once rust-expert streams (the earlier 2.9× gap came from my first rust-expert); on the macOS CI VM Goose's is
-  1.34–1.50× lower, uninvestigated. Serving memory is 2.0–3.1× *higher* for Goose everywhere, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
+  1.28–1.50× lower, uninvestigated. Serving memory is 2.0–3.1× *higher* for Goose everywhere, because `from_bytes` copies, so the read buffer and the copy are both resident. rkyv
   over mmap serves at about 1× image size.
 - **Image size:** Goose wins 1.12–1.20×, below the 1.3× target. That comes from its inline varint records.
 - **Load:** with a warm cache, Goose is 10–25× slower than rust-expert and can't close that gap: on L, its

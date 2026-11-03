@@ -31,10 +31,10 @@ are rare. Both readings, side by side:
 
 | Reading | Linux (local, CI) | macOS CI VM |
 |---|---|---|
-| **Literal:** build RAM, Goose ≥ 1.3× less? | not met (parity, within ±4%) | **met**: 1.34–1.50× less (low confidence, uninvestigated) |
+| **Literal:** build RAM, Goose ≥ 1.3× less? | not met (parity, within ±4%) | **met** in 3 of 4 runs: 1.28–1.50× less (low confidence, uninvestigated) |
 | **Refined:** serving memory, Goose ≥ 1.3× less? | not met: 2.0–2.7× **more** | not met: 3.1× **more** |
 
-So the literal criterion is not met on Linux and is met on the macOS CI VM. The refined criterion is not
+So the literal criterion is not met on Linux and is met, narrowly and not in every run, on the macOS CI VM. The refined criterion is not
 met anywhere, warm or cold. **The verdict (Rust) rests on the refined criterion**, and on the load gap; the
 literal one alone would not decide it on macOS. This is a negative result for Goose for this workload, and
 the experiment did its job.
@@ -219,8 +219,8 @@ Does the verdict hold?
 - **Cold cache:** the load gap shrinks from 10× to 2× on Linux and to parity on macOS: reading the image from
   storage dominates both, and rust-expert's advantage is not copying it. Serving memory doesn't change.
 
-**Open item, not investigated: macOS build RAM.** In three CI runs on the macOS VM, streaming rust-expert's
-build peaked at 18.6–20.8 MB on M against Goose's 13.9 MB (1.34–1.50×), while
+**Open item, not investigated: macOS build RAM.** In four CI runs on the macOS VM, streaming rust-expert's
+build peaked at 17.9–20.8 MB on M against Goose's 13.9 MB (1.28–1.50×), while
 on Linux the two are at parity. Possible causes: macOS's allocator keeping freed memory resident, 16 KB pages
 coarsening RSS, or the build's buffering on 3 cores.
 
