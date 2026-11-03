@@ -23,7 +23,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -65,16 +65,21 @@ jobs:
       - name: Checksums
         run: bench/check-sums.sh S M
 
-      - name: Benchmark (few runs; relative comparisons only)
-        run: RUNS=3 bench/run.sh S M
+      - name: Benchmark, warm cache (few runs; relative comparisons only)
+        run: OUT=bench/results/ci-warm RUNS=3 bench/run.sh S M
+      - name: Benchmark, cold cache (drop_caches on Linux, purge on macOS; runners have passwordless sudo)
+        run: OUT=bench/results/ci-cold COLD=1 RUNS=3 bench/run.sh M
 
-      - name: Check the summary is complete
+      - name: Check the summaries are complete
         run: |
-          csv=$(ls bench/results/*/summary.csv | tail -1)
-          # 4 implementations x 2 corpora, every field filled, every checksum matching.
-          awk -F, 'NR > 1 { rows++; for (i = 1; i <= NF; i++) if ($i == "") { print "empty field " i ": " $0; bad = 1 }
-                            if ($NF != "yes") { print "checksum: " $0; bad = 1 } }
-                   END { if (rows != 8) { print "rows: " rows " (want 8)"; bad = 1 }; exit bad }' "$csv"
+          # Every field filled, every checksum matching, 4 implementations per corpus.
+          check() {
+            awk -F, -v want="$2" 'NR > 1 { rows++; for (i = 1; i <= NF; i++) if ($i == "") { print "empty field " i ": " $0; bad = 1 }
+                                         if ($NF != "yes") { print "checksum: " $0; bad = 1 } }
+                       END { if (rows != want) { print "rows: " rows " (want " want ")"; bad = 1 }; exit bad }' "$1"
+          }
+          check bench/results/ci-warm/summary.csv 8
+          check bench/results/ci-cold/summary.csv 4
 
       - name: Machine report
         if: always()
@@ -83,8 +88,16 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bench-${{ matrix.os }}
+          name: bench-warm-${{ matrix.os }}
           path: |
-            bench/results/*/summary.csv
-            bench/results/*/env.txt
+            bench/results/ci-warm/summary.csv
+            bench/results/ci-warm/env.txt
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-cold-${{ matrix.os }}
+          path: |
+            bench/results/ci-cold/summary.csv
+            bench/results/ci-cold/env.txt
           if-no-files-found: warn

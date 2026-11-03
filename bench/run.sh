@@ -17,7 +17,7 @@ IMPLS=(${IMPLS:-goose rust-idiomatic rust-expert rust-expert-batch})
 RUNS=${RUNS:-10}
 PREFIXES=(get_ test Model _)
 SELECTIVE=Model          # the selective query for serving memory
-OUT="$ROOT/bench/results/$(date +%Y%m%d-%H%M%S)"
+OUT=${OUT:-"$ROOT/bench/results/$(date +%Y%m%d-%H%M%S)"}   # OUT=<dir> to choose the results directory
 mkdir -p "$OUT"
 
 bin_of() {
