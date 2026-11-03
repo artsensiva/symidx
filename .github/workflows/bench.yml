@@ -1,6 +1,6 @@
 # Correctness and relative comparisons on shared runners: every implementation is built, must match the
 # reference checksum on S and M, and bench/run.sh runs with few repetitions. Shared runners are noisy:
-# compare numbers only within one run, never across runs or with local results (README, "Benchmarking environments").
+# compare numbers only within one run, never across runs or with local results (README, "Methodology", environments).
 name: bench
 
 on:

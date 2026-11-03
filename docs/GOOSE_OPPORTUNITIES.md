@@ -392,10 +392,10 @@ Market and competitors:
 - [S10] Datadog acquires Timber Technologies (Vector): https://datadoghq.com/about/latest-news/press-releases/datadog-acquires-timber-technologies/
 - [S11] Loghub, a large collection of system log datasets: https://arxiv.org/abs/2008.06448
 - [S12] CISA et al., The Case for Memory Safe Roadmaps: https://cisa.gov/case-memory-safe-roadmaps
-- [S13] Australian Cyber Security Centre summary of the same guidance (vulnerability shares): https://www.cyber.gov.au/business-government/secure-design/secure-by-design/case-memory-safe-roadmaps
+- [S13] The Register on the same guidance and the Microsoft and Chromium shares it cites: https://www.theregister.com/2023/12/07/memory_correction_five_eyes/
 - [S14] cmark-gfm CVE-2022-24724 (table row integer overflow): https://releasealert.dev/cve/CVE-2022-24724
 - [S15] Wuffs README (Chromium copy): https://chromium.googlesource.com/chromium/src/+/de982caac9d9bfd48edd20568fa9e48192e95d0d/third_party/wuffs/README.chromium
-- [S16] NIH SRA Data Working Group report: https://dpcpsi.nih.gov/sites/default/files/2.15PM-SRA_Data_WG_Report_Gregurick_Johnson_508.pdf
+- [S16] NIH SRA Data Working Group report, 2020 (may refuse automated downloads): https://dpcpsi.nih.gov/sites/default/files/2.15PM-SRA_Data_WG_Report_Gregurick_Johnson_508.pdf ; Petabyte Scale Sequence Search Codeathon (2025), on searching the rapidly growing SRA: https://arxiv.org/abs/2505.06395
 - [S17] HTSlib paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7931820/
 - [S18] VoidZero Series A: https://www.dealstreetasia.com/stories/voidzero-accel-461657
 - [S19] OpenAI's acquisition of Astral: https://www.businesstoday.in/technology/story/openais-astral-deal-reveals-hidden-funding-rounds-investor-windfall-simon-willison-521585-2026-03-20

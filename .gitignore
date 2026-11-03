@@ -5,12 +5,12 @@
 /corpus/L/
 /bench/results/
 target/
-*.img
-/spike/hello
-/spike/hello-*
-/spike/thread
-/spike/spike.img
 /goose/symidx
-/spike/fault_probe
-/spike/load_layouts
+# Spike binaries: `goose build x.goose` (or cc -o x x.c) writes an extensionless ./x.
+/spike/*
+!/spike/*.*
+!/spike/layout_dprime/
+/spike/layout_dprime/symidx
 __pycache__/
+# Index images anywhere (after the spike re-includes, so it wins).
+*.img

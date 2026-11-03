@@ -2,7 +2,7 @@ All code, comments, docs and commit messages are in English.
 
 # symidx — a code symbol index with instant loading
 
-**Status: Phase 1 complete** (v1.0; verdict Rust, see `bench/REPORT.md`). Phase 2 (`docs/PHASE2.md`) is a draft,
+**Status: Phase 1 complete** (v1.0, v1.1; verdict Rust, see `bench/REPORT.md`; where Goose could fit instead: `docs/GOOSE_OPPORTUNITIES.md`). Phase 2 (`docs/PHASE2.md`) is a draft,
 not started, pending decision.
 
 ## Goal

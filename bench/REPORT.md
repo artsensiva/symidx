@@ -78,6 +78,9 @@ If image size starts to matter, try a varint-packed occurrence stream behind the
 if `from_bytes` ever gets an in-place, zero-copy verified view (over an mmap or a read buffer). That one
 change would remove both its load and serving-memory deficits.
 
+For workloads where Goose's measured strengths matter more than loading, scored against the best Rust and
+each with a cheap falsification test, see [docs/GOOSE_OPPORTUNITIES.md](../docs/GOOSE_OPPORTUNITIES.md).
+
 ## Methodology
 
 - **Task** (`bench/SPEC.md`): walk `*.py`, find `def` and `class` lines, save an index (name, kind, file, line),
