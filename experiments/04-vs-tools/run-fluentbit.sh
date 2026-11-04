@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# usage: run-fluentbit.sh S|M  -- one Fluent Bit process per input file; records to stdout.
+# usage: run-fluentbit.sh CORPUS  -- one Fluent Bit process per input file; records to stdout.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); DIR=$ROOT/experiments/04-vs-tools; . "$DIR/corpus.sh"
 B=$ROOT/toolchain/vs/fluentbit

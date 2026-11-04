@@ -51,6 +51,33 @@ Vector: 0.9 s reading with no transform, 3.0 s with VRL and no output, 7.2 s wit
 threads. So on this task its cost is split between VRL and its output path. Fluent Bit used about 5.3 s of CPU, and
 `protected_mode` and threaded input didn't change its speed.
 
+## A native Fluent Bit configuration (added after the review)
+
+An outside review pointed out that 16–20× only covered a Lua filter. So `fluentbit-native/` uses native regex parsing and native `grep`, with Lua only for what has no native form as far as this author knows. It matches the reference on the edge corpus, S and M, apart from the same final lines. Raw: `data/native/`; load average 1–3.5. Apache and SSH 5 rounds, HDFS 3, one core. The total sums the formats' medians. Multiples compare with Goose logxform with fixes.
+
+| One core | Throughput | Peak RSS | CPU per GB | Its CPU ÷ Goose's |
+|---|---|---|---|---|
+| Goose logxform, with fixes | 215 MB/s | 36.0 MiB | 3.8 s | — |
+| Goose logxform, release | 232 MB/s | 36.0 MiB | 4.2 s | 1.09 |
+| Tuned Rust | 196 MB/s | 36.1 MiB | 4.2 s | 1.09 |
+| **Fluent Bit, Lua alone** | 13.5 MB/s | 39.8 MiB | 71.6 s | **18.8** |
+| Fluent Bit, native parser, `grep`, minimal Lua | 10.5 MB/s | 39.9 MiB | 93.2 s | 24.4 |
+
+| CPU per GB, by format | Goose with fixes | Fluent Bit, Lua | Fluent Bit, native | Share of bytes |
+|---|---|---|---|---|
+| HDFS | 3.7 s | 69.5 s | 90.8 s | 95.3% |
+| SSH | 6.3 s | 117 s | 143 s | 4.4% |
+| Apache (too short for a precise ratio) | 5.8 s | 82 s | 117 s | 0.3% |
+
+Unpinned on HDFS: Goose logxform 564 MB/s and 503 MiB, tuned Rust 822 MB/s and 350 MiB, Fluent Bit 15.5 MB/s and 43 MiB with Lua, 11.8 MB/s and 45 MiB native.
+
+**What this shows.**
+- **The clear win holds against the configurations tried.** Goose logxform stays far ahead of both Fluent Bit configs. Among those two, native parsing doesn't help: it's about 30% slower than Fluent Bit's Lua config here. Dropping lines natively before Lua saved nothing on the 70 MB slice.
+- Wall time in this table is less reliable than CPU: Goose's wall figures moved more than its CPU figures, and Fluent Bit's wall times fall on whole seconds, apparently from an exit timer.
+- **Ceilings, on HDFS, not the same work:** `tail` with the parser to `stdout` is 35.8 s of CPU per GB, and `tail` alone is 7.3 s, about twice Goose's whole job. These are indicative only, not upper bounds: they write every line, while a real filter writes about 59%, and output is a large part of that cost.
+
+**What it doesn't show.** A filter written in C or Wasm wasn't tried, since it's a different effort from configuring the tool, and it's the one option that could change this materially. Its result would need the same correctness checks. A specialist might also find a better configuration. Tuned Rust wins by about as much.
+
 ## What this doesn't show
 
 - **The tools do far more.** They have many sources and sinks, buffering, retries, checkpoints, routing, reload, metrics and a

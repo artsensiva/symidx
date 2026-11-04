@@ -1,0 +1,53 @@
+{
+ "started": "2026-11-04T10:06:33+0100",
+ "rounds": 5,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose_fixes": {
+   "argv": [
+    "/home/artem/symidx/experiments/04-vs-tools/run-native.sh",
+    "/home/artem/symidx/toolchain/s2/bin/both-0",
+    "apache",
+    "1"
+   ],
+   "env": {},
+   "sha256": "83188ac9435e313441dcbcd27d921a23f898ec92420a74cb7e26ee101b637842"
+  },
+  "goose_release": {
+   "argv": [
+    "/home/artem/symidx/experiments/04-vs-tools/run-native.sh",
+    "/home/artem/symidx/toolchain/s2/bin/base-0",
+    "apache",
+    "1"
+   ],
+   "env": {},
+   "sha256": "83188ac9435e313441dcbcd27d921a23f898ec92420a74cb7e26ee101b637842"
+  },
+  "rust_arena": {
+   "argv": [
+    "/home/artem/symidx/experiments/04-vs-tools/run-native.sh",
+    "/home/artem/symidx/toolchain/s2/bin/rust-0",
+    "apache",
+    "1"
+   ],
+   "env": {},
+   "sha256": "83188ac9435e313441dcbcd27d921a23f898ec92420a74cb7e26ee101b637842"
+  },
+  "fb_lua": {
+   "argv": [
+    "/home/artem/symidx/experiments/04-vs-tools/run-fluentbit.sh",
+    "apache"
+   ],
+   "env": {},
+   "sha256": "036e21db3a95665a55021a60d290add1af642958487349650b1e9e0e43ad1fc4"
+  },
+  "fb_native": {
+   "argv": [
+    "/home/artem/symidx/experiments/04-vs-tools/run-fluentbit-native.sh",
+    "apache"
+   ],
+   "env": {},
+   "sha256": "b0c7c00eb6775a52973b94224a0bd7bbe2d3740714fe9d7cfb6a5594008c889f"
+  }
+ }
+}

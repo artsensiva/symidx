@@ -203,13 +203,32 @@ variable-size records, transform them, emit, drop everything at once.
 Poor fits: serving large read-mostly images (until something like goose#221 exists), long-lived mutable
 shared state, libraries for multithreaded hosts, WebAssembly and microcontrollers, flat numeric kernels.
 
+## History and results by stage
+
+Each stage's verdict, newest last. Time spent is in [DEVLOG.md](DEVLOG.md), and each claim's evidence is in [CLAIMS.md](CLAIMS.md). Stages marked † rely on local Goose patches, which aren't published.
+
+| Stage | What it tested | Result | Record |
+|---|---|---|---|
+| **Phase 1** (v1.0, v1.1) | A code symbol index: Goose against Rust on memory, image size and load | **Rust.** Goose's serving memory is 2–3× rust-expert's, and warm load about 9–25× slower. Practical finding: 5–15× smaller than ctags | [bench/REPORT.md](bench/REPORT.md) |
+| **Experiment 2** (v1.2) | Log transforming, against tuned Rust; pre-registered | **Kill criterion not met:** 0.88× throughput, 1.07× less memory. Goose beats plain `serde` Rust 2.2× and 2.7× | [REPORT](experiments/02-logxform/REPORT.md) |
+| **Audit preparation** (v1.2.1) | Profile of the gap, build flags | Best build flags on each side: 0.96×. Audit brief and claims list added | [AUDIT.md](AUDIT.md) |
+| **Experiment 3** † | Huge pages, `from_file`, new index layouts | Huge pages fail their target. `from_file` meets its memory targets. Layout `fixed` reaches 1.05× rust-expert's L memory, and 4.5× its load | [PLAN](experiments/03-goose-patches/PLAN.md) |
+| **Experiment 4** | Goose logxform against the real tools, unpatched | On one core, about 16× Fluent Bit (Lua) and 39× Vector (VRL). Mostly from specialization | [REPORT](experiments/04-vs-tools/REPORT.md) |
+| **Experiment 5** † | Cheap single-thread fixes, with Rust given the same trick | One library loop gives about 11%. 1.10× tuned Rust, 1.03× with the same scan: parity to a small lead. Index L memory 1.16× | [PLAN](experiments/05-goose-fixes/PLAN.md) |
+| **Experiment 6** † | Why six threads stall | 0.62× tuned Rust, with no gain past 4 threads. Cause not established. On hold | [PLAN](experiments/06-parallelism/PLAN.md) |
+| **Independent reviews** | Results and plan, from outside | Found a miscompilation in F3 (fixed) and several overclaims (corrected). Compiler work paused, and one bounded pilot chosen | [latest](Symidx_Audit_04-11-2026.md), [status](AUDIT.md) |
+| **Native Fluent Bit config** | Whether a better config narrows experiment 4's gap | It doesn't. Fluent Bit: 13.5 MB/s with Lua, 10.5 MB/s native. Goose logxform: 215 MB/s | [REPORT](experiments/04-vs-tools/REPORT.md) |
+| **Pilot** | One real workflow, in Goose and Rust, against the tools and Python | In progress | [SPEC](experiments/07-pilot/SPEC.md) |
+
+**Overall, so far:** a fixed-purpose log tool beats these tool configurations by a wide margin, and Goose and Rust are about level on one core. Nothing yet shows a Goose tool is better than a Rust one, or that anyone wants this tool. The pilot is meant to test that.
+
 ## Next: one bounded pilot
 
 The long-term goal is products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. After an [independent review](Symidx_Audit_04-11-2026.md), the near-term plan is narrower. Results and plan:
 [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
 
-- **Done:** Goose logxform against the real tools ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
-- **Next:** a native Fluent Bit parser configuration, then the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
+- **Done:** Goose logxform against the real tools, including a native Fluent Bit config, which is slower than its Lua config, so the gap stays ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
+- **Next:** the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
 - **Paused:** the six-core work ([experiment 6](experiments/06-parallelism/PLAN.md)), embedding (asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555)), and all compiler work ([docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md)).
 
 For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, findings and their status, questions) and
@@ -267,12 +286,12 @@ CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
 
 ## Upstream contributions
 
-- [goose#177](https://github.com/aardappel/goose/issues/177): `from_bytes` rejects valid index types into a
-  global grown with `append`, because the verifier reads a stale length. Filed with a minimal repro and a
-  control. Workaround: grow pinned arrays with `push`. Open.
+- [goose#177](https://github.com/aardappel/goose/issues/177): `from_bytes` rejected valid index types into a
+  global grown with `append`, because the verifier read a stale length. Filed with a minimal repro and a
+  control. **Fixed on master** after v2026.3 (confirmed with the repro, and closed). This project stays pinned to v2026.3, so it keeps the workaround: grow pinned arrays with `push`.
 - [goose#221](https://github.com/aardappel/goose/issues/221): a feature request for a verified, zero-copy view
   over foreign bytes (such as an mmap), motivated by serving memory, with this project's warm and cold
-  numbers. Open. Text kept in `spike/ISSUE_zero_copy_view.md`.
+  numbers. Open. Text kept in `spike/ISSUE_zero_copy_view.md`. [First analysis](https://github.com/aardappel/goose/issues/221#issuecomment-6625303930): a view needs frozen bytes, mmap is deferred, and `read_file` has a cheap fix. [Our reply](https://github.com/aardappel/goose/issues/221#issuecomment-6627423981) shares `from_file`'s numbers.
 - [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555): a comment on the `.so` issue asking how exported calls should
   handle threads and failed checks in a host. Awaiting a reply. Text kept in `spike/COMMENT_63.md`.
 

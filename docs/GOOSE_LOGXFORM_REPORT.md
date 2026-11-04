@@ -124,7 +124,9 @@ improvement plan, the choice of Rust for that product doesn't reopen.
 
 **Why the tools lose by so much on this task.** Both spend their time in a general-purpose scripting layer and per-record conversion. On a 70 MB slice, Vector took 0.9 s with no
 transform, 3.0 s with VRL and no output, and 7.2 s with JSON output. Fluent Bit converts each record to a Lua table and back. logxform does none of that. This task is transform-heavy, which is the worst
-case for those layers; a Fluent Bit filter written natively in C wasn't tried, and it would likely narrow the gap considerably.
+case for those layers.
+
+**A native Fluent Bit config doesn't narrow the gap** ([experiment 4](../experiments/04-vs-tools/REPORT.md)). With native regex parsing, native `grep` and minimal Lua, Fluent Bit used 93 s of CPU per GB, against 72 s for Fluent Bit with Lua alone, and 3.8 s for Goose logxform. So among Fluent Bit's own configs, the native one is the slower: its regex parser costs more than LuaJIT's patterns here. Goose logxform is far ahead of both. Across formats, Lua alone stays at 14–19× Goose's CPU, with HDFS at 19×, though Apache is too short for a precise ratio. Fluent Bit doing only `tail` to `stdout` uses about twice Goose's whole job, which is indicative rather than a bound, because it writes every line. A filter written in C or Wasm wasn't tried, and it's the one option that could change this materially.
 
 **What the win isn't.** Tuned Rust does the same job at about the same speed, so a fixed-purpose Rust tool would beat these products by as much. What these numbers show is that Goose is
 already well inside the range where a specialized tool pays off.
@@ -235,7 +237,7 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 ## What this doesn't show
 
 - **Everything a real pipeline does.** The tools offer many sources and sinks, buffering, retries, checkpoints, routing, reload and metrics. logxform has none of them. Adding them will cost some speed.
-- **Other workloads.** This task is transform-heavy. A job that mostly forwards lines would narrow the gap, and so might native filters.
+- **Other workloads.** This task is transform-heavy. A job that mostly forwards lines would narrow the gap, and so might a filter written in C or Wasm.
 - **Other hardware or conditions.** One machine, warm cache, a busy desktop, 3–5 rounds. The tool ratios are large enough to survive that, but small ratios among Goose and Rust aren't general.
 - **Protobuf, Wuffs or `cbindgen`.** The other competitors in the product plan have no measurements yet.
 - **Development cost.** All code was written by one AI agent, so it says nothing about human effort. The agent knows Goose best, and a specialist might configure the tools better.
@@ -261,13 +263,15 @@ Revised after the independent review. **The long-term goal stands:** products on
 | Step | Work | Limit | Target, or stop if |
 |---|---|---|---|
 | 1. Done | Fix F3, correct these documents, make checks fail on any mismatch | — | — |
-| **2. Next** | A native Fluent Bit parser configuration, since 20× only covers a Lua filter | About a day | Reported whichever way it goes |
-| **3.** | **[Pilot](../experiments/07-pilot/SPEC.md):** sanitize rotated logs for an analytics store, in Goose and in Rust, against Fluent Bit, Vector and Python, including one change request set in advance | 2 weeks of work | Is the tool worthwhile: ≥ 1.3× end-to-end CPU per GB against the best alternative. Why Goose: no worse than 0.9× Rust, no compiler change needed, and a measured advantage over Rust. Otherwise the recommendation is Rust |
+| 2. Done | A native Fluent Bit parser configuration | — | The clear win holds; Lua alone is Fluent Bit's best configuration tried |
+| **3. Next** | **[Pilot](../experiments/07-pilot/SPEC.md):** sanitize rotated logs for an analytics store, in Goose and in Rust, against Fluent Bit, Vector and Python, including one change request set in advance | 2 weeks of work | Is the tool worthwhile: ≥ 1.3× end-to-end CPU per GB against the best alternative. Why Goose: no worse than 0.9× Rust, no compiler change needed, and a measured advantage over Rust. Otherwise the recommendation is Rust |
 
 **Paused, until a real need appears:**
 - **The six-core work.** The workers-read-input proposal stays on paper. If it comes back, a test with independent processes comes first.
 - **Embedding.** The question on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) stays open. A subprocess may meet a real user's need more cheaply.
-- **The verified view, ownership transfer, and any further compiler work.** The patches stay local.
+- **The verified view, ownership transfer, and any further compiler work.** The patches stay local. Upstream's first analysis on [goose#221](https://github.com/aardappel/goose/issues/221#issuecomment-6625303930) found that a read-only view isn't sound unless its bytes are frozen, and defers mmap; the [reply](https://github.com/aardappel/goose/issues/221#issuecomment-6627423981) shares `from_file`'s numbers, without asking for anything.
+
+**Goose keeps moving:** master was 293 commits past v2026.3 two weeks after its release, with `extern` syntax changed. That helps the language, and it's real evidence of what a private compiler fork would cost to maintain. The pilot stays on the pinned release.
 
 **A kill rule has to stop work, not start the next project.** That was a flaw in the earlier plan, where missing a target led to a harder language feature. Each step above has an effort cap, and the project owner decides.
 

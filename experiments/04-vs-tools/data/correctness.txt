@@ -19,3 +19,4 @@ fluentbit (up to 2 final lines without a newline may be missing, SPEC A1):
   allowed missing: ('2006-02-28T03:49:01Z', 'ERROR', 3, 'httpd', '[client <ip>] Directory index forbidden by rule: /var/www/html/', ())
   allowed missing: ('2018-01-07T17:22:01Z', 'INFO', 6, 'sshd', 'pam_unix(sshd:session): session opened for user jmzhu by (uid=0)', (('host', 'LabSZ'), ('pid', '30291')))
 ok: 7067376 of 7067378 reference records, in order, 2 missing
+fluentbit native, M: ok: 7067376 of 7067378 reference records, in order, 2 missing

@@ -88,4 +88,4 @@ If B fails, the recommendation is to build the tool in Rust. The project owner m
 
 ## Amendments
 
-None yet.
+- **A1, before any pilot code.** The Fluent Bit row assumed a native `parser` would be its best configuration. Measured since ([experiment 4](../04-vs-tools/REPORT.md)), it's slower than Fluent Bit with Lua alone. So Lua alone is the Fluent Bit configuration to beat, and the native one is reported beside it. A C or Wasm filter is still out of scope, and the report must say so.

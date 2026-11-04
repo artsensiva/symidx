@@ -61,6 +61,15 @@ If it doesn't, the log product is rethought before any compiler work is spent on
 
 ## Amendments
 
+- **A5. Native Fluent Bit configuration (item 4 of the plan after the independent review).** Written before these measurements, not committed before them. Does the 15–20× survive a better Fluent Bit config? An expert wouldn't do everything in Lua. `fluentbit-native/` parses with native regex (`parser`), drops malformed and filtered records with native `grep` before Lua sees them, and leaves Lua only what has no native form as far as this author knows: building the timestamp, IP redaction, and the pair list.
+  - **Must pass first:** `check.py` on the edge corpus, S and M, with the same allowance as A1.
+  - **Measured:** M, one core and unpinned, 3 rounds, against Goose logxform (release and with fixes), Lua-only Fluent Bit, and tuned Rust. Also per format, since HDFS is 95% of the bytes.
+  - **Ceilings, clearly not the same work:** Fluent Bit doing only `tail` to `stdout`, and only `tail` with the parser to `stdout`. These bound what any configuration of this pipeline could reach.
+  - **Rule, the same as above:** a clear win is at least 1.5× throughput or at most 1/1.5 of the RSS, with the other metric no more than 1.1× worse. The result is reported whichever way it goes, and if it isn't a clear win, the report's headline changes.
+  - **Not tried:** a filter plugin written in C or Wasm, which is a different effort from configuring the tool.
+  - **Result (added after measuring):** see `REPORT.md`, "A native Fluent Bit configuration". Lua alone is Fluent Bit's best configuration tried, and the clear win holds.
+  - **Recorded before the measurement, tuning on the 70 MB HDFS slice, CPU seconds, one core:** Lua alone 5.5; native parser, native `grep` and minimal Lua 7.0; native `grep` first, then Lua for the rest 5.6. All three match the reference. So native parsing is slower here than LuaJIT's patterns, and dropping lines natively first saves nothing. Ceilings, not the same work: `tail` with the parser 2.8, `tail` alone 0.6. Goose logxform's whole job takes 0.37. The measurement below uses Lua alone and the native parser config, which are the two distinct designs. The `grep` first config stays in `fluentbit-native/` as a record.
+
 Recorded before the M run, after correctness checks and the tuning pass on S (a 70 MB HDFS slice).
 
 - **A1. Fluent Bit's missing lines.** `tail` doesn't emit a final line without a newline, and `Apache.log` and

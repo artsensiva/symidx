@@ -51,7 +51,7 @@ Note on P11: the claim rests on a development-log observation, not a recorded be
 
 | # | Claim | Stated in | Evidence |
 |---|---|---|---|
-| G1 | Goose logxform on one core is about 20× and 42× Fluent Bit's and Vector's throughput, with a Lua filter and VRL; a native parser isn't tested † | README; report "Summary" | `all-one-core.csv`: paired medians 19.75× and 41.88×; 251.3, 12.7, 5.9 MB/s. Release Goose in `experiments/04-vs-tools/data/`: 15.9× and 38.9× |
+| G1 | Goose logxform on one core is about 20× and 42× Fluent Bit's and Vector's throughput, with a Lua filter and VRL. A native Fluent Bit parser is slower, so this stands against configurations tried; a C or Wasm filter isn't tested † | README; report "Summary" | `all-one-core.csv`: paired medians 19.75× and 41.88×; 251.3, 12.7, 5.9 MB/s. Release Goose in `experiments/04-vs-tools/data/`: 15.9× and 38.9× |
 | G2 | …with 19× and 43× less CPU per GB † | same | `all-one-core.csv`: 3.9, 74.0, 173.4 CPU-s per GB; paired 19.18 and 43.46 |
 | G3 | …and less memory, 1.10× and 2.67× † | same | `all-one-core.csv`: 36.1, 39.6, 96.2 MiB |
 | G4 | Most of that win is from being fixed-purpose, since tuned Rust wins by about as much | report "Analysis" | `all-one-core.csv`: rust-arena 225.3, rust-arena-fair 254.8 MB/s |
@@ -67,3 +67,4 @@ Note on P11: the claim rests on a development-log observation, not a recorded be
 | G14 | Page faults alone don't explain the CPU growth; indirect cache effects aren't isolated † | same | PLAN tables: 255,167 and 93,802 minor faults, 1.05 and 0.54 s sys, 10.37 and 7.44 s user at `-t 6`, single run |
 | G15 | Vector matches the reference on the full M corpus; Fluent Bit does except for final lines with no newline | report "How it was tested" | `experiments/04-vs-tools/data/correctness.txt`, by the strict `check.py` |
 | G16 | F3's bug is fixed; base and patched compilers fail the same tests by name | report "Changes implemented" | `experiments/05-goose-fixes/check_f3.sh`, `compare_tests.py`, `data/suite-comparison.txt`. Tests, not a proof |
+| G17 | A native Fluent Bit config doesn't narrow the gap † | report "Analysis" | `experiments/04-vs-tools/data/native/`: CPU per GB 3.8 (Goose), 71.6 (Lua), 93.2 (native), summing per-format medians; `data/correctness.txt` |

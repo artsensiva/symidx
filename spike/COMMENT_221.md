@@ -1,4 +1,6 @@
-<!-- Draft comment for https://github.com/aardappel/goose/issues/221. NOT POSTED: the project owner decides.
+<!-- SUPERSEDED, NEVER POSTED. Upstream's first analysis showed the design below is unsound: a const slice doesn't stop writes through its
+     owner, so the bytes must be frozen. The reply actually posted: https://github.com/aardappel/goose/issues/221#issuecomment-6627423981
+     Original note: draft comment for https://github.com/aardappel/goose/issues/221.
      Numbers: bench/REPORT.md and experiments/02-logxform/REPORT.md at symidx v1.2.1. -->
 
 Following up on this request with an offer, rather than more argument.
