@@ -1,0 +1,22 @@
+# One Vector process per input file. @FORMAT@ is replaced by run-vector.sh.
+sources:
+  in:
+    type: stdin
+    max_length: 1048576
+transforms:
+  t:
+    type: remap
+    inputs: [in]
+    drop_on_abort: true
+    file: "@DIR@/@FORMAT@.vrl"
+sinks:
+  out:
+    type: file
+    inputs: [t]
+    path: "@OUT@"
+    encoding:
+      codec: json
+    framing:
+      method: newline_delimited
+    buffer:
+      max_events: 4096

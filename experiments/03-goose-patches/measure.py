@@ -3,7 +3,7 @@
 
 usage: measure.py ROUNDS OUT.csv NAME=CMD [NAME=CMD ...]
 CMD is split on spaces (no shell); leading ENV:KEY=VAL tokens set that command's environment, and a "" token is an empty argument. Each round runs every command twice, in a fresh random order: once
-spawned directly for wall time, once under GNU time for peak RSS (KiB, %M). wait4's ru_maxrss can't be
+spawned directly for wall time, once under GNU time for peak RSS (KiB, %M) and CPU seconds (user + system). wait4's ru_maxrss can't be
 used: posix_spawn shares this interpreter's memory until exec, so it never reports less than Python's
 own peak (~13 MB). One untimed run of each first. stdout goes to /dev/null. Prints each command's median and, for each against the first, the median of paired ratios
 with a bootstrap 95% interval.
@@ -25,13 +25,14 @@ def run(cmd):
 def rss(cmd, tmp):
     env, argv = cmd
     devnull = os.open(os.devnull, os.O_WRONLY)
-    tv = ["/usr/bin/time", "-f", "%M", "-o", tmp] + argv
+    tv = ["/usr/bin/time", "-f", "%M %U %S", "-o", tmp] + argv
     pid = os.posix_spawn(tv[0], tv, env, file_actions=[(os.POSIX_SPAWN_DUP2, devnull, 1)])
     _, status, _ = os.wait4(pid, 0)
     os.close(devnull)
     if os.waitstatus_to_exitcode(status) != 0:
         sys.exit(f"failed: {' '.join(argv)}")
-    return int(open(tmp).read().split()[-1])
+    m, u, sy = open(tmp).read().split()[-3:]
+    return int(m), float(u) + float(sy)
 
 def parse(c):
     env = dict(os.environ)
@@ -59,12 +60,12 @@ def main():
         order = cmds[:]
         random.shuffle(order)
         for n, c in order:
-            res[n].append((i, run(c), rss(c, tmp)))
+            res[n].append((i, run(c)) + rss(c, tmp))
     with open(out, "w") as f:
-        f.write("name,round,wall_s,maxrss_kb\n")
+        f.write("name,round,wall_s,maxrss_kb,cpu_s\n")
         for n, rows in res.items():
-            for i, t, m in rows:
-                f.write(f"{n},{i},{t:.6f},{m}\n")
+            for i, t, m, cpu in rows:
+                f.write(f"{n},{i},{t:.6f},{m},{cpu:.2f}\n")
     base = cmds[0][0]
     for n, rows in res.items():
         line = f"{n:12} wall {statistics.median(r[1] for r in rows) * 1e3:9.2f} ms  rss {statistics.median(r[2] for r in rows):8.0f} KiB"

@@ -102,6 +102,36 @@ fn main() {
     loaded, m8, e8 = from_file<Item[>..]>(pb, at_items);
     check("rejected load empties the global", !e8 && loaded.len == 0);
 
+    // Assigning onto an existing array (read straight into it): arguments that name it see its old contents.
+    let pa = str(argv[1], "/alias.img");
+    var pb3: u8[>..] = [];
+    to_bytes("abcdefgh", pb3);
+    check("write alias image", write_file(pa, pb3));
+    var named: u8[>..] = [];
+    named.append(pa);
+    var m9 = 0;
+    var e9 = false;
+    named, m9, e9 = from_file<u8[>..]>(named, 0);       // the path is the array being replaced
+    check("path naming the target", e9 && named == "abcdefgh" && m9 == pb3.len);
+    var again = 0;
+    var eb = false;
+    var padded: u8[>..] = [];
+    padded.append("xxxx");
+    padded.append(pb3);
+    check("write padded image", write_file(pa, padded));
+    named.clear();
+    named.append("wxyz");
+    named, again, eb = from_file<u8[>..]>(pa, named.len); // the offset reads the target's old length (4)
+    check("offset reading the target's length", eb && named == "abcdefgh");
+    named, again, eb = from_file<u8[>..]>(pa, 1);         // rejected: the target ends up empty
+    check("rejected assignment empties a local", !eb && named.len == 0 && again == -1);
+    var grown: u8[>..] = [];
+    for i in 100000 { grown.push('z'); }
+    grown, again, eb = from_file<u8[>..]>(pa, 4);         // smaller than what it replaces
+    check("shrinking assignment", eb && grown == "abcdefgh");
+    grown.push('!');
+    check("push after in-place load", grown == "abcdefgh!");
+
     if fails > 0 { print(str(fails, " failed")); exit(1); }
     print("all passed");
 }

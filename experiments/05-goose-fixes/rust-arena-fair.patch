@@ -1,0 +1,26 @@
+--- a/experiments/02-logxform/rust-arena/src/main.rs
++++ b/experiments/02-logxform/rust-arena/src/main.rs
+@@ -417,8 +417,23 @@
+ 
+ /// s as a JSON string, escaped as serde_json does.
+ #[inline]
++// The same vectorizable check as Goose's json::plain (experiment 5, fairness check).
++fn plain(s: &[u8]) -> bool {
++    let mut ok: u32 = 1;
++    for &c in s {
++        let x = c as u32;
++        ok = ok & (((x ^ 34) + 255) >> 8) & (((x ^ 92) + 255) >> 8) & ((x + 224) >> 8);
++    }
++    ok == 1
++}
++
+ fn put_str(out: &mut Vec<u8>, s: &[u8]) {
+     out.push(b'"');
++    if plain(s) {
++        out.extend_from_slice(s);
++        out.push(b'"');
++        return;
++    }
+     let mut start = 0;
+     for (i, &c) in s.iter().enumerate() {
+         if c >= 0x20 && c != b'"' && c != b'\\' {

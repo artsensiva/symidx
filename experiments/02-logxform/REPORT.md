@@ -196,8 +196,9 @@ Where Goose spends its extra time:
   concentrated in the redaction, pair and line loops. Its parsers also fill a `Head` through a reference,
   where Rust returns an `Option` that inlines and partly folds away. Caveat: in the ablation the unused
   parse results may be eliminated differently by the two compilers.
-- **Rendering (+0.13 s).** `json::format_string` scans each string twice (`plain`, then `append`); the
-  Rust version scans once.
+- **Rendering (+0.13 s).** *Corrected in experiment 5:* this said `json::format_string` scans each string twice while
+  Rust scans once. That's wrong: both scan once and then copy, so the cause of this gap is unknown. Both scans are
+  early-exit byte loops, and replacing them with a vectorizable loop gained about 11% in Goose and 6% in Rust.
 - **Newline scan (+0.06 s).** Goose's runtime `find_any` tests 16 bytes at a time, and it sits in a
   separately compiled runtime object, so it can't be inlined. `memchr` dispatches to AVX2.
 - **Not a cost: copies.** Building inline records, which copies every kept message and its pairs about

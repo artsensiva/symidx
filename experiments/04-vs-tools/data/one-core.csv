@@ -1,0 +1,13 @@
+name,round,wall_s,maxrss_kb
+logxform,0,7.075530,36764
+logxform,1,8.367140,36888
+logxform,2,7.789110,36772
+rust_arena,0,6.407918,36924
+rust_arena,1,6.598108,36924
+rust_arena,2,6.322999,36924
+fluentbit,0,124.073949,39636
+fluentbit,1,130.076541,40036
+fluentbit,2,124.062646,40552
+vector,0,280.768614,99584
+vector,1,298.270748,98468
+vector,2,303.113648,99200

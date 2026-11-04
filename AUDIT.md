@@ -34,6 +34,8 @@ That is the main reason for this audit.
 | Fairness audit | by the same agent | by a separate agent given only SPEC and sources; 10 findings, fixed in both directions |
 | Verdict | Rust: serving memory 2.0–3.1× worse for Goose | not met: 0.88× throughput, 1.07× RSS (local Linux); CI Linux agrees |
 
+Later work, not covered by the table above: experiments 3–5 and [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md), with claims G1–G11 in [CLAIMS.md](CLAIMS.md).
+
 ## Reproducing from a clean checkout
 
 Linux x86-64 or macOS on Apple Silicon. CI (`.github/workflows/bench.yml`, ubuntu-24.04 and macos-26) runs
@@ -92,6 +94,8 @@ Expected: every checksum line says `ok`, and every summary row ends in `yes`. Co
   agent effort, not human hours. Goose expertise is limited to its docs and samples; a Goose expert might
   write faster Goose.
 - **Goose v2026.3 only,** built with clang 21. No other version or C compiler was compared.
+- **Local compiler patches.** Experiments 3 and 5 use Goose patches kept on local branches. Those results can't be reproduced from this repository alone, and the patches themselves can't be audited until they're published.
+- **Experiments 4 and 5 weren't committed before they ran.** Their specs were written first; that order rests on the session's record.
 
 ## Questions for the auditor
 

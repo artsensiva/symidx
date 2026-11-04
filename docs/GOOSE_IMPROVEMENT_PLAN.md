@@ -14,6 +14,18 @@ workloads, not 1.3× better. Both experiments found that the large wins come fro
 Rust can use too. A reason to choose Goose after this plan would be parity on performance plus lower
 development cost and safety (a free verified loader, no lifetimes, no `unsafe`), not speed.
 
+## Status, 2026-11-04
+
+Results: [GOOSE_LOGXFORM_REPORT.md](GOOSE_LOGXFORM_REPORT.md). The product goal changed the order: embedding now comes before the view, because every planned product needs it, and the
+six-core gap comes next since embedding is waiting on upstream. Targets below are unchanged.
+
+| Gap | State | Against its target |
+|---|---|---|
+| 1. View | `from_file` and layouts, locally | RSS 1.16× on L and 1.36× on M with layout A, 1.05× and 1.24× with `fixed`; load 2.5–12×. Not met (≤ 1.2×, ≤ 2×) |
+| 2. Embedding | Asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) | Not started |
+| 3. Parallelism | About 0.57× at `-t 6` | Not met (≥ 0.9×); next |
+| 4. Codegen | F2 locally | **Met:** 1.10× and 1.12× (≥ 1.0×). 1.03× with Rust given the same scan |
+
 ## The four gaps
 
 ### 1. Zero-copy verified view (serving memory, load time)
@@ -85,7 +97,8 @@ development cost and safety (a free verified loader, no lifetimes, no `unsafe`),
   - parsing costs 1.19× rust-arena's: scalar loops that keep bounds checks (21 of 83 index and 44 of 65
     slice checks are kept, `--bce-lines`), and parsers that fill a struct through a reference instead of
     returning one;
-  - rendering costs 1.08×, because `json::format_string` scans twice (`plain`, then `append`);
+  - rendering costs 1.08×, cause unknown (*corrected in experiment 5:* this said `json::format_string` scans twice, but
+    Rust's renderer also scans and then copies);
   - the newline scan costs 1.13×: the runtime's `find_any` tests 16 bytes at a time, and it lives in a
     separately compiled runtime object, so it can't be inlined;
   - building inline records, copies included, is *not* slower (0.97×).
@@ -94,9 +107,9 @@ development cost and safety (a free verified loader, no lifetimes, no `unsafe`),
   Rust PGO. The best of each against each other is 0.96×. So the gap is in what the C compiler is given,
   not in how hard it optimizes.
 - **Feasibility: good, effort small (days).** The fixes are library-level and need no language change:
-  - a one-pass `json::format_string`;
+  - a vectorizable scan in `json::plain` (experiment 5: done locally, about 11%; the same loop gives Rust about 6%);
   - `find_any` with AVX2 dispatch, as `memchr` does, compiled into the program (or in a header) so it
-    can inline;
+    can inline (experiment 5: done locally through `memchr`, no measurable gain);
   - finer bounds-check elimination in counted byte loops, a compiler change, so upstream's call.
 - **Benchmark.** Experiment 2: `run.sh M` (`st_mbps`) and `flags/measure.sh` (the base row).
 - **Target.** Goose ≥ 1.0× rust-arena single-threaded on M, base configuration, median over three neutral
@@ -110,8 +123,8 @@ development cost and safety (a free verified loader, no lifetimes, no `unsafe`),
    gap 4's root causes and show that copies aren't the problem.
 2. **Contact upstream.** Post the drafted comment on goose#221 (`spike/COMMENT_221.md`, not yet posted; the
    project owner decides). It offers to prototype a verified view against symidx's benchmark. Report the
-   gap 4 findings at the same time, as concrete, measured suggestions (one-pass escape, `find_any`
-   dispatch and inlining). Nothing after this step starts without an answer.
+   gap 4 findings at the same time, as concrete, measured suggestions (a vectorizable `json::plain`; experiment 5 found no
+   measurable gain from sending `find_any` to `memchr`). Nothing after this step starts without an answer.
 3. **View (gap 1).** It has the largest measured deficit (2–3× serving memory), the most tractable design
    (the verifier exists), and an existing benchmark.
 4. **Embedding (gap 2).** It unblocks the most remaining opportunities, but it needs upstream design work

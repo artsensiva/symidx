@@ -2,6 +2,9 @@
 
 2026-11-03. Written after symidx Phase 1 ([bench/REPORT.md](../bench/REPORT.md)). Goose v2026.3.
 
+> **Note (2026-11-04).** "Falsified" below means no ≥ 1.3× win over tuned Rust, not that these products can't work. Against the real tools, Goose logxform wins clearly on one
+> core, mostly from specialization: see [GOOSE_LOGXFORM_REPORT.md](GOOSE_LOGXFORM_REPORT.md). Candidates 1, 2 and 3 are the project's product goal.
+>
 > **Outcome (experiment 2, 2026-11-03): candidates 1 and 2 are falsified; 4 and 7 lose their main
 > argument. The Goose track ends.** The shared test recommended in section 5 was run as
 > [experiments/02-logxform](../experiments/02-logxform/REPORT.md): Loghub HDFS, OpenSSH and Apache logs

@@ -1,0 +1,27 @@
+# One Fluent Bit process per input file; FORMAT, FILE and FB_DIR come from run-fluentbit.sh.
+service:
+  flush: 0.2
+  log_level: error
+  grace: 1
+pipeline:
+  inputs:
+    - name: tail
+      path: ${FILE}
+      read_from_head: true
+      exit_on_eof: true
+      refresh_interval: 1
+      inotify_watcher: false
+      buffer_chunk_size: 1M
+      buffer_max_size: 1M
+      mem_buf_limit: 64M
+  filters:
+    - name: lua
+      match: "*"
+      script: ${FB_DIR}/${FORMAT}.lua
+      call: f
+      type_int_key: sev
+  outputs:
+    - name: stdout
+      match: "*"
+      format: json_lines
+      json_date_key: false

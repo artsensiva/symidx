@@ -43,4 +43,23 @@ Note on P11: the claim rests on a development-log observation, not a recorded be
 | E10 | The audit's record-layout fix moved rust-arena's RSS 43.3 → 38.4 MB | REPORT "Results", "Fairness audit" | `data/local-pre` 44,352 KiB vs `data/local-post` 39,288 KiB |
 | E11 | All three implementations match the reference on S, M, L and the edge corpus, at 1 and 4 threads, locally and in CI | REPORT "What was tested" | `check-sums.sh` output; CI runs 41694111883 and 41699929723 (the "logxform checksums" steps); `ref-checksums.txt` |
 | E12 | Build flags (-O3/-march=native, LTO, PGO) don't change the verdict | REPORT "Amendment row: build flags" | `data/flags/summary.csv`: Goose ÷ rust-arena 1.00 (base), 0.88 (native), 0.85 (+LTO), 1.01 (+PGO); best against best 0.96 |
-| E13 | Candidates 1 and 2 of the opportunity analysis are falsified; 4 and 7 lose their main argument | docs/GOOSE_OPPORTUNITIES.md "Outcome"; README | follows from E2–E5 and the shared mechanism argument in GOOSE_OPPORTUNITIES §5 |
+| E13 | Candidates 1 and 2 of the opportunity analysis are falsified; 4 and 7 lose their main argument (only as "≥ 1.3× over tuned Rust"; see G1–G6) | docs/GOOSE_OPPORTUNITIES.md "Outcome"; README | follows from E2–E5 and the shared mechanism argument in GOOSE_OPPORTUNITIES §5 |
+
+## Experiments 3–5 and docs/GOOSE_LOGXFORM_REPORT.md
+
+"Consolidated" is `experiments/05-goose-fixes/data/consolidated/`. Results marked † need the local Goose patches, which aren't published.
+
+| # | Claim | Stated in | Evidence |
+|---|---|---|---|
+| G1 | Goose logxform on one core is about 20× and 42× Fluent Bit's and Vector's throughput † | README; report "Summary" | `all-one-core.csv`: paired medians 19.75× and 41.88×; 251.3, 12.7, 5.9 MB/s. Release Goose in `experiments/04-vs-tools/data/`: 15.9× and 38.9× |
+| G2 | …with 19× and 43× less CPU per GB † | same | `all-one-core.csv`: 3.9, 74.0, 173.4 CPU-s per GB; paired 19.18 and 43.46 |
+| G3 | …and less memory, 1.10× and 2.67× † | same | `all-one-core.csv`: 36.1, 39.6, 96.2 MiB |
+| G4 | Most of that win is from being fixed-purpose, since tuned Rust wins by about as much | report "Analysis" | `all-one-core.csv`: rust-arena 225.3, rust-arena-fair 254.8 MB/s |
+| G5 | 1.10× tuned Rust on one core † | README; report | `fair-t1.csv`: 1.098, rounds 1.090–1.109. First run in `data/log-t1.csv`: 1.122 |
+| G6 | 1.03× once Rust has the same scan; parity to a small lead † | same | `fair-t1.csv`: 1.029, rounds 1.023–1.035. Per-file harness in `all-one-core.csv`: 0.99, rounds 0.82–1.04 |
+| G7 | About 0.57× tuned Rust and 1.3× its memory at six threads † | same | `fair-t6.csv`: 490.8 and 859.1 MB/s, 480 and 366 MiB. Noisy: load average up to 9.7 |
+| G8 | One library loop gave about 11% † | report "Summary" | `data/log-t1.csv`: base 235.7, F2 262.7 MB/s; rounds 0.884–0.911 in time |
+| G9 | `from_file` took the index's L memory to 1.16× rust-expert's, from 2.6–2.7× † | same | `data/sel-L.csv`: base 116.1, patch 2 78.5, F3 49.8, rust-expert 43.0 MiB |
+| G10 | `fixed` reaches 1.05× rust-expert's L memory, and load 4.5× † | report "The symbol index" | `experiments/03-goose-patches/data/round2/`: 46.9 and 44.6 MiB; 29.2 and 6.4 ms |
+| G11 | Huge pages depend on the task † | report "Analysis" | `experiments/03-goose-patches/PLAN.md` round 2; `data/round2-with-copy/log-t1.csv` |
+

@@ -38,9 +38,8 @@ https://github.com/artsensiva/symidx/tree/main/experiments/02-logxform, where Go
 arena-based Rust version single-threaded in the main run (0.93–1.03× across neutral rebuilds, 0.96× with
 the best build flags on each side). A phase-timed profile attributes most of the gap to three
 library-level things, each measured in that report's "Profile" section:
-- `json::format_string` scans each string twice (`plain`, then `append`);
-- `find_any` tests 16 bytes at a time, and since it's in the precompiled runtime object it can't be inlined;
+- `json::plain`'s early-exit byte loop doesn't vectorize. A compare-free form that does gained about 11% overall;
 - bounds checks are kept in counted byte loops.
 
-I'd be glad to send small PRs for the first two if you want them. Building inline variable-size records
+I'd be glad to send a small PR for the first if you want it. Building inline variable-size records
 cost nothing extra there, which was nice to confirm.
