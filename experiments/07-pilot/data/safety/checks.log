@@ -1,0 +1,20 @@
+hdfs {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+ssh {'dotted quad': (0, None), 'IP in a hostname, with dashes': (3498, b'2-52-80-34'), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+apache {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+bgl {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (247993, b'0x0157')}
+goose-1x-stdin 7.53 s 36764 KB exit 0
+goose-8x-stdin 60.67 s 36764 KB exit 0
+goose-line-67108864 0.64 s 264600 KB exit 0
+goose-reject-67108864 0.19 s 264648 KB exit 0
+goose-line-268435456 2.55 s 1051056 KB exit 0
+goose-reject-268435456 1.02 s 1051068 KB exit 0
+goose-line-1073741824 10.65 s 4196628 KB exit 0
+goose-reject-1073741824 1.35 s 2099472 KB exit 3
+rust-1x-stdin 6.06 s 36864 KB exit 0
+rust-8x-stdin 48.30 s 36864 KB exit 0
+rust-line-67108864 0.41 s 134080 KB exit 0
+rust-reject-67108864 0.27 s 265352 KB exit 0
+rust-line-268435456 1.66 s 527360 KB exit 0
+rust-reject-268435456 1.13 s 1051748 KB exit 0
+rust-line-1073741824 6.65 s 2100160 KB exit 0
+rust-reject-1073741824 4.25 s 4197508 KB exit 0

@@ -1,0 +1,17 @@
+Goose build with every UBSan check on, halt_on_error=0, one failing fuzz case per format. Earlier run: 2994 of 2994 Goose cases stopped at the first such report, before being stopped itself; no Rust case failed.
+== hdfs
+      1 sanitize.c:6145:9: runtime error: store to misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7680:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7686:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+== ssh
+      1 sanitize.c:6145:9: runtime error: store to misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7680:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7686:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+== apache
+      1 sanitize.c:6145:9: runtime error: store to misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7680:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7686:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+== bgl
+      1 sanitize.c:6145:9: runtime error: store to misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7680:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')
+      1 sanitize.c:7686:31: runtime error: load of misaligned address ADDR for type 'uint16_t' (aka 'unsigned short')

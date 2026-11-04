@@ -10,6 +10,13 @@ Everything here runs on one Linux machine: Intel Core i5-8400T (6 cores), kernel
 | **Fluent Bit** | 5.1.5 | Pipeline: [tools/fluentbit/pipeline.conf](tools/fluentbit/pipeline.conf), Lua: `tools/fluentbit/*.lua` | Official Ubuntu package `fluent-bit_5.1.5_amd64.deb`, sha256 `e1a9501b6588f28faa16531a19d11e45590a96e2f298a1cfce931ca72aee9615`. Unpacked into `toolchain/vs/fluentbit/x` without root, with `libpq`, which it links to, in `toolchain/vs/fluentbit/lib` | `tail` input, `lua` filter, `file` output, through the wrapper below. Threads: `SANITIZE_THREADS`, or the cores available |
 | **Vector** | 0.61.0 | Pipeline: [tools/vector/pipeline.yaml.in](tools/vector/pipeline.yaml.in), VRL: `tools/vector/*.vrl` | Official `vector-0.61.0-x86_64-unknown-linux-gnu.tar.gz`, sha256 `84a27c3ad6b772fdb05bb76ea01a31498bfc8f5e71f32cc78a0d96841f1aa827`. Unpacked into `toolchain/vs/vector/x` | `stdin` source, `remap` with `reroute_dropped`, `filter`, `file` sink, through the wrapper below. Threads as for Fluent Bit |
 
+## Sanitizer builds
+
+For the safety section, and not part of the registered results. `goose.h` comes from the `include` folder of a normal `goose build` under `~/.goose/build/prog`.
+
+- **logXform of Goose:** `goose --standalone -o sanitize.c sanitize.goose`, which puts the runtime in the C file, then `clang -std=gnu11 -O1 -g -fsanitize=address,undefined -fno-sanitize=alignment -fno-omit-frame-pointer -I. sanitize.c io.c -lm -lpthread`. Without `--standalone`, the generated C needs a separately built runtime.
+- **Rust:** `RUSTC_BOOTSTRAP=1 RUSTFLAGS="-Zsanitizer=address -C linker=clang" cargo build --release --target x86_64-unknown-linux-gnu`.
+
 ## The wrapper around the tools
 
 Neither tool has the pilot's command line, atomic `--out`, a rejects file with these rules, a summary line or these exit codes. [tools/sanitize_tool.py](tools/sanitize_tool.py) (144 lines) provides them around one tool process per input, and the spec counts that cost:

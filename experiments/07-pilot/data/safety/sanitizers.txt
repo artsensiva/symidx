@@ -1,0 +1,12 @@
+goose adversarial: 114 of 114 checks passed
+goose adversarial-change: 150 of 150 checks passed
+goose bgl: exit 0; output same; rejects same; sanitizer reports 0
+goose hdfs: exit 0; output same; rejects same; sanitizer reports 0
+goose ssh: exit 0; output same; rejects same; sanitizer reports 0
+goose apache: exit 0; output same; rejects same; sanitizer reports 0
+rust adversarial: 114 of 114 checks passed
+rust adversarial-change: 150 of 150 checks passed
+rust bgl: exit 0; output same; rejects same; sanitizer reports 0
+rust hdfs: exit 0; output same; rejects same; sanitizer reports 0
+rust ssh: exit 0; output same; rejects same; sanitizer reports 0
+rust apache: exit 0; output same; rejects same; sanitizer reports 0

@@ -1,0 +1,4 @@
+hdfs {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+ssh {'dotted quad': (0, None), 'IP in a hostname, with dashes': (3498, b'2-52-80-34'), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+apache {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (0, None)}
+bgl {'dotted quad': (0, None), 'IP in a hostname, with dashes': (0, None), 'IPv6 with ::': (0, None), 'full IPv6': (0, None), '0x with other lengths': (247993, b'0x0157')}

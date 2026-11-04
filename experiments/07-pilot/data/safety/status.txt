@@ -1,0 +1,4 @@
+fuzz exit 0
+fuzz-sanitizers exit 0
+sanitizers done
+checks exit 0

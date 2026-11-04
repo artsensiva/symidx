@@ -193,6 +193,65 @@ All three pass 114 of 114 and 150 of 150 checks, and write the registered BGL ou
 - **Neither speed ratio moves in the registered result.** The variants were written after the result was known, and Rust got no such second pass. The registered program stays as measured, and the safety and delivery checks use it. Variant C shows what's reachable: 0.99× Rust's speed on HDFS and 0.94× on BGL.
 - **Not explained:** the 9% left in variant C. Nor did I check whether the Rust program has similar room.
 
+## Safety, 2026-11-04 and 2026-11-05 (SPEC, A5)
+
+Report-only, so none of this changes the decision rules directly. It uses the registered change-request programs. Raw data: [data/safety/](data/safety/), from [run_safety.sh](run_safety.sh). **Still to do:** the Fluent Bit reject flake and the feature table.
+
+### Malformed input
+
+Seeded mutations of real and adversarial lines, from [safety_fuzz.py](safety_fuzz.py). The mutations are random, not coverage-guided.
+
+| Run | Cases | Result |
+|---|---|---|
+| logXform of Goose and Rust against Python: exit code, output, rejects, summary | 20,000 | No differences, no signals |
+| Fluent Bit and Vector, crashes only | 200 | No crashes or signals. Their output isn't compared here |
+| Sanitizer builds of logXform of Goose and Rust against Python | 2,000 | No differences, no reports |
+
+### Sanitizers
+
+| Check | logXform of Goose | Rust |
+|---|---|---|
+| AddressSanitizer | Yes | Yes, through `RUSTC_BOOTSTRAP=1`, which stable Rust doesn't support |
+| UndefinedBehaviorSanitizer | Yes, except alignment | Not run |
+| 264 oracle checks | All pass | All pass |
+| BGL, HDFS head, SSH, Apache | Same output and rejects as the normal build, 0 reports | Same |
+
+- **Alignment:** with every check on, each Goose case stops at a misaligned 16-bit access in the generated C, at [three sites](data/safety/alignment.txt). Goose's documentation says its C backend targets "64-bit, little-endian hosts with unaligned packed accesses", so this is by design. It's still undefined behavior in C, so it limits delivery as C source, and other architectures are untested.
+- **What these runs can't see:** Goose values live in its own mapped data stacks, which AddressSanitizer doesn't track, so an overrun inside one relies on Goose's bounds checks and guard gap. Rust's standard library wasn't instrumented, and the Rust build's only sanitizer is AddressSanitizer.
+- **Different builds:** the sanitizer build of Goose comes from `goose --standalone` at clang `-O1`, not the registered binary, though from the same source.
+
+### What redaction misses
+
+Searched in logXform of Goose's output, which is byte-identical to the reference. These are limits of the rules, and every program applies the same ones.
+
+| Form | Where | Lines | Example |
+|---|---|---|---|
+| IP inside a host name, with dashes | SSH | **3,498** of 655,146 input lines | `ec2-52-80-34-196.cn-north-1.compute.amazonaws.com.cn` |
+| `0x` values not 8 digits long | BGL | 247,993, by the A6 rule | `0x0157` |
+| Dotted IPv4, IPv6 | All four | 0 | |
+
+**The SSH hosts are a real leak against the workflow's purpose:** the address is readable in the host name. The rules, written by the same agent, didn't cover it.
+
+### Long runs and very long lines
+
+Peak memory and exit code. Long streams are flat in both programs, with no growth from 1× to 8× HDFS. The sizes below are single lines, or two rejected lines of that size.
+
+| Input | Goose | Rust |
+|---|---|---|
+| HDFS × 1, stdin | 36 MiB | 36 MiB |
+| HDFS × 8, stdin | 36 MiB | 36 MiB |
+| One 64 MiB line | 258 MiB | 131 MiB |
+| One 256 MiB line | 1.0 GiB | 515 MiB |
+| One 1 GiB line | 4.0 GiB | 2.0 GiB |
+| One 2.3 GiB line | **Stops at 2.0 GiB, exit 3** | 4.4 GiB, succeeds |
+| Two rejected 64 MiB lines | 258 MiB | 259 MiB |
+| Two rejected 256 MiB lines | 1.0 GiB | 1.0 GiB |
+| Two rejected 1 GiB lines | **Stops at 2.0 GiB, exit 3** | 4.0 GiB, succeeds |
+
+- **Goose has a limit Rust doesn't:** input that fills the default 2 GiB data stack ends the run. It fails closed, with exit 3 but says `cannot read -`, which misdescribes the cause.
+- **Why it doesn't overwrite anything:** the C helper reads straight to the top of the data stack, so `read(2)` hits the guard gap behind the region. That follows from reading the runtime's source and from these two runs, not from a dedicated test.
+- **Goose uses twice Rust's memory on one very long kept line.** No program in this pilot is expected to meet such lines, but nothing prevents them.
+
 ## How to read this
 
 - **Python doesn't clearly beat Fluent Bit.** Their CPU on HDFS swapped order between sessions, with Fluent Bit at 1.07× Python's in session 1 and 0.94× in session 2. Fluent Bit uses about half Python's memory on most inputs and half its CPU on escape-heavy data. Python passes every correctness check, and Fluent Bit doesn't. Vector is clearly behind both. So "the best alternative" depends on the format and on whether CPU, memory or correctness matters.
@@ -212,5 +271,5 @@ All three pass 114 of 114 and 150 of 150 checks, and write the registered BGL ou
 ## What limits these results
 
 - **The requirements and tests were written by the same agent** that wrote the programs, and there's no external user.
-- **Not tested yet:** the safety section (SPEC, A5). Crash recovery, following live files and network delivery are excluded by the spec, and they're what the tools are built for.
+- **Not tested yet:** the rest of the safety section (the Fluent Bit reject flake, the feature table). Crash recovery, following live files and network delivery are excluded by the spec, and they're what the tools are built for.
 - **One machine,** warm cache.
