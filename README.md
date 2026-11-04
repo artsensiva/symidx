@@ -229,6 +229,7 @@ The long-term goal is products on Goose that compete with `serde` + arenas and P
 
 - **Done:** logXform of Goose against the real tools, including a native Fluent Bit config, which is slower than its Lua config, so the gap stays ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
 - **Next:** the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
+- **After the pilot:** [experiment 8](experiments/08-pipebench/PLAN.md): logXform of Goose and a Rust version in PipeBench, a third-party benchmark, beside Vector and Fluent Bit.
 - **Paused:** the six-core work ([experiment 6](experiments/06-parallelism/PLAN.md)), embedding (asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555)), and all compiler work ([docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md)).
 
 For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, findings and their status, questions) and
@@ -279,6 +280,7 @@ experiments/04-vs-tools/  logXform of Goose against Fluent Bit and Vector: SPEC,
 experiments/05-goose-fixes/  single-thread fixes, the fairness check, the consolidated run; data/
 experiments/06-parallelism/  why six threads stall: stage timers, queue benchmark, scaling; a proposal; on hold; data/
 experiments/07-pilot/  the pilot: spec, oracle, programs in Goose and Rust, Fluent Bit and Vector pipelines and wrapper, build notes, results
+experiments/08-pipebench/  planned: logXform of Goose and Rust in a third-party benchmark, after the pilot
 Symidx_Audit_*.md      independent reviews, verbatim
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
 CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
