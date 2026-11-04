@@ -9,6 +9,8 @@ HDFS_RE = re.compile(rb"(\d\d)(\d\d)(\d\d) (\d\d)(\d\d)(\d\d) (\d+) (TRACE|DEBUG
 SSH_RE = re.compile(rb"(" + MON_RE + rb") ( \d|\d\d) (\d\d):(\d\d):(\d\d) ([^ ]+) ([^ \[]+)\[(\d+)\]: ")
 APACHE_RE = re.compile(rb"\[(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) (" + MON_RE + rb") (\d\d) (\d\d):(\d\d):(\d\d) (\d{4})\] "
                        rb"\[(emerg|alert|crit|error|warn|notice|info|debug)\] ")
+BGL_RE = re.compile(rb"([^ ]+) \d+ \d{4}\.\d\d\.\d\d ([^ ]+) (\d{4})-(\d\d)-(\d\d)-(\d\d)\.(\d\d)\.(\d\d)\.\d{6} ")
+BGL_LEVEL = {b"INFO": b"INFO", b"WARNING": b"WARN", b"ERROR": b"ERROR", b"SEVERE": b"ERROR", b"FATAL": b"FATAL", b"FAILURE": b"FATAL"}
 APACHE_LEVEL = {b"emerg": b"FATAL", b"alert": b"FATAL", b"crit": b"FATAL", b"error": b"ERROR",
                 b"warn": b"WARN", b"notice": b"NOTICE", b"info": b"INFO", b"debug": b"DEBUG"}
 
@@ -19,6 +21,7 @@ DEFAULT_MIN = RANK[b"INFO"]
 
 RUN_RE = re.compile(rb"(?<![0-9.])[0-9][0-9.]*")
 IP_RE = re.compile(rb"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+HEX_RE = re.compile(rb"(?<![0-9A-Za-z])0x[0-9a-fA-F]{8}(?![0-9A-Za-z])")
 BLK_RE = re.compile(rb"blk_-?[0-9]+")
 KEY_RE = re.compile(rb"[A-Za-z0-9_.-]+")
 ESC_RE = re.compile(rb'[\x00-\x1f"\\]')
@@ -85,7 +88,29 @@ def parse_apache(line):
     return ts, APACHE_LEVEL[lv], b"httpd", line[m.end():], []
 
 
-PARSERS = {"hdfs": parse_hdfs, "ssh": parse_ssh, "apache": parse_apache}
+def parse_bgl(line):
+    m = BGL_RE.match(line)
+    if not m:
+        return None
+    label, node, y, mo, d, h, mi, s = m.groups()
+    ts = ts_of(int(y), int(mo), int(d), int(h), int(mi), int(s))
+    if ts is None:
+        return None
+    rest = line[m.end():]
+    if not (node == b"-" and rest.startswith((b"RAS ", b"NULL "))):
+        node2, sep, rest = rest.partition(b" ")
+        if not node2 or not sep:
+            return None
+    f = rest.split(b" ", 3)
+    if len(f) < 3 or f[0] not in (b"RAS", b"NULL") or not f[1] or f[2] not in BGL_LEVEL:
+        return None
+    pairs = [(b"node", node)]
+    if label != b"-":
+        pairs.append((b"alert", label))
+    return ts, BGL_LEVEL[f[2]], f[1], f[3] if len(f) == 4 else b"", pairs
+
+
+PARSERS = {"hdfs": parse_hdfs, "ssh": parse_ssh, "apache": parse_apache, "bgl": parse_bgl}
 
 
 def redact_run(m):
@@ -147,11 +172,11 @@ def run(pairs, out, rejects):
                     rejects.write(bad + b"\n")
                 continue
             ts, level, comp, msg, pairs_ = r
-            if RANK[level] < MIN_LEVEL.get(comp, DEFAULT_MIN):
+            if RANK[level] < MIN_LEVEL.get(comp, DEFAULT_MIN) or (fmt == "bgl" and comp == b"APP" and RANK[level] < RANK[b"ERROR"]):
                 dropped += 1
                 continue
             kept += 1
-            msg = RUN_RE.sub(redact_run, msg)
+            msg = HEX_RE.sub(b"<hex>", RUN_RE.sub(redact_run, msg))
             kv = dict(pairs_)
             for tok in msg.split(b" "):
                 p = tok.find(b"=")

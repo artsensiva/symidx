@@ -1,0 +1,16 @@
+hex lookbehind CAUGHT 138 of 150 checks passed
+hex lookahead CAUGHT 138 of 150 checks passed
+hex upper CAUGHT 138 of 150 checks passed
+0X CAUGHT 138 of 150 checks passed
+severe warn CAUGHT 146 of 150 checks passed
+failure err CAUGHT 147 of 150 checks passed
+no app CAUGHT 142 of 150 checks passed
+app everywhere CAUGHT 142 of 150 checks passed
+app warn CAUGHT 146 of 150 checks passed
+node2 always CAUGHT 145 of 150 checks passed
+node2 any CAUGHT 145 of 150 checks passed
+type any CAUGHT 140 of 150 checks passed
+no alert CAUGHT 144 of 150 checks passed
+frac CAUGHT 145 of 150 checks passed
+hex before ip CAUGHT 138 of 150 checks passed
+no hex CAUGHT 135 of 150 checks passed

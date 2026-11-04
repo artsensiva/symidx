@@ -1,0 +1,4 @@
+FAIL invalid_utf8: output: record 0: got {"component": "sshd", "kv": {"host": "LabSZ", "k": "\ufffd\ufffd", "pid": "7"}, "level": "INFO", "msg": "bad \ufffd byte k=\ufffd\ufffd", "sev": 6, "t, want {"component": "sshd", "kv": {"host": "LabSZ", "k": "\udc80\udc80", "pid": "7"}, "level": "INFO", "msg": "bad \udc80 byte k=\udc80\udc80", "sev": 6, "t
+FAIL invalid_utf8: stdout equals --out: differs
+FAIL invalid_utf8: stdin equals file: differs
+111 of 114 checks passed

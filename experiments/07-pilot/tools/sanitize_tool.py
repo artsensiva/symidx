@@ -76,7 +76,7 @@ def main(argv):
         else:
             usage()
         argv = argv[2:]
-    if not argv or len(argv) % 2 or any(f not in ("hdfs", "ssh", "apache") for f in argv[0::2]):
+    if not argv or len(argv) % 2 or any(f not in ("hdfs", "ssh", "apache", "bgl") for f in argv[0::2]):
         usage()
     # Beside the output when there is one, so that the final move is a rename.
     work = tempfile.mkdtemp(prefix="sanitize-", dir=os.path.dirname(os.path.abspath(out_path)) if out_path and os.path.isdir(os.path.dirname(os.path.abspath(out_path))) else None)

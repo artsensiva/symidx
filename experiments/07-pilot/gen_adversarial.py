@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Adversarial test data for the pilot, each case with its expected results (SPEC A2).
 
-usage: gen_adversarial.py OUT_DIR [--change]
+usage: gen_adversarial.py OUT_DIR [--change | --change-ascii]
 Writes, for each case: NAME.FORMAT (input), NAME.expected (stdout), NAME.rejects, NAME.summary. Deterministic.
 
 This is the oracle, so it must not share a parser with the programs under test. It parses nothing: every line is assembled from
@@ -34,6 +34,11 @@ def record(ts, level, comp, msg, kv):
     return b'{"ts":"' + ts + b'","level":"' + level + b'","sev":' + str(SEVERITY[level]).encode() + b',"component":' + j(comp) + b',"msg":' + j(msg) + b',"kv":{' + pairs + b"}}\n"
 
 
+# With --change-ascii, kept lines with bytes above 127, or with no final newline, are left out. So tools that can't keep those bytes,
+# which is already recorded, still get checked on everything else, since a first failure hides the rest of a case.
+ASCII_ONLY = "--change-ascii" in sys.argv
+
+
 class Case:
     def __init__(self, name, fmt):
         self.name, self.fmt = name, fmt
@@ -43,6 +48,10 @@ class Case:
         self.lines = self.kept = self.dropped = self.malformed = 0
 
     def kept_line(self, line, out, end=b"\n"):
+        if ASCII_ONLY:
+            if max(line, default=0) > 127:
+                return
+            end = end or b"\n"
         self.input += line + end
         self.expected += out
         self.lines += 1
@@ -356,7 +365,7 @@ def main():
     d = sys.argv[1]
     os.makedirs(d, exist_ok=True)
     cases = [escape_heavy(), long_lines(), invalid_utf8(), empty(), only_newlines(), no_newline(), crlf(), levels(), hdfs_fields(), ssh_fields(), apache_fields(), redaction(), pairs(), format_pairs()] + filtered()
-    if "--change" in sys.argv[2:]:
+    if "--change" in sys.argv[2:] or ASCII_ONLY:
         cases += [change_bgl(), change_bgl_crlf()] + change_hex()
     for c in cases:
         c.write(d)

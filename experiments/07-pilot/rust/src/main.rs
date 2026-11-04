@@ -14,6 +14,7 @@ enum Fmt {
     Hdfs,
     Ssh,
     Apache,
+    Bgl,
 }
 
 // Level ranks, in filter order.
@@ -68,7 +69,7 @@ struct Arena {
 }
 
 /// The format keys and Apache's component, at the start of every batch's byte arena.
-const STATIC: &[u8] = b"pidhostblkhttpd";
+const STATIC: &[u8] = b"pidhostblkhttpdnodealert";
 
 /// The bytes a span names.
 #[inline]
@@ -320,6 +321,103 @@ fn parse_apache(s: &[u8]) -> Option<Head<'_>> {
 
 // --- transform ------------------------------------------------------------------------
 
+fn bgl_level(t: &[u8]) -> Option<u8> {
+    match t {
+        b"INFO" => Some(INFO),
+        b"FATAL" | b"FAILURE" => Some(FATAL),
+        b"ERROR" | b"SEVERE" => Some(ERROR),
+        b"WARNING" => Some(WARN),
+        _ => None,
+    }
+}
+
+/// LABEL EPOCH YYYY.MM.DD NODE YYYY-MM-DD-HH.MM.SS.ffffff [NODE2] TYPE COMPONENT LEVEL[ MSG]
+fn parse_bgl(s: &[u8]) -> Option<Head<'_>> {
+    let label = upto(s, 0, b' ');
+    if label == 0 || label == s.len() {
+        return None;
+    }
+    let ep = label + 1;
+    let ep_hi = upto(s, ep, b' ');
+    if ep_hi == ep || ep_hi == s.len() || !digits(&s[ep..ep_hi]) {
+        return None;
+    }
+    let d = ep_hi + 1;
+    if d + 11 > s.len()
+        || s[d + 4] != b'.'
+        || s[d + 7] != b'.'
+        || s[d + 10] != b' '
+        || !digits(&s[d..d + 4])
+        || !digits(&s[d + 5..d + 7])
+        || !digits(&s[d + 8..d + 10])
+    {
+        return None;
+    }
+    let node = d + 11;
+    let node_hi = upto(s, node, b' ');
+    if node_hi == node || node_hi == s.len() {
+        return None;
+    }
+    let t = node_hi + 1;
+    if t + 27 > s.len()
+        || s[t + 4] != b'-'
+        || s[t + 7] != b'-'
+        || s[t + 10] != b'-'
+        || s[t + 13] != b'.'
+        || s[t + 16] != b'.'
+        || s[t + 19] != b'.'
+        || s[t + 26] != b' '
+        || !digits(&s[t..t + 4])
+        || !digits(&s[t + 5..t + 7])
+        || !digits(&s[t + 8..t + 10])
+        || !digits(&s[t + 11..t + 13])
+        || !digits(&s[t + 14..t + 16])
+        || !digits(&s[t + 17..t + 19])
+        || !digits(&s[t + 20..t + 26])
+    {
+        return None;
+    }
+    let ts = Ts {
+        y: d2(s, t) as u16 * 100 + d2(s, t + 2) as u16,
+        mo: d2(s, t + 5),
+        d: d2(s, t + 8),
+        h: d2(s, t + 11),
+        mi: d2(s, t + 14),
+        s: d2(s, t + 17),
+    };
+    let mut i = t + 27;
+    if !(&s[node..node_hi] == b"-" && (s[i..].starts_with(b"RAS ") || s[i..].starts_with(b"NULL "))) {
+        let e = upto(s, i, b' ');
+        if e == i || e == s.len() {
+            return None;
+        }
+        i = e + 1;
+    }
+    let ty = upto(s, i, b' ');
+    if ty == s.len() || !(&s[i..ty] == b"RAS" || &s[i..ty] == b"NULL") {
+        return None;
+    }
+    i = ty + 1;
+    let comp = upto(s, i, b' ');
+    if comp == i || comp == s.len() {
+        return None;
+    }
+    let lv = upto(s, comp + 1, b' ');
+    let level = bgl_level(&s[comp + 1..lv])?;
+    let mut fp: [Kv; 2] = [(b"node", &s[node..node_hi]), (b"", b"")];
+    let mut nf = 1;
+    if &s[..label] != b"-" {
+        fp[1] = (b"alert", &s[..label]);
+        nf = 2;
+    }
+    let msg = if lv < s.len() { &s[lv + 1..] } else { &s[s.len()..] };
+    if ts_ok(&ts) {
+        Some(Head { ts, level, comp: &s[i..comp], msg, fp, nf })
+    } else {
+        None
+    }
+}
+
 fn min_level(comp: &[u8]) -> u8 {
     if comp == b"dfs.DataNode$PacketResponder" || comp == b"dfs.FSDataset" {
         WARN
@@ -370,6 +468,41 @@ fn next_ip(msg: &[u8], mut i: usize) -> Option<(usize, usize, usize)> {
 }
 
 /// Appends the redacted message to `out` if it has an address; false (nothing appended) if not.
+/// 0x and exactly 8 hex digits, not touching a letter or digit, at s[i..i + 10].
+fn hex_at(s: &[u8], i: usize) -> bool {
+    i + 10 <= s.len()
+        && (i == 0 || !s[i - 1].is_ascii_alphanumeric())
+        && (i + 10 == s.len() || !s[i + 10].is_ascii_alphanumeric())
+        && s[i + 2..i + 10].iter().all(u8::is_ascii_hexdigit)
+}
+
+fn next_hex(s: &[u8], from: usize) -> Option<usize> {
+    let mut p = from;
+    while let Some(k) = memchr::memmem::find(&s[p..], b"0x") {
+        if hex_at(s, p + k) {
+            return Some(p + k);
+        }
+        p += k + 1;
+    }
+    None
+}
+
+/// Rewrites v[at..] in place, since <hex> is shorter than what it replaces.
+fn redact_hex(v: &mut Vec<u8>, at: usize) {
+    let (mut r, mut w) = (at, at);
+    while let Some(k) = next_hex(&v[at..], r - at) {
+        let i = at + k;
+        v.copy_within(r..i, w);
+        w += i - r;
+        v[w..w + 5].copy_from_slice(b"<hex>");
+        w += 5;
+        r = i + 10;
+    }
+    v.copy_within(r.., w);
+    let n = v.len() - r;
+    v.truncate(w + n);
+}
+
 fn redact(msg: &[u8], out: &mut Vec<u8>) -> bool {
     let Some(mut ip) = next_ip(msg, 0) else { return false };
     let mut start = 0;
@@ -510,6 +643,8 @@ fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Opt
             b"pid" => 0,
             b"host" => 3,
             b"blk" => 7,
+            b"node" => 15,
+            b"alert" => 19,
             _ => 10, // httpd
         };
         Sp { off: dl + o, len: k.len() as u32 }
@@ -528,6 +663,7 @@ fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Opt
             Fmt::Hdfs => parse_hdfs(s),
             Fmt::Ssh => parse_ssh(s),
             Fmt::Apache => parse_apache(s),
+            Fmt::Bgl => parse_bgl(s),
         };
         let Some(h) = parsed else {
             c.malformed += 1;
@@ -537,14 +673,22 @@ fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Opt
             }
             continue;
         };
-        if h.level < min_level(h.comp) {
+        if h.level < min_level(h.comp) || (fmt == Fmt::Bgl && h.level < ERROR && h.comp == b"APP") {
             c.dropped += 1;
             continue;
         }
         c.kept += 1;
         let comp = if fmt == Fmt::Apache { fixed(b"httpd") } else { in_data(h.comp) };
         let at = a.bytes.len();
-        let msg = if redact(h.msg, &mut a.bytes) {
+        let mut changed = redact(h.msg, &mut a.bytes);
+        if !changed && next_hex(h.msg, 0).is_some() {
+            a.bytes.extend_from_slice(h.msg);
+            changed = true;
+        }
+        if changed {
+            redact_hex(&mut a.bytes, at);
+        }
+        let msg = if changed {
             Sp { off: dl + at as u32, len: (a.bytes.len() - at) as u32 }
         } else {
             in_data(h.msg)
@@ -679,6 +823,7 @@ fn main() {
                 "hdfs" => Fmt::Hdfs,
                 "ssh" => Fmt::Ssh,
                 "apache" => Fmt::Apache,
+                "bgl" => Fmt::Bgl,
                 _ => usage(),
             };
             (fmt, p[1].as_str())

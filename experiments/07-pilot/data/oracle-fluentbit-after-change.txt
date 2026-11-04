@@ -1,0 +1,11 @@
+FAIL crlf: rejects: ('not JSON', b'not a line')
+FAIL invalid_utf8: output: record 0: got {"component": "sshd", "kv": {"host": "LabSZ", "k": "\ue080\ue080", "pid": "7"}, "level": "INFO", "msg": "bad \ue080 byte k=\ue080\ue080", "sev": 6, "t, want {"component": "sshd", "kv": {"host": "LabSZ", "k": "\udc80\udc80", "pid": "7"}, "level": "INFO", "msg": "bad \udc80 byte k=\udc80\udc80", "sev": 6, "t
+FAIL invalid_utf8: stdout equals --out: differs
+FAIL invalid_utf8: stdin equals file: differs
+FAIL long_lines: rejects: got 0 records, want 2
+FAIL long_lines: summary: got b'lines=11 kept=10 dropped=1 malformed=0\n', want b'lines=11 kept=10 dropped=0 malformed=1'
+FAIL no_newline: output: got 1 records, want 2
+FAIL no_newline: summary: got b'lines=2 kept=1 dropped=1 malformed=0\n', want b'lines=2 kept=2 dropped=0 malformed=0'
+FAIL no_newline: stdout equals --out: differs
+FAIL no_newline: stdin equals file: differs
+104 of 114 checks passed

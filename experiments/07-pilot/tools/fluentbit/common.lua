@@ -22,6 +22,7 @@ function M.finish(ts, level, component, msg, kv)
   if RANK[level] < min then return nil end
   local red = msg
   if msg:find("%d%.%d") then red = msg:gsub("%f[%d.][%d.]+", ip_run) end
+  if red:find("0x", 1, true) then red = red:gsub("%f[%w]0x%x%x%x%x%x%x%x%x%f[%W]", "<hex>") end
   if red:find("=", 1, true) then
     for tok in red:gmatch("[^ ]+") do
       local k, v = tok:match("^([%w_.-]+)=(.*)$")

@@ -21,6 +21,7 @@ let BLOCK = 1048576;
 let HDFS = 0;
 let SSH = 1;
 let APACHE = 2;
+let BGL = 3;
 
 // Level ranks, in filter order.
 let TRACE = 0;
@@ -52,10 +53,14 @@ struct Head {
 let K_PID = 0;
 let K_BLK = 1;
 let K_HOST = 2;
+let K_NODE = 3;
+let K_ALERT = 4;
 
 fn key_name(k: i64) -> u8[:] {
     if k == K_PID { return "pid"; }
     if k == K_BLK { return "blk"; }
+    if k == K_NODE { return "node"; }
+    if k == K_ALERT { return "alert"; }
     return "host";
 }
 
@@ -264,6 +269,75 @@ fn parse_apache(s: u8[:], h: Head&) -> bool {
     return ts_ok(h);
 }
 
+fn bgl_level(t: u8[:]) -> i64 {
+    if t == "INFO" { return INFO; }
+    if t == "FATAL" || t == "FAILURE" { return FATAL; }
+    if t == "ERROR" || t == "SEVERE" { return ERROR; }
+    if t == "WARNING" { return WARN; }
+    return -1;
+}
+
+fn token_end(s: u8[:], i: i64) -> i64 {
+    var e = i;
+    while e < s.len && s[e] != ' ' { e++; }
+    return e;
+}
+
+// LABEL EPOCH YYYY.MM.DD NODE YYYY-MM-DD-HH.MM.SS.ffffff [NODE2] TYPE COMPONENT LEVEL[ MSG]
+fn parse_bgl(s: u8[:], h: Head&) -> bool {
+    let label = token_end(s, 0);
+    guard label > 0 && label < s.len else { return false; }
+    let ep = label + 1;
+    let ep_hi = token_end(s, ep);
+    guard ep_hi > ep && ep_hi < s.len && digits(s, ep, ep_hi) else { return false; }
+    let d = ep_hi + 1;
+    guard d + 11 <= s.len && s[d + 4] == '.' && s[d + 7] == '.' && s[d + 10] == ' ' && digits(s, d, d + 4)
+          && digits(s, d + 5, d + 7) && digits(s, d + 8, d + 10) else { return false; }
+    let node = d + 11;
+    let node_hi = token_end(s, node);
+    guard node_hi > node && node_hi < s.len else { return false; }
+    let t = node_hi + 1;
+    guard t + 27 <= s.len && s[t + 4] == '-' && s[t + 7] == '-' && s[t + 10] == '-' && s[t + 13] == '.' && s[t + 16] == '.'
+          && s[t + 19] == '.' && s[t + 26] == ' ' && digits(s, t, t + 4) && digits(s, t + 5, t + 7) && digits(s, t + 8, t + 10)
+          && digits(s, t + 11, t + 13) && digits(s, t + 14, t + 16) && digits(s, t + 17, t + 19) && digits(s, t + 20, t + 26)
+          else { return false; }
+    h.y = d2(s, t) * 100 + d2(s, t + 2);
+    h.mo = d2(s, t + 5);
+    h.d = d2(s, t + 8);
+    h.h = d2(s, t + 11);
+    h.mi = d2(s, t + 14);
+    h.s = d2(s, t + 17);
+    var i = t + 27;
+    let no_node2 = s[node..node_hi] == "-" && (starts_with(s[i..], "RAS ") || starts_with(s[i..], "NULL "));
+    if !no_node2 {
+        let e = token_end(s, i);
+        guard e > i && e < s.len else { return false; }
+        i = e + 1;
+    }
+    let ty = token_end(s, i);
+    guard ty < s.len && (s[i..ty] == "RAS" || s[i..ty] == "NULL") else { return false; }
+    i = ty + 1;
+    h.clo = i;
+    h.chi = token_end(s, i);
+    guard h.chi > i && h.chi < s.len else { return false; }
+    i = h.chi + 1;
+    let lv = token_end(s, i);
+    h.level = bgl_level(s[i..lv]);
+    guard h.level >= 0 else { return false; }
+    h.mlo = if lv < s.len { lv + 1 } else { s.len };
+    h.nf = 1;
+    h.k1 = K_NODE;
+    h.v1lo = node;
+    h.v1hi = node_hi;
+    if s[..label] != "-" {
+        h.nf = 2;
+        h.k2 = K_ALERT;
+        h.v2lo = 0;
+        h.v2hi = label;
+    }
+    return ts_ok(h);
+}
+
 // --- transform ------------------------------------------------------------------
 
 fn min_level(comp: u8[:]) -> i64 {
@@ -308,6 +382,34 @@ fn redact(msg: u8[:], out: u8[>..]&) {
         }
     }
     out.append(msg[start..]);
+}
+
+fn is_alnum(c: u8) -> bool { (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || is_digit(c) }
+
+fn is_hex(c: u8) -> bool { is_digit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
+
+// 0x and exactly 8 hex digits, not touching a letter or digit, at s[i..i + 10].
+fn hex_at(s: u8[:], i: i64) -> bool {
+    guard s[i] == '0' && s[i + 1] == 'x' && (i == 0 || !is_alnum(s[i - 1])) && (i + 10 == s.len || !is_alnum(s[i + 10])) else { return false; }
+    for c in s[i + 2..i + 10] { if !is_hex(c) { return false; } }
+    return true;
+}
+
+// Rewrites s in place, since <hex> is shorter than what it replaces. Returns the new length.
+fn redact_hex(s: u8[>..]&) -> i64 {
+    var w = 0;
+    var i = 0;
+    while i < s.len {
+        if i + 10 <= s.len && hex_at(s[..], i) {
+            for c in "<hex>" { s[w] = c; w++; }
+            i += 10;
+        } else {
+            s[w] = s[i];
+            w++;
+            i++;
+        }
+    }
+    return w;
 }
 
 fn is_key_byte(c: u8) -> bool {
@@ -416,18 +518,20 @@ fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects
         var ok = false;
         if fmt == HDFS { ok = parse_hdfs(s, h); }
         else if fmt == SSH { ok = parse_ssh(s, h); }
-        else { ok = parse_apache(s, h); }
+        else if fmt == APACHE { ok = parse_apache(s, h); }
+        else { ok = parse_bgl(s, h); }
         if !ok {
             c.malformed++;
             if keep_rejects { rejects.append(raw); rejects.push('\n'); }
             continue;
         }
         let comp = if fmt == APACHE { "httpd"[..] } else { s[h.clo..h.chi] };
-        if h.level < min_level(comp) { c.dropped++; continue; }
+        if h.level < min_level(comp) || (fmt == BGL && h.level < ERROR && comp == "APP") { c.dropped++; continue; }
         c.kept++;
         // Per-line scratch, released at the end of each iteration.
-        var red: u8[>..] = [];
-        redact(s[h.mlo..], red);
+        var red_all: u8[>..] = [];
+        redact(s[h.mlo..], red_all);
+        let red = red_all[..redact_hex(red_all)];
         var text: u8[>..] = [];
         var sp: KSpan[>..] = [];
         if h.nf >= 1 { add_pair(text, sp, key_name(h.k1), s[h.v1lo..h.v1hi]); }
@@ -443,7 +547,7 @@ fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects
         }
         recs.push(Rec {
             year: h.y as! u16, mon: h.mo as! u8, day: h.d as! u8, hour: h.h as! u8, min: h.mi as! u8,
-            sec: h.s as! u8, level: h.level as! u8, comp: comp, msg: red[..], kv: pairs_of(sp, text),
+            sec: h.s as! u8, level: h.level as! u8, comp: comp, msg: red, kv: pairs_of(sp, text),
         });
     }
     for r in recs { render(out, r); }
@@ -486,6 +590,7 @@ fn format_id(name: u8[:]) -> i64 {
     if name == "hdfs" { return HDFS; }
     if name == "ssh" { return SSH; }
     if name == "apache" { return APACHE; }
+    if name == "bgl" { return BGL; }
     return -1;
 }
 
