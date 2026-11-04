@@ -190,7 +190,7 @@ All three pass 114 of 114 and 150 of 150 checks, and write the registered BGL ou
 
 - **Most of the cost was how I wrote it.** Against the Goose base program in the same group, variant C costs 9% on HDFS and the registered program 32%. Rust's cost was 6%, from a separate run.
 - **Goose's standard library has the fast form, and the first version didn't use it,** though it already used the related `find_any` for newlines. Variant C is plain Goose, and is faster here than the C helper, though they ran in separate groups.
-- **Neither speed ratio moves in the registered result.** The variants were written after the result was known, and Rust got no such second pass. The registered program stays as measured, and the safety and delivery checks use it. Variant C shows what's reachable: 0.99× Rust's speed on HDFS and 0.94× on BGL.
+- **These variant timings aren't valid results.** The code was written after the result was seen, and Rust got no second pass. By the project owner's rule ([research plan](../../docs/RESEARCH_PLAN.md)), they're leads for the next version, which has to be frozen and measured again. The registered program stays as measured, and the safety checks use it.
 - **Not explained:** the 9% left in variant C. Nor did I check whether the Rust program has similar room.
 
 ## Safety, 2026-11-04 and 2026-11-05 (SPEC, A5)
@@ -261,9 +261,11 @@ Peak memory and exit code. Long streams are flat in both programs, with no growt
 
 ## Against the decision rules, provisionally
 
+The project owner has since set a different goal: research into both tools, not a choice between them ([research plan](../../docs/RESEARCH_PLAN.md)). So rule B's outcome doesn't end the work. The owner also doubts these comparisons reflect real use, and the plan audits them first.
+
 - **A, is a tool like this worth having?** On track. Against the best alternative per format in session 2, the CPU ratio is about 18× on HDFS, 19× on SSH and 6.3× on escape-heavy data, the lowest. The target is 1.3×. Memory passes on HDFS, SSH and Apache. Over the 1.1× limit against Fluent Bit on two tests: escape-heavy data at 1.18× (42.2 against 35.7 MiB), and BGL, added by the change request, at 1.57× (56.7 against 36.1 MiB), where the CPU ratio is 13.6×.
 - **B, why Goose rather than Rust?** Not decided.
-  - **Speed:** before the change request, a near miss as measured (0.84× in session 2), and 0.93–1.00× in the diagnostic. After it, a miss: 0.83× on HDFS and 0.85× on BGL. A follow-up variant, written after seeing this, reaches 0.99× and 0.94×, over the 0.9× bar, but Rust got no second pass.
+  - **Speed:** before the change request, a near miss as measured (0.84× in session 2), and 0.93–1.00× in the diagnostic. After it, a miss: 0.83× on HDFS and 0.85× on BGL.
   - **Memory:** passes on the main data, misses on escape-heavy data.
   - **Compiler change:** none needed, though a small C file was, and Rust needed none.
   - **Measured advantage:** none yet. The change request didn't show one (lines 0.76, minutes 1.97, against a bar of 0.7). **One is required, and only the delivery checks are left to show it.**
