@@ -4,7 +4,7 @@
 
 Goose patches, a comparison with the real tools, a new product goal, and an independent review. See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
 
-- **Pilot, session 1 of 2:** logXform of Goose, Rust, Python, Fluent Bit and Vector, end to end on the same workflow, with [results](experiments/07-pilot/RESULTS.md), [build notes](experiments/07-pilot/BUILD.md), and the Fluent Bit and Vector pipelines. The change request and delivery checks are still to come.
+- **Pilot, sessions 1 and 2:** logXform of Goose, Rust, Python, Fluent Bit and Vector, end to end on the same workflow, with [results](experiments/07-pilot/RESULTS.md), [build notes](experiments/07-pilot/BUILD.md), and the Fluent Bit and Vector pipelines. Rust is about 2–3% faster on HDFS, and session 2's larger wall-time gap is mostly run order. The change request and delivery checks are still to come.
 - **Planned** [experiment 8](experiments/08-pipebench/PLAN.md), a third-party benchmark, and added a report-only operational safety section to the pilot (SPEC, A5).
 - **Renamed** our log processor from "Goose logxform" to "logXform of Goose". File names, CSV labels, the verbatim reviews and experiment 4's frozen SPEC keep their old wording.
 - **Fixed** a miscompilation in local patch F3, found by the [independent review](Symidx_Audit_04-11-2026.md), with a differential regression test.

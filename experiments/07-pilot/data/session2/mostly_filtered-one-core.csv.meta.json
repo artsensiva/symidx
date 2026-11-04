@@ -1,0 +1,82 @@
+{
+ "started": "2026-11-04T18:46:10+0100",
+ "rounds": 5,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose": {
+   "argv": [
+    "toolchain/pilot/bin/sanitize-goose",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/toolchain/pilot/adversarial/mostly_filtered.hdfs"
+   ],
+   "env": {},
+   "sha256": "586b9b03b2ed95a5a10679437ffd001b92ebe96817ccf90cfa8236ab5767ba74"
+  },
+  "rust": {
+   "argv": [
+    "toolchain/pilot/bin/sanitize-rust",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/toolchain/pilot/adversarial/mostly_filtered.hdfs"
+   ],
+   "env": {},
+   "sha256": "9ac7339c1b79d0d7809bf668b686a406d09985df8a10494537a86223fb9a953b"
+  },
+  "python": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/sanitize.py",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/toolchain/pilot/adversarial/mostly_filtered.hdfs"
+   ],
+   "env": {},
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  },
+  "fluentbit": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/tools/sanitize_tool.py",
+    "fluentbit",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/toolchain/pilot/adversarial/mostly_filtered.hdfs"
+   ],
+   "env": {},
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  },
+  "vector": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/tools/sanitize_tool.py",
+    "vector",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/toolchain/pilot/adversarial/mostly_filtered.hdfs"
+   ],
+   "env": {
+    "SANITIZE_THREADS": "1"
+   },
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  }
+ }
+}

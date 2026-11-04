@@ -36,3 +36,5 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-04 | Pilot stages 2–3: programs in Goose and Rust, tool pipelines and wrapper, session script | pilot | 13:08 | 13:20 | ≈12 | from commit and file timestamps |
 | 2026-11-04 | Pilot session 1, unattended | pilot | 13:20 | 15:58 | 158 | all five programs, end to end |
 | 2026-11-04 | Session 1 report, results and build notes, rename to logXform of Goose, benchmark research | pilot, docs | ≈17:50 | 18:05 | ≈15 | |
+| 2026-11-04 | Plan for experiment 8, safety amendment, change-request rules and oracle | pilot, docs | ≈18:15 | 18:42 | ≈27 | BGL inspected before any implementation |
+| 2026-11-04 | Pilot session 2 and the wall-time diagnostic, unattended | pilot | 18:34 | ≈21:10 | ≈156 | |
