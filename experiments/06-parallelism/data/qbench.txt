@@ -1,0 +1,6 @@
+bytes=65536 trips=500 us_per_trip=32 put_us=7 get_us=24
+bytes=1048576 trips=500 us_per_trip=475 put_us=143 get_us=331
+bytes=4194304 trips=476 us_per_trip=3122 put_us=983 get_us=2138
+bytes=9000000 trips=222 us_per_trip=7925 put_us=3437 get_us=4487
+bytes=16000000 trips=125 us_per_trip=11757 put_us=3952 get_us=7805
+bytes=40000000 trips=50 us_per_trip=73346 put_us=28950 get_us=44395

@@ -6,10 +6,12 @@ Goose patches, a comparison with the real tools, and a new product goal. See [do
 
 - **Added** the report, and experiments 3 (`from_file`, huge pages, index layouts), 4 (Goose logxform against Fluent Bit and Vector) and 5 (single-thread fixes,
   fairness check, consolidated run), with their data.
-- **Results:** on one core, about 20× Fluent Bit and 42× Vector, with less CPU and memory; 1.10× tuned Rust, 1.03× with Rust given the same scan; about 0.57× at six threads. The index's L memory is 1.16× rust-expert's, from 2.7×.
+- **Results:** on one core, about 20× Fluent Bit and 42× Vector, with less CPU and memory; 1.10× tuned Rust, 1.03× with Rust given the same scan; 0.62× at six threads. The index's L memory is 1.16× rust-expert's, from 2.7×.
 - **Compiler patches stay local** (`toolchain/goose-src`, gitignored): results needing them can't yet be reproduced from this repository.
 - **Fixed** `measure.py`'s peak RSS, which had a floor at the Python process's own 13 MB; it now also records CPU time.
 - **Corrected** the claim that `json::format_string` scans twice, in experiment 2's report, the improvement plan and the README.
+- **Added** experiment 6: why six threads stall (the main thread saturates, at 0.62× tuned Rust), with a proposed fix, not built.
+- **Updated** `AUDIT.md` for a new outside review, including findings from the previous one that are still open.
 - **Upstream:** a comment on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) about threads and failed checks in hosts.
 
 ## v1.2.1 (2026-11-03)

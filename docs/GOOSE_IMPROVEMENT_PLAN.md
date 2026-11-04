@@ -23,7 +23,7 @@ six-core gap comes next since embedding is waiting on upstream. Targets below ar
 |---|---|---|
 | 1. View | `from_file` and layouts, locally | RSS 1.16× on L and 1.36× on M with layout A, 1.05× and 1.24× with `fixed`; load 2.5–12×. Not met (≤ 1.2×, ≤ 2×) |
 | 2. Embedding | Asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) | Not started |
-| 3. Parallelism | About 0.57× at `-t 6` | Not met (≥ 0.9×); next |
+| 3. Parallelism | 0.62× at `-t 6`; the main thread saturates ([experiment 6](../experiments/06-parallelism/PLAN.md)); a fix is proposed | Not met (≥ 0.9×); in progress |
 | 4. Codegen | F2 locally | **Met:** 1.10× and 1.12× (≥ 1.0×). 1.03× with Rust given the same scan |
 
 ## The four gaps

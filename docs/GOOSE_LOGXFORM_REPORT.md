@@ -14,7 +14,7 @@ today, not a shipped product. The project is not affiliated with Goose's authors
 - **Most of that win comes from being a fixed-purpose program, not from Goose.** Tuned Rust wins by about as much.
 - **Against tuned Rust, on one core: parity to a small lead.** Goose logxform with the fixes below reaches 1.10× tuned Rust, and
   1.03× once Rust is given the same scan trick. A second run through a different harness put those two level.
-- **On six cores it trails tuned Rust: about 0.57× the throughput and 1.3× the memory.** This is the largest measured gap, and the
+- **On six cores it trails tuned Rust: 0.62× the throughput and 1.4× the memory** on a quiet machine. It stops improving at 4 threads, because the main thread saturates. This is the largest measured gap, and the
   next work item.
 - **The gains came cheaply.** One library loop gave about 11%. A small compiler change, `from_file`, took the symbol index's
   large-corpus memory from 2.7× rust-expert's to 1.16×.
@@ -72,6 +72,18 @@ the medians aren't reliable, and the fastest run of each is shown beside them. M
 A separate run gives the better Goose-against-Rust number: three rebuilds each, 3 rounds, `-t 6`. Goose logxform with fixes reached 490.8 MB/s and tuned Rust 859.1 MB/s
 (**0.57×**), at 480 and 366 MiB, with load average up to 9.7. An earlier, quieter run of the tools alone
 ([experiment 4](../experiments/04-vs-tools/REPORT.md)) measured release Goose at 605 MB/s, Fluent Bit at 14.2 and Vector at 13.0.
+
+### Scaling, on a quiet machine
+
+The cleanest multi-core data here: 3 rounds, load average about 1–3 ([experiment 6](../experiments/06-parallelism/PLAN.md)). Fluent Bit and Vector aren't in this run.
+
+| Threads | Goose logxform with fixes | Peak RSS | CPU | Tuned Rust | Peak RSS | CPU | Goose ÷ Rust |
+|---|---|---|---|---|---|---|---|
+| 1 | 259 MB/s | 36 MiB | 6.4 s | 236 MB/s | 38 MiB | 7.0 s | 1.10× |
+| 2 | 433 MB/s | 168 MiB | 9.0 s | 482 MB/s | 132 MiB | 7.3 s | 0.90× |
+| 3 | 569 MB/s | 249 MiB | 10.3 s | 703 MB/s | 189 MiB | 7.4 s | 0.81× |
+| 4 | 665 MB/s | 328 MiB | 11.0 s | 903 MB/s | 252 MiB | 7.7 s | 0.74× |
+| 6 | 673 MB/s | 514 MiB | 11.5 s | 1,082 MB/s | 366 MiB | 7.9 s | **0.62×** |
 
 ### Size and effort
 
@@ -134,8 +146,10 @@ Single numbers from a busy desktop have repeatedly moved by several percent. A f
 **Where the speed came from.** Replacing `json::plain`'s early-exit byte loop with a compare-free one that the C compiler vectorizes gave Goose about 11–13%, and Rust about 6–7% with the identical loop.
 Why Goose gains more isn't known. Removing a loop's early exit was not the fix the profile suggested.
 
-**The six-core gap.** Goose's threads share nothing, so each batch crosses a queue by copy, in both directions; tuned Rust moves and reuses buffers. The queue copies are the leading explanation, but neither their
-share of the gap nor queue waiting has been measured. That's step 4's first job. The memory cost is optional in practice: Goose logxform at `-t 1` already outruns both tools at six cores.
+**The six-core gap** ([experiment 6](../experiments/06-parallelism/PLAN.md)). Goose's threads share nothing, so each batch crosses a queue by copy, in both directions; tuned Rust moves and reuses buffers. Stage timers show the
+single main thread is close to fully busy from 4 threads on, reading, scanning and copying, and at 6 threads workers wait about a third of their time. A message's cost is mostly not page faults, as first suspected: Goose's extra system time is about 0.5 s
+against about 2.9 s of extra user time. Goose's total CPU grows 80% from 1 to 6 threads, Rust's 13%. Workers' processing time also grows from about 5.9 to 9–11 s though it does no queue copying; competition for cache and memory from about 10 GB of copies is the likely reason, not confirmed.
+The memory cost is optional in practice: Goose logxform at `-t 1` already outruns both tools at six cores.
 
 **Huge pages depend on the task.** On layout A they add up to 33% memory on small indexes for no speed. On `fixed` they cost nothing on small indexes and make large loads about 43% faster. On log processing, they gave
 no single-thread gain and about 7% more memory. A process-wide run-time switch handles this, but it's a local experiment, not a recommendation.
@@ -215,7 +229,7 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 - **Other hardware or conditions.** One machine, warm cache, a busy desktop, 3–5 rounds. The tool ratios are large enough to survive that, but small ratios among Goose and Rust aren't general.
 - **Protobuf, Wuffs or `cbindgen`.** The other competitors in the product plan have no measurements yet.
 - **Development cost.** All code was written by one AI agent, so it says nothing about human effort. The agent knows Goose best, and a specialist might configure the tools better.
-- **Independent review.** The report and code have had no outside check since these changes.
+- **Independent review.** The report and code have had no outside check since these changes. A brief for one is in [AUDIT.md](../AUDIT.md), which also lists findings from the previous review that are still open.
 
 ## Reproducing
 
@@ -239,7 +253,7 @@ a Fluent Bit plugin.
 | 1. Done | Run the real tools on the same corpus | — | Clear win on one core: met |
 | 2. Done | Cheap fixes | — | At least 1.0× tuned Rust, one core: met |
 | **3. Waiting** | Embedding: calls from any host thread, errors returned instead of aborts. [Asked on goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) | 2–4 weeks, least certain | 4 host threads give byte-identical output at ≥ 0.9× of `-t 4`, and a failed check leaves the host running. Stop if every call needs host-side locking |
-| **4. Next** | Six-core gap. First measure queue waits and copy volume, then design | 1–3 weeks | ≥ 0.9× tuned Rust at 6 threads. Stop below 0.75× after a prototype |
+| **4. In progress** | Six-core gap. Measured: the main thread saturates. Proposed, not built: workers read their own input ([details](../experiments/06-parallelism/PLAN.md)) | 1–3 weeks | ≥ 0.9× tuned Rust at 6 threads, RSS ≤ 1.1×. Stop below 0.75× after a prototype |
 | 5. | Fluent Bit plugin pilot on real data, plus one realistic change request | 1–2 weeks | Stop if there's no benefit a user would notice |
 
 Open decisions for the project owner:

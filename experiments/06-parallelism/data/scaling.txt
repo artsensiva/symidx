@@ -1,0 +1,10 @@
+goose-t1     wall   6405.37 ms  rss    36768 KiB
+rust-t1      wall   7027.02 ms  rss    39220 KiB  wall/goose-t1 1.094 [1.089, 1.119]  rss/goose-t1 1.065 [1.064, 1.072]
+goose-t2     wall   3823.14 ms  rss   172456 KiB  wall/goose-t1 0.597 [0.595, 0.598]  rss/goose-t1 4.708 [4.683, 4.795]
+rust-t2      wall   3438.64 ms  rss   135504 KiB  wall/goose-t1 0.538 [0.533, 0.538]  rss/goose-t1 3.685 [3.678, 3.704]
+goose-t3     wall   2912.50 ms  rss   255400 KiB  wall/goose-t1 0.455 [0.455, 0.538]  rss/goose-t1 6.972 [6.852, 7.063]
+rust-t3      wall   2357.73 ms  rss   193920 KiB  wall/goose-t1 0.371 [0.365, 0.371]  rss/goose-t1 5.274 [5.269, 5.294]
+goose-t4     wall   2492.21 ms  rss   335928 KiB  wall/goose-t1 0.389 [0.363, 0.392]  rss/goose-t1 9.170 [8.671, 9.283]
+rust-t4      wall   1834.27 ms  rss   257744 KiB  wall/goose-t1 0.286 [0.284, 0.298]  rss/goose-t1 6.999 [6.989, 7.054]
+goose-t6     wall   2460.20 ms  rss   526024 KiB  wall/goose-t1 0.384 [0.368, 0.390]  rss/goose-t1 14.307 [14.137, 14.609]
+rust-t6      wall   1531.02 ms  rss   374992 KiB  wall/goose-t1 0.239 [0.236, 0.256]  rss/goose-t1 10.199 [10.103, 10.265]

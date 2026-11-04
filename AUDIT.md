@@ -1,7 +1,11 @@
 # Independent audit brief
 
-For an outside reviewer of this repository. Written 2026-11-03 at v1.2.1. Every headline number is
+For an outside reviewer of this repository. Written 2026-11-03 at v1.2.1, updated 2026-11-04 for a second review. Every headline number is
 traced to its source in [CLAIMS.md](CLAIMS.md).
+
+**Start here for the second review:** [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md) has the results, changes and plan, and [experiments/06-parallelism/PLAN.md](experiments/06-parallelism/PLAN.md) has the newest work. The
+project's aim has changed since the first review. It's no longer only to test Goose against Rust. The owner wants to build products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. The owner prefers Goose,
+so be alert to bias in that direction, and don't soften findings on that account. Questions for this review are in "Questions for the second review", below.
 
 ## Scope
 
@@ -35,6 +39,8 @@ That is the main reason for this audit.
 | Verdict | Rust: serving memory 2.0–3.1× worse for Goose | not met: 0.88× throughput, 1.07× RSS (local Linux); CI Linux agrees |
 
 Later work, not covered by the table above: experiments 3–5 and [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md), with claims G1–G11 in [CLAIMS.md](CLAIMS.md).
+
+Later work: experiment 3 (`from_file`, huge pages, index layouts), 4 (Goose logxform against Fluent Bit and Vector), 5 (single-thread fixes, fairness check, a same-session run) and 6 (the six-thread stall), with claims G1–G14 in [CLAIMS.md](CLAIMS.md).
 
 ## Reproducing from a clean checkout
 
@@ -75,7 +81,7 @@ Expected: every checksum line says `ok`, and every summary row ends in `yes`. Co
   Experiment 2 didn't measure it at all; its input is read once, sequentially, identically by everyone.
 - **Noisy machines.** The reference machine is a desktop: i5-8400T, 6 cores, `powersave` governor, a load
   average of 1.8–4 from desktop apps, and 2–6 GB of free RAM. Experiment 2's harness puts all
-  implementations in one hyperfine invocation and interleaves RSS runs, to spread drift. CI runners are
+  implementations in one hyperfine invocation and interleaves RSS runs. *Correction:* one invocation doesn't spread timing drift, since hyperfine finishes one command's runs before the next. Experiments 3–6 use `measure.py`, which randomizes order in each round. CI runners are
   shared VMs: compare only within one run. No result comes from a dedicated quiet machine.
 - **Code-layout sensitivity.** rust-arena's single-thread time moves ±5–7% across rebuilds that change only
   a string. Experiment 2 reports a spread over three neutral rebuilds of each implementation.
@@ -94,11 +100,43 @@ Expected: every checksum line says `ok`, and every summary row ends in `yes`. Co
   agent effort, not human hours. Goose expertise is limited to its docs and samples; a Goose expert might
   write faster Goose.
 - **Goose v2026.3 only,** built with clang 21. No other version or C compiler was compared.
-- **Local compiler patches.** Experiments 3 and 5 use Goose patches kept on local branches. Those results can't be reproduced from this repository alone, and the patches themselves can't be audited until they're published.
+- **Local compiler patches.** Experiments 3, 5 and 6 use Goose patches kept on local branches. Those results can't be reproduced from this repository alone. The owner may give a reviewer the patches separately; if you don't have them, say what you couldn't check.
 - **Experiments 4 and 5 weren't committed before they ran.** Their specs were written first; that order rests on the session's record.
 
-## Questions for the auditor
+## Findings from the first review: status
 
+An outside review of v1.2.1 raised these. They're listed so that you can check them, and so that what's still open is plain.
+
+| Finding | Status |
+|---|---|
+| hyperfine doesn't interleave runs, so implementation and time are confounded | Fixed from experiment 3 on (`measure.py`). Experiment 2's own numbers still have it |
+| "Code-layout effect" isn't isolated: one binary varies 6.37–8.00 s | Partly: neutral rebuilds and within-binary spread are reported. Noise from the machine remains, and no run is on a quiet dedicated machine |
+| "Scans twice" was wrong for `json::format_string` | Fixed: corrected, and F2 is a different fix |
+| Zero-copy forecast was too confident, given the 33.5 ms validation pass | Confirmed: the view target was missed, and the pass remains on layout A |
+| **"Serving memory" is a startup peak (load plus one query), not what a server retains** | **Open.** No steady-state measurement exists |
+| **Implementations filter before keeping records, while experiment 2's SPEC requires building every record first** | **Open.** Confirmed in both Goose (`logxform.goose`, `process`) and rust-arena (`main.rs`, line 524). Both deviate alike, and about 41% of lines are dropped. Relative bias unknown |
+| **`bench/SPEC.md` rejects `async class`; `bench/ref.py` and the implementations accept it** | **Open.** Checksums agree, because they share the behaviour |
+| **Corpus is narrow: HDFS is about 95% of experiment 2's bytes, and L repeats M** | **Open.** No result breaks down by format |
+| **`io.c` writes at the data stack top without a reservation check** | **Open, reasoned about only.** Same pattern as the runtime's `gs_bld_append`, relying on the guard gap. `from_file` and `read_file_range` rely on it too |
+| **rust-expert's mmap assumes the file doesn't change** | **Open, by design.** The Goose loaders don't assume this, an untested advantage |
+| Phase 1 changed its primary metric mid-experiment | Disclosed; nothing further |
+| The jump from "this test failed" to "these products are falsified" | Addressed: `docs/GOOSE_OPPORTUNITIES.md` has a note, and the report separates the two |
+| Build-order: product first, not language features first | Partly adopted: the tools were measured before compiler work, but no user or customer has been consulted |
+
+## Questions for the second review
+
+Report findings with file and line, the direction of any bias, an impact estimate and a concrete fix. Separate what you verified from what you infer, and say what you couldn't check.
+
+1. **Are the results sound?** Do the tables in the report follow from `experiments/*/data/`? Is `measure.py` correct? What should we distrust because of noise, few rounds, or one machine?
+2. **Is the comparison with Fluent Bit and Vector fair?** Look at `experiments/04-vs-tools/`: configs, one process per file, the sinks, `/dev/null`, a Lua filter where a native one might exist. A specialist in either tool may see what the author can't. How much of 20× and 42× would survive? Was the "clear win" rule well set?
+3. **Are the interpretations right?** Is "parity to a small lead" the honest reading of Goose against tuned Rust? Is "most of the win comes from specialization" right? Is any claim stronger than its evidence, or weaker? Why might F2 help Goose (11–13%) more than Rust (6–7%)?
+4. **The hard question: why Goose at all?** Tuned Rust is about level on one core and much faster on six, with far larger ecosystems. What could justify building these products on Goose, given that a fixed-purpose Rust tool gets the same win? What evidence would settle it, and is the project collecting it?
+5. **Is the plan right?** Consider the order (the six-core gap, embedding, a Fluent Bit plugin), the choice of a log parser as the first product, and the targets and kill rules. Which step should be cut or moved up? What's missing? Is a private compiler fork survivable?
+6. **The proposed design** in `experiments/06-parallelism/PLAN.md`: workers read their own input. Will it close the gap? Is the 1.6–2.0 s estimate reasonable? Is ownership transfer the better route, and is anything simpler being missed? What's the explanation for workers' `process` time growing with threads?
+7. **If you've been given the compiler patches:** are `from_file`, in-place assignment and `json::plain` sound? Consider aliasing, failure paths, the guard-gap reliance, and overflow in `plain`.
+8. **Cheapest next experiment.** What single measurement would most change the project's decisions?
+
+## Questions for the auditor (first review)
 1. **Methodology flaws.** Do the harnesses measure what the reports claim: whole-process time, peak RSS and
    checksums? Is anything exec'd inside a timed command? Are warm-up and cache state handled correctly? Is
    the ambiguity rule in experiment 2's SPEC sound, and was it applied as written?
