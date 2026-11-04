@@ -1,0 +1,15 @@
+--- a/sanitize.goose
++++ b/sanitize.goose
+@@ -397,8 +397,11 @@
+ 
+ // Rewrites s in place, since <hex> is shorter than what it replaces. Returns the new length.
+ fn redact_hex(s: u8[>..]&) -> i64 {
+-    var w = 0;
+     var i = 0;
++    // Nothing moves until the first match.
++    while i + 10 <= s.len && !(s[i] == '0' && s[i + 1] == 'x' && hex_at(s[..], i)) { i++; }
++    if i + 10 > s.len { return s.len; }
++    var w = i;
+     while i < s.len {
+         if i + 10 <= s.len && hex_at(s[..], i) {
+             for c in "<hex>" { s[w] = c; w++; }

@@ -1,0 +1,80 @@
+{
+ "started": "2026-11-04T21:52:38+0100",
+ "rounds": 5,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-goose",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "c91dcc087daace2946f1eb6942d9cf960e216af4d75912cfc004551a7267ab58"
+  },
+  "rust": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-rust",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "44704dcb5c9627a5f127ceba436282bee4e645eee52cb47ba5d0a9eaccea9df6"
+  },
+  "python": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/sanitize.py",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  },
+  "fluentbit": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/tools/sanitize_tool.py",
+    "fluentbit",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  },
+  "vector": {
+   "argv": [
+    "/usr/bin/python3",
+    "-I",
+    "/home/artem/symidx/experiments/07-pilot/tools/sanitize_tool.py",
+    "vector",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41"
+  }
+ }
+}

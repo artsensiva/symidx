@@ -1,0 +1,12 @@
+lines=4747963 kept=4747953 dropped=0 malformed=10
+ok: 4747953 of 4747953 reference records, in order, 0 missing
+goose: check.py ok; bytes identical; rejects same
+lines=4747963 kept=4747953 dropped=0 malformed=10
+ok: 4747953 of 4747953 reference records, in order, 0 missing
+rust: check.py ok; bytes identical; rejects same
+lines=4747963 kept=4747953 dropped=0 malformed=10
+ok: 4747953 of 4747953 reference records, in order, 0 missing
+fluentbit: check.py ok; bytes different; rejects same
+lines=4747963 kept=4747953 dropped=0 malformed=10
+ok: 4747953 of 4747953 reference records, in order, 0 missing
+vector: check.py ok; bytes different; rejects same

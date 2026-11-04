@@ -1,0 +1,59 @@
+{
+ "started": "2026-11-04T21:36:27+0100",
+ "rounds": 10,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose_base": {
+   "argv": [
+    "toolchain/pilot/bin/sanitize-goose",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log"
+   ],
+   "env": {},
+   "sha256": "586b9b03b2ed95a5a10679437ffd001b92ebe96817ccf90cfa8236ab5767ba74"
+  },
+  "goose_change": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-goose",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log"
+   ],
+   "env": {},
+   "sha256": "c91dcc087daace2946f1eb6942d9cf960e216af4d75912cfc004551a7267ab58"
+  },
+  "rust_base": {
+   "argv": [
+    "toolchain/pilot/bin/sanitize-rust",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log"
+   ],
+   "env": {},
+   "sha256": "9ac7339c1b79d0d7809bf668b686a406d09985df8a10494537a86223fb9a953b"
+  },
+  "rust_change": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-rust",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "hdfs",
+    "/home/artem/symidx/experiments/02-logxform/corpus/src/HDFS.log"
+   ],
+   "env": {},
+   "sha256": "44704dcb5c9627a5f127ceba436282bee4e645eee52cb47ba5d0a9eaccea9df6"
+  }
+ }
+}

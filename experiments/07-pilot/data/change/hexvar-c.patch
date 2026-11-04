@@ -1,0 +1,48 @@
+--- a/sanitize.goose
++++ b/sanitize.goose
+@@ -395,20 +395,29 @@
+     return true;
+ }
+ 
++// The next 0x at or after from, or -1.
++fn next_0x(s: u8[:], from: i64) -> i64 {
++    let k = find_pair(s[from..], SET_0, 1, SET_X);
++    return if k < 0 { -1 } else { from + k };
++}
++
+ // Rewrites s in place, since <hex> is shorter than what it replaces. Returns the new length.
+ fn redact_hex(s: u8[>..]&) -> i64 {
+     var w = 0;
+-    var i = 0;
+-    while i < s.len {
+-        if i + 10 <= s.len && hex_at(s[..], i) {
++    var r = 0;
++    var p = next_0x(s[..], 0);
++    while p >= 0 {
++        if p + 10 <= s.len && hex_at(s[..], p) {
++            while r < p { s[w] = s[r]; w++; r++; }
+             for c in "<hex>" { s[w] = c; w++; }
+-            i += 10;
++            r = p + 10;
++            p = next_0x(s[..], r);
+         } else {
+-            s[w] = s[i];
+-            w++;
+-            i++;
++            p = next_0x(s[..], p + 1);
+         }
+     }
++    if w == r { return s.len; }
++    while r < s.len { s[w] = s[r]; w++; r++; }
+     return w;
+ }
+ 
+@@ -501,6 +510,8 @@
+ }
+ 
+ let NL = byte_set("\n");
++let SET_0 = byte_set("0");
++let SET_X = byte_set("x");
+ 
+ fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects: bool, c: Counts&) {
+     var recs: Rec[>..] = [];

@@ -1,0 +1,59 @@
+{
+ "started": "2026-11-04T22:52:19+0100",
+ "rounds": 10,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose_registered": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-goose",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "c91dcc087daace2946f1eb6942d9cf960e216af4d75912cfc004551a7267ab58"
+  },
+  "goose_a": {
+   "argv": [
+    "toolchain/pilot/hexvar/bin/goose-a",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "0f77f2eeb27728fd71ae12f5c1acde3c6ff7a72b7e37424c0805fb00768f3b37"
+  },
+  "goose_b": {
+   "argv": [
+    "toolchain/pilot/hexvar/bin/goose-b",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "514fab3de2e4ac2a2feb288259314199650abf1cdc4fc0d7f490f258db6c7875"
+  },
+  "rust": {
+   "argv": [
+    "toolchain/pilot/bin-change/sanitize-rust",
+    "--out",
+    "toolchain/pilot/work/o",
+    "--rejects",
+    "toolchain/pilot/work/r",
+    "bgl",
+    "toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "44704dcb5c9627a5f127ceba436282bee4e645eee52cb47ba5d0a9eaccea9df6"
+  }
+ }
+}

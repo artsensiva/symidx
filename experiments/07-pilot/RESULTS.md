@@ -111,6 +111,88 @@ CPU was much closer (6.09 and 5.87 s), so we ran a [diagnostic](wall_check.py) t
 - **Not explained:** why `sync` beforehand slows logXform of Goose by more than Rust, with the same CPU. Both programs write the same number of blocks. It's still above 0.9×.
 - **For the method:** wall time on a large file depends on what ran before it. CPU is much less affected. Future comparisons of programs this close should use many short paired rounds, not a few mixed with slow programs.
 
+## Change request, 2026-11-04
+
+The rules were fixed before any program changed (SPEC, A6): a new `bgl` format and hex redaction, in all five programs. Raw data: [data/change/](data/change/). Runs took place from 21:35 to 22:39, with load at most 1.97.
+
+### Implementing it
+
+| Program | Lines changed | Minutes |
+|---|---|---|
+| Python | 31 | 0.5 |
+| **logXform of Goose** | **115** | **1.1** |
+| Rust | 151 | 0.6 |
+| Fluent Bit | 27 | About 3 to the first full run, about 6 with verification |
+| Vector | 60 | 1.1 |
+
+- **Lines come from `git diff --numstat`, and minutes are wall clock.** One agent wrote all five, so this isn't a developer study.
+- **Goose and Rust passed on their first run.** Test time dominates Fluent Bit's clock.
+- **The clock is coarse and the order was fixed:** Python, Goose, Rust, then the tools. Goose went before Rust on purpose, which biases against Goose. Rust's line count is inflated by rustfmt.
+- **Goose ÷ Rust:** lines 0.76, minutes 1.97. The spec's bar is 0.7 on both, so **logXform of Goose doesn't show the advantage.**
+
+### Correctness
+
+| Program | Change checks (150) | Base checks (114) | BGL against the reference, 4,747,953 records |
+|---|---|---|---|
+| Python | 150 | 114 | Reference |
+| logXform of Goose | 150 | 114 | Byte-identical |
+| Rust | 150 | 114 | Byte-identical |
+| Fluent Bit | 148, on the ASCII set | 104 in one run, 106 before | Same records, different bytes |
+| Vector | 150, on the ASCII set | 111 | Same records, different bytes |
+
+- **Rejects** on BGL match the reference in all four programs.
+- **The tools ran on an ASCII set** so that their known failures on other bytes didn't hide the new rules. Fluent Bit's two failures there are the known CR-in-rejects limit.
+- **Fluent Bit's lower base count isn't from the change.** It intermittently loses a rejected 2 MiB line, 1 of 25 repeats, and its summary reports the line as dropped. This goes to the safety section.
+- **On HDFS, SSH and Apache** the changed Goose and Rust programs write the same bytes as before.
+- **Mutation test:** 16 of 16 mutants caught.
+
+### BGL, one core (743 MB, 5 rounds)
+
+| Program | Wall (s) | Peak memory (MiB) | CPU (s) | CPU against Goose |
+|---|---|---|---|---|
+| Rust | 2.99 | 55.6 | 2.60 | 0.84× |
+| **logXform of Goose** | **3.56** | **56.7** | **3.10** | |
+| Fluent Bit | 43.85 | 36.1 | 42.14 | 13.6× |
+| Python | 48.43 | 77.8 | 48.45 | 15.6× |
+| Vector | 148.38 | 100.9 | 146.89 | 47.4× |
+
+In a separate 10-round pair, Goose took 3.43 s and Rust 2.90 s. Goose's peak memory is 1.57× Fluent Bit's here, over the 1.1× limit. Every APP record in BGL is FATAL, so the APP filter drops nothing on this data.
+
+### What the change cost on data with no hex values
+
+HDFS, 10 paired rounds, median wall time. HDFS has no hex matches, so this is the cost of looking.
+
+| Program | Before (s) | After (s) | Cost |
+|---|---|---|---|
+| logXform of Goose | 6.35 | 8.34 | **+31%** |
+| Rust | 6.51 | 6.90 | +6% |
+
+Goose moved from level with Rust to 1.21× Rust's wall time. **The registered result is this one.**
+
+The first Goose version copies every byte through a bounds-checked loop, even on lines with nothing to redact. The Rust version uses `memmem` from the `memchr` crate and moves nothing unless it finds a match. Three follow-up variants, written after seeing the result, measure how much of the cost is avoidable:
+
+- **A ([patch](data/change/hexvar-a.patch)):** the byte loop, but no copying before the first match.
+- **B ([patch](data/change/hexvar-b.patch)):** libc `memmem` through a helper added to the C file.
+- **C ([patch](data/change/hexvar-c.patch)):** `find_pair` from Goose's standard library, with no C.
+
+All three pass 114 of 114 and 150 of 150 checks, and write the registered BGL output and rejects. Each group below is 10 paired rounds, from [measure_hexvar.sh](measure_hexvar.sh). The groups ran separately, so compare each program with the Rust row of its own group.
+
+| Group | Program | HDFS wall (s) | Against Rust | BGL wall (s) | Against Rust |
+|---|---|---|---|---|---|
+| 1 | Registered Goose | 8.30 | 1.22× | 3.47 | 1.19× |
+| 1 | Variant A | 7.52 | 1.10× | 3.28 | 1.13× |
+| 1 | Variant B | 7.28 | 1.07× | 3.20 | 1.10× |
+| 1 | Rust | 6.82 | | 2.91 | |
+| 2 | Registered Goose | 8.44 | 1.23× | 3.48 | 1.18× |
+| 2 | **Variant C** | **6.95** | **1.01×** | **3.15** | **1.07×** |
+| 2 | Goose before the change | 6.39 | | Not applicable | |
+| 2 | Rust | 6.87 | | 2.95 | |
+
+- **Most of the cost was how I wrote it.** Against the Goose base program in the same group, variant C costs 9% on HDFS and the registered program 32%. Rust's cost was 6%, from a separate run.
+- **Goose's standard library has the fast form, and the first version didn't use it,** though it already used the related `find_any` for newlines. Variant C is plain Goose, and is faster here than the C helper, though they ran in separate groups.
+- **Neither speed ratio moves in the registered result.** The variants were written after the result was known, and Rust got no such second pass. The registered program stays as measured, and the safety and delivery checks use it. Variant C shows what's reachable: 0.99× Rust's speed on HDFS and 0.94× on BGL.
+- **Not explained:** the 9% left in variant C. Nor did I check whether the Rust program has similar room.
+
 ## How to read this
 
 - **Python doesn't clearly beat Fluent Bit.** Their CPU on HDFS swapped order between sessions, with Fluent Bit at 1.07× Python's in session 1 and 0.94× in session 2. Fluent Bit uses about half Python's memory on most inputs and half its CPU on escape-heavy data. Python passes every correctness check, and Fluent Bit doesn't. Vector is clearly behind both. So "the best alternative" depends on the format and on whether CPU, memory or correctness matters.
@@ -120,12 +202,12 @@ CPU was much closer (6.09 and 5.87 s), so we ran a [diagnostic](wall_check.py) t
 
 ## Against the decision rules, provisionally
 
-- **A, is a tool like this worth having?** On track. Against the best alternative per format in session 2, the CPU ratio is about 18× on HDFS, 19× on SSH and 6.3× on escape-heavy data, the lowest. The target is 1.3×. Memory passes on HDFS, SSH and Apache, but on escape-heavy data, where Fluent Bit is the best alternative, it's 1.18× Fluent Bit's (42.2 against 35.7 MiB), over the 1.1× limit on that one test.
+- **A, is a tool like this worth having?** On track. Against the best alternative per format in session 2, the CPU ratio is about 18× on HDFS, 19× on SSH and 6.3× on escape-heavy data, the lowest. The target is 1.3×. Memory passes on HDFS, SSH and Apache. Over the 1.1× limit against Fluent Bit on two tests: escape-heavy data at 1.18× (42.2 against 35.7 MiB), and BGL, added by the change request, at 1.57× (56.7 against 36.1 MiB), where the CPU ratio is 13.6×.
 - **B, why Goose rather than Rust?** Not decided.
-  - **Speed:** a near miss as measured (0.84× in session 2), and 0.93–1.00× in the diagnostic. Stated as exactly that.
+  - **Speed:** before the change request, a near miss as measured (0.84× in session 2), and 0.93–1.00× in the diagnostic. After it, a miss: 0.83× on HDFS and 0.85× on BGL. A follow-up variant, written after seeing this, reaches 0.99× and 0.94×, over the 0.9× bar, but Rust got no second pass.
   - **Memory:** passes on the main data, misses on escape-heavy data.
   - **Compiler change:** none needed, though a small C file was, and Rust needed none.
-  - **Measured advantage:** none yet. **It's required, and depends on the change request and delivery checks.**
+  - **Measured advantage:** none yet. The change request didn't show one (lines 0.76, minutes 1.97, against a bar of 0.7). **One is required, and only the delivery checks are left to show it.**
 
 ## What limits these results
 
