@@ -32,3 +32,4 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-04 | Independent review: F3 fix, corrections, fail-closed checks, pilot spec | goose patches, docs, harness | ≈08:50 | 09:35 | ≈45 | times approximate; includes unattended runs |
 | 2026-11-04 | Native Fluent Bit config, per-format results, upstream replies | tools, docs | ≈09:40 | 11:24 | ≈104 | times approximate; about 50 min is the unattended run |
 | 2026-11-04 | History by stage, wording fixes, branches brought up to date | docs | ≈11:30 | 12:57 | ≈87 | |
+| 2026-11-04 | Pilot stage 1: exact requirements, reference, oracle, mutation test | pilot | 12:57 | 13:07 | ≈10 | before any pilot implementation |

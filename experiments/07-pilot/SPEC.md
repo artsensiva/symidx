@@ -89,3 +89,15 @@ If B fails, the recommendation is to build the tool in Rust. The project owner m
 ## Amendments
 
 - **A1, before any pilot code.** The Fluent Bit row assumed a native `parser` would be its best configuration. Measured since ([experiment 4](../04-vs-tools/REPORT.md)), it's slower than Fluent Bit with Lua alone. So Lua alone is the Fluent Bit configuration to beat, and the native one is reported beside it. A C or Wasm filter is still out of scope, and the report must say so.
+- **A2, before any pilot code: exact behaviour of the requirements.**
+  - Command line: `TOOL [--out FILE] [--rejects FILE] [--max-reject-rate R] FORMAT PATH [FORMAT PATH ...]`, where `PATH` may be `-` for stdin.
+  - `--out`: output goes to `FILE.tmp`, renamed to `FILE` only if the whole run succeeds. Otherwise `FILE` isn't created, and the temporary file is removed.
+  - `--rejects`: each malformed line, as read, including any trailing CR, then a newline. Written as the run goes, so it's still there after a failure.
+  - Summary line on stderr, always, on a run that reaches the end of its input: `lines=N kept=N dropped=N malformed=N`.
+  - `--max-reject-rate R`: fails if `malformed / lines` is greater than `R`. Zero lines never fails.
+  - Exit codes: 0 success; 1 reject rate exceeded; 2 bad command line; 3 I/O failure, with a message on stderr. A closed output pipe is an I/O failure.
+  - Bytes are bytes: invalid UTF-8 is copied through unchanged, as experiment 2's spec says. A tool that can't do that is reported as such.
+  - Oracle: `gen_adversarial.py` builds each adversarial line together with its expected output, without using any parser, and `sanitize.py` (the reference, and the Python competitor) must match it. So reference and implementations can't pass by sharing a parser bug.
+- **A3, before any pilot code: test evidence.** `check_oracle.py` has 114 checks, including requirement 6's failures and a kill partway through. The reference passes all of them, and matches experiment 2's recorded checksums on S and M. Ten deliberately broken copies of the reference were run through it: all fail, one only after adding the kill test, which is how that test came to exist.
+- **A4, before any pilot code: one thread.** Goose and Rust start as single-threaded programs, since neither tool beats them on all cores, multi-core isn't a requirement, and the six-core work is on hold. So the "all cores" measurement applies to the tools only. If that changes, it's a new amendment.
+

@@ -309,7 +309,7 @@ CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
 
 ## Known Goose issues
 
-- `from_bytes` rejects valid index types into an array grown with `append` (goose#177).
+- On v2026.3, which this project pins: `from_bytes` rejects valid index types into an array grown with `append` (goose#177, fixed on master).
 - `from_bytes` always copies into fresh memory: load pays page faults plus a verify walk, and serving holds
   two copies of the image at once (goose#221).
 - `varint` is signed (zigzag), so an image can carry negative line numbers; the loader checks `line >= 1`.
