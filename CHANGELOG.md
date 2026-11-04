@@ -4,14 +4,16 @@
 
 Goose patches, a comparison with the real tools, a new product goal, and an independent review. See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
 
+- **Pilot, session 1 of 2:** logXform of Goose, Rust, Python, Fluent Bit and Vector, end to end on the same workflow, with [results](experiments/07-pilot/RESULTS.md), [build notes](experiments/07-pilot/BUILD.md), and the Fluent Bit and Vector pipelines. The change request and delivery checks are still to come.
+- **Renamed** our log processor from "Goose logxform" to "logXform of Goose". File names, CSV labels, the verbatim reviews and experiment 4's frozen SPEC keep their old wording.
 - **Fixed** a miscompilation in local patch F3, found by the [independent review](Symidx_Audit_04-11-2026.md), with a differential regression test.
 - **Corrected** overclaims the review found: "the product goes ahead", experiment 6's causal diagnosis and its 79% and 26% figures, the cold-cache claim, and the view's status.
 - **Made checks fail closed:** scripts stop on failure; `check.py` is strict and tested; Goose's suite is compared by failing test name; tools are checked on the edge corpus, S and M; `measure.py` records order, timestamps, load and hashes.
-- **Added** a native Fluent Bit configuration, per-format results and ceilings. Among Fluent Bit's own configurations, native parsing (10.5 MB/s) is slower than Lua (13.5 MB/s), and Goose logxform (215 MB/s) stays far ahead of both.
+- **Added** a native Fluent Bit configuration, per-format results and ceilings. Among Fluent Bit's own configurations, native parsing (10.5 MB/s) is slower than Lua (13.5 MB/s), and logXform of Goose (215 MB/s) stays far ahead of both.
 - **Upstream:** goose#177 is fixed on master and closed; goose#221 got a first analysis and a reply.
 - **Added** the three reviews, verbatim, and the [pilot's spec](experiments/07-pilot/SPEC.md), committed before any pilot code. Compiler work is paused.
 
-- **Added** the report, and experiments 3 (`from_file`, huge pages, index layouts), 4 (Goose logxform against Fluent Bit and Vector) and 5 (single-thread fixes,
+- **Added** the report, and experiments 3 (`from_file`, huge pages, index layouts), 4 (logXform of Goose against Fluent Bit and Vector) and 5 (single-thread fixes,
   fairness check, consolidated run), with their data.
 - **Results:** on one core, about 20× Fluent Bit and 42× Vector, with less CPU and memory; 1.10× tuned Rust, 1.03× with Rust given the same scan; 0.62× at six threads. The index's L memory is 1.16× rust-expert's, from 2.7×.
 - **Compiler patches stay local** (`toolchain/goose-src`, gitignored): results needing them can't yet be reproduced from this repository.

@@ -1,9 +1,9 @@
-# Experiment 6: why Goose logxform trails tuned Rust at six threads
+# Experiment 6: why logXform of Goose trails tuned Rust at six threads
 
-**Status: on hold.** An independent review ([Symidx_Audit_04-11-2026.md](../../Symidx_Audit_04-11-2026.md)) found the causal claims below stronger than the instrumentation allows, so they're corrected in place. Since Goose logxform at `-t 1` already outruns Fluent Bit and Vector at six cores, this waits until a real user needs multi-core.
+**Status: on hold.** An independent review ([Symidx_Audit_04-11-2026.md](../../Symidx_Audit_04-11-2026.md)) found the causal claims below stronger than the instrumentation allows, so they're corrected in place. Since logXform of Goose at `-t 1` already outruns Fluent Bit and Vector at six cores, this waits until a real user needs multi-core.
 
 Step 4 of the product plan. Written 2026-11-04 before these measurements. This stage only measures: no design is chosen until the numbers are in.
-Current state: at `-t 6` on M, Goose logxform is about 0.57× tuned Rust's throughput with 1.3× the memory
+Current state: at `-t 6` on M, logXform of Goose is about 0.57× tuned Rust's throughput with 1.3× the memory
 ([report](../../docs/GOOSE_LOGXFORM_REPORT.md)). The improvement plan's gap 3 target is ≥ 0.9× and RSS ≤ 1.1×, with a stop below 0.75× after a prototype.
 
 ## Questions
@@ -16,8 +16,8 @@ Current state: at `-t 6` on M, Goose logxform is about 0.57× tuned Rust's throu
 
 ## Method
 
-- `timed/`: experiment 2's Goose logxform plus stage timers (`clock_ns`, per batch, so their cost is negligible), built with `step2-fixes`. Output must still match the reference on S.
-- Scaling: Goose logxform with fixes and tuned Rust at `-t 1, 2, 3, 4, 6`, M, `measure.py`, 3 rounds, unpinned.
+- `timed/`: experiment 2's logXform of Goose plus stage timers (`clock_ns`, per batch, so their cost is negligible), built with `step2-fixes`. Output must still match the reference on S.
+- Scaling: logXform of Goose with fixes and tuned Rust at `-t 1, 2, 3, 4, 6`, M, `measure.py`, 3 rounds, unpinned.
 - Minor page faults and context switches from GNU time, both programs at `-t 6`.
 - `qbench.goose`: one thread sends messages of a given size to another and back, so a message's cost is measured alone.
 
@@ -32,7 +32,7 @@ Set before seeing the numbers. Each candidate fix gets a pre-registered target b
 
 **Scaling, 3 rounds, random order, load average about 1–3** (`run.sh`, raw in `data/`). This is the run the method above asked for.
 
-| Threads | Goose logxform with fixes: throughput, RSS, CPU | Tuned Rust: throughput, RSS, CPU | Goose ÷ Rust |
+| Threads | logXform of Goose with fixes: throughput, RSS, CPU | Tuned Rust: throughput, RSS, CPU | Goose ÷ Rust |
 |---|---|---|---|
 | 1 | 259 MB/s, 36 MiB, 6.4 s | 236 MB/s, 38 MiB, 7.0 s | 1.10× |
 | 2 | 433 MB/s, 168 MiB, 9.0 s | 482 MB/s, 132 MiB, 7.3 s | 0.90× |
@@ -41,7 +41,7 @@ Set before seeing the numbers. Each candidate fix gets a pre-registered target b
 | 6 | 673 MB/s, 514 MiB, 11.5 s | 1,082 MB/s, 366 MiB, 7.9 s | **0.62×** |
 
 **Stages.** The tables below were taken first, from single or paired runs; `data/stages.txt` and `data/qbench.txt` are a repeat that agrees with them to within about 10%, apart from one 9 MB send figure (3.4 ms there, 2.2 ms here).
-Goose logxform with fixes, M, unpinned, load average 1–2, 2 runs per thread count unless noted. Sums over workers are CPU-like, so they can exceed wall time.
+logXform of Goose with fixes, M, unpinned, load average 1–2, 2 runs per thread count unless noted. Sums over workers are CPU-like, so they can exceed wall time.
 
 | Threads | Wall | Main: read + scan | Main: send batches | Main: receive | Main: out-of-order buffer | Workers: `process`, sum | Workers: waiting for a batch, sum | Workers: send result, sum |
 |---|---|---|---|---|---|---|---|---|
@@ -51,7 +51,7 @@ Goose logxform with fixes, M, unpinned, load average 1–2, 2 runs per thread co
 | 5 | 2.48–2.64 s | 0.88–0.95 s | 0.92–0.95 s | 0.49–0.53 s | 0.13 s | 8.6–9.2 s | 2.3–2.5 s | 1.4 s |
 | 6 | 2.52–2.84 s | 0.96–1.03 s | 0.87–0.97 s | 0.48–0.56 s | 0.15–0.21 s | 9.0–10.9 s | 4.4–4.6 s | 1.5–1.8 s |
 
-| CPU, one run each | Goose logxform with fixes: wall, user, sys, minor faults | Tuned Rust: wall, user, sys, minor faults |
+| CPU, one run each | logXform of Goose with fixes: wall, user, sys, minor faults | Tuned Rust: wall, user, sys, minor faults |
 |---|---|---|
 | `-t 1` | 6.46 s, 6.12, 0.25, 8,708 | 7.02 s, 6.76, 0.24, 9,377 |
 | `-t 2` | 3.73 s, 8.42, 0.40, 68,390 | 3.38 s, 6.89, 0.33, 33,563 |
@@ -68,7 +68,7 @@ Goose logxform with fixes, M, unpinned, load average 1–2, 2 runs per thread co
 A warm 9 MB `memcpy` here takes about 0.83 ms (measured from Python, so approximate).
 
 **Answers.**
-1. **Scaling.** Goose logxform stops improving at 4 threads: 665 to 673 MB/s from 4 to 6, while workers' waiting grows fivefold. Tuned Rust keeps improving, 903 to 1,082 MB/s. (A single run above suggested Rust was flat too. The 3-round run shows that was noise.)
+1. **Scaling.** logXform of Goose stops improving at 4 threads: 665 to 673 MB/s from 4 to 6, while workers' waiting grows fivefold. Tuned Rust keeps improving, 903 to 1,082 MB/s. (A single run above suggested Rust was flat too. The 3-round run shows that was noise.)
 2. **The main thread is a credible bottleneck, not an established one.** In the saved run at 6 threads, reading, sending and the out-of-order buffer are 79% of its elapsed time, just under the rule's 80%, and 76–77% at 4 threads. I wrote that receiving rarely waits, and so main is close to fully busy, but that was inferred. These timers measure elapsed time, which includes blocking and descheduling, so they don't show CPU use.
 3. **Workers.** Their time in `qget` is 26% at 6 threads in the saved run (9% at 4), not the "about a third" this said, and it includes copying as well as waiting. So it isn't pure idle time.
 4. **A message's cost.** Not mainly page faults, so that rule doesn't fire. A 9 MB send takes about 2.6× a warm `memcpy`, and page faults explain part of it. Goose takes 2.7× Rust's faults at 6 threads, but its extra system time is about 0.5 s, against about 2.9 s of extra user time.

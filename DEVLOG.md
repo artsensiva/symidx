@@ -33,3 +33,6 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-04 | Native Fluent Bit config, per-format results, upstream replies | tools, docs | ≈09:40 | 11:24 | ≈104 | times approximate; about 50 min is the unattended run |
 | 2026-11-04 | History by stage, wording fixes, branches brought up to date | docs | ≈11:30 | 12:57 | ≈87 | |
 | 2026-11-04 | Pilot stage 1: exact requirements, reference, oracle, mutation test | pilot | 12:57 | 13:07 | ≈10 | before any pilot implementation |
+| 2026-11-04 | Pilot stages 2–3: programs in Goose and Rust, tool pipelines and wrapper, session script | pilot | 13:08 | 13:20 | ≈12 | from commit and file timestamps |
+| 2026-11-04 | Pilot session 1, unattended | pilot | 13:20 | 15:58 | 158 | all five programs, end to end |
+| 2026-11-04 | Session 1 report, results and build notes, rename to logXform of Goose, benchmark research | pilot, docs | ≈17:50 | 18:05 | ≈15 | |

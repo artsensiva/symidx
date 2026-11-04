@@ -1,0 +1,13 @@
+[package]
+name = "sanitize"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+memchr = "=2.8.3"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"

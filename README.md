@@ -18,7 +18,7 @@ against a ≥ 1.3× kill criterion: **not met; the Goose track ends.** Goose bea
 2.7×, the layout's win again. Qualification: on the macOS CI VM Goose used 1.9× less RSS (uninvestigated).
 
 **Since then: experiments 3–5 and a product goal.** The aim is now products built on Goose, starting with a log processor. Full results, changes and
-methods: **[docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md)**. On one core, Goose logxform runs about 20× and 42× as fast as Fluent Bit and Vector on the same task,
+methods: **[docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md)**. On one core, logXform of Goose runs about 20× and 42× as fast as Fluent Bit and Vector on the same task,
 with 19× and 43× less CPU per GB and less memory, though it's a fixed-purpose program and not yet a product, and tuned Rust wins by about as much, so this doesn't show Goose is the right language for it. Against tuned Rust it reaches 1.10× on one core
 (1.03× once Rust gets the same scan trick, so parity to a small lead) and 0.62× on six cores. These rely on local Goose patches, not yet published.
 An [independent review](Symidx_Audit_04-11-2026.md) found a miscompilation in one patch (now fixed) and overclaims (corrected). Compiler work is paused while [one bounded pilot](experiments/07-pilot/SPEC.md) tests a real workflow.
@@ -213,12 +213,12 @@ Each stage's verdict, newest last. Time spent is in [DEVLOG.md](DEVLOG.md), and 
 | **Experiment 2** (v1.2) | Log transforming, against tuned Rust; pre-registered | **Kill criterion not met:** 0.88× throughput, 1.07× less memory. Goose beats plain `serde` Rust 2.2× and 2.7× | [REPORT](experiments/02-logxform/REPORT.md) |
 | **Audit preparation** (v1.2.1) | Profile of the gap, build flags | Best build flags on each side: 0.96×. Audit brief and claims list added | [AUDIT.md](AUDIT.md) |
 | **Experiment 3** † | Huge pages, `from_file`, new index layouts | Huge pages fail their target. `from_file` meets its memory targets. Layout `fixed` reaches 1.05× rust-expert's L memory, and 4.5× its load | [PLAN](experiments/03-goose-patches/PLAN.md) |
-| **Experiment 4** | Goose logxform against the real tools, unpatched | On one core, about 16× Fluent Bit (Lua) and 39× Vector (VRL). Mostly from specialization | [REPORT](experiments/04-vs-tools/REPORT.md) |
+| **Experiment 4** | logXform of Goose against the real tools, unpatched | On one core, about 16× Fluent Bit (Lua) and 39× Vector (VRL). Mostly from specialization | [REPORT](experiments/04-vs-tools/REPORT.md) |
 | **Experiment 5** † | Cheap single-thread fixes, with Rust given the same trick | One library loop gives about 11%. 1.10× tuned Rust, 1.03× with the same scan: parity to a small lead. Index L memory 1.16× | [PLAN](experiments/05-goose-fixes/PLAN.md) |
 | **Experiment 6** † | Why six threads stall | 0.62× tuned Rust, with no gain past 4 threads. Cause not established. On hold | [PLAN](experiments/06-parallelism/PLAN.md) |
 | **Independent reviews** | Results and plan, from outside | Found a miscompilation in F3 (fixed) and several overclaims (corrected). Compiler work paused, and one bounded pilot chosen | [latest](Symidx_Audit_04-11-2026.md), [status](AUDIT.md) |
-| **Native Fluent Bit config** | Whether a better config narrows experiment 4's gap | It doesn't. Fluent Bit: 13.5 MB/s with Lua, 10.5 MB/s native. Goose logxform: 215 MB/s | [REPORT](experiments/04-vs-tools/REPORT.md) |
-| **Pilot** | One real workflow, in Goose and Rust, against the tools and Python | In progress | [SPEC](experiments/07-pilot/SPEC.md) |
+| **Native Fluent Bit config** | Whether a better config narrows experiment 4's gap | It doesn't. Fluent Bit: 13.5 MB/s with Lua, 10.5 MB/s native. logXform of Goose: 215 MB/s | [REPORT](experiments/04-vs-tools/REPORT.md) |
+| **Pilot** | One real workflow, in Goose and Rust, against the tools and Python | In progress. Session 1 of 2, on one core: logXform of Goose 204 MB/s, Rust 195, Python 13.6, Fluent Bit 12.0, Vector 4.8. Goose and Rust can't be told apart, and the reason to prefer Goose isn't measured yet | [SPEC](experiments/07-pilot/SPEC.md), [results](experiments/07-pilot/RESULTS.md), [builds](experiments/07-pilot/BUILD.md) |
 
 **Overall, so far:** a fixed-purpose log tool beats these tool configurations by a wide margin, and Goose and Rust are about level on one core. Nothing yet shows a Goose tool is better than a Rust one, or that anyone wants this tool. The pilot is meant to test that.
 
@@ -227,7 +227,7 @@ Each stage's verdict, newest last. Time spent is in [DEVLOG.md](DEVLOG.md), and 
 The long-term goal is products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. After an [independent review](Symidx_Audit_04-11-2026.md), the near-term plan is narrower. Results and plan:
 [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
 
-- **Done:** Goose logxform against the real tools, including a native Fluent Bit config, which is slower than its Lua config, so the gap stays ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
+- **Done:** logXform of Goose against the real tools, including a native Fluent Bit config, which is slower than its Lua config, so the gap stays ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
 - **Next:** the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
 - **Paused:** the six-core work ([experiment 6](experiments/06-parallelism/PLAN.md)), embedding (asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555)), and all compiler work ([docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md)).
 
@@ -275,10 +275,10 @@ AUDIT.md, CLAIMS.md    brief for an independent audit; every headline claim with
 experiments/02-logxform/  experiment 2: SPEC (pre-registered), REPORT, ref.py, goose/, rust-arena/,
                        rust-idiomatic/, run.sh, check-sums.sh, corpus/fetch.sh (Loghub), test/ (edge cases), data/
 experiments/03-goose-patches/  huge pages, from_file, index layouts, Rust stream mode; measure.py
-experiments/04-vs-tools/  Goose logxform against Fluent Bit and Vector: SPEC, REPORT, configs, data/
+experiments/04-vs-tools/  logXform of Goose against Fluent Bit and Vector: SPEC, REPORT, configs, data/
 experiments/05-goose-fixes/  single-thread fixes, the fairness check, the consolidated run; data/
 experiments/06-parallelism/  why six threads stall: stage timers, queue benchmark, scaling; a proposal; on hold; data/
-experiments/07-pilot/  the pilot's spec, committed before any pilot code
+experiments/07-pilot/  the pilot: spec, oracle, programs in Goose and Rust, Fluent Bit and Vector pipelines and wrapper, build notes, results
 Symidx_Audit_*.md      independent reviews, verbatim
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
 CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases

@@ -21,3 +21,5 @@ __pycache__/
 /experiments/02-logxform/flags/bin/
 /experiments/02-logxform/flags/work/
 /experiments/02-logxform/flags/results/
+# Pilot binaries.
+/experiments/07-pilot/goose/sanitize

@@ -1,0 +1,35 @@
+# The pilot's Vector pipeline, driven by sanitize_tool.py.
+sources:
+  in:
+    type: stdin
+    max_length: 67108864
+transforms:
+  t:
+    type: remap
+    inputs: [in]
+    drop_on_abort: true
+    reroute_dropped: true
+    file: "@DIR@/@FORMAT@.vrl"
+  keep:
+    type: filter
+    inputs: [t]
+    condition: '!exists(.sanitize_filtered)'
+sinks:
+  out:
+    type: file
+    inputs: [keep]
+    path: "@OUT@"
+    encoding:
+      codec: json
+    framing:
+      method: newline_delimited
+    buffer:
+      max_events: 4096
+  rejects:
+    type: file
+    inputs: [t.dropped]
+    path: "@REJ@"
+    encoding:
+      codec: text
+    framing:
+      method: newline_delimited

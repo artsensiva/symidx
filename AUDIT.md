@@ -42,7 +42,7 @@ That is the main reason for this audit.
 
 Later work, not covered by the table above: experiments 3–5 and [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md), with claims G1–G11 in [CLAIMS.md](CLAIMS.md).
 
-Later work: experiment 3 (`from_file`, huge pages, index layouts), 4 (Goose logxform against Fluent Bit and Vector), 5 (single-thread fixes, fairness check, a same-session run) and 6 (the six-thread stall), with claims G1–G14 in [CLAIMS.md](CLAIMS.md).
+Later work: experiment 3 (`from_file`, huge pages, index layouts), 4 (logXform of Goose against Fluent Bit and Vector), 5 (single-thread fixes, fairness check, a same-session run) and 6 (the six-thread stall), with claims G1–G14 in [CLAIMS.md](CLAIMS.md).
 
 ## Reproducing from a clean checkout
 
@@ -136,7 +136,7 @@ An outside review of v1.2.1 raised these. They're listed so that you can check t
 | Small speed claims exceed the design | **Partly fixed.** `measure.py` records order, timestamps, load and hashes, and prints ranges rather than bootstrap intervals. Published runs predate that. The pilot requires at least 5 rounds over 2 sessions |
 | Original defects (steady-state memory, filtering before records, corpus concentration, `async class`, macOS, cold cache) | **Mostly open.** Cold-cache claim corrected. The pilot covers per-format results, held-out data and adversarial cases, and states its filtering. `async class` isn't fixed |
 | Stop the broad program; run one bounded trial | **Adopted** by the project owner. [Pilot spec](experiments/07-pilot/SPEC.md), committed before any pilot code. Compiler work is paused. The long-term goal stands |
-| Native Fluent Bit parser untested | **Done:** Fluent Bit's native config is slower than its own Lua config, and Goose logxform stays far ahead of both (`experiments/04-vs-tools/REPORT.md`), so the win holds against configurations tried. A filter in C or Wasm is untested |
+| Native Fluent Bit parser untested | **Done:** Fluent Bit's native config is slower than its own Lua config, and logXform of Goose stays far ahead of both (`experiments/04-vs-tools/REPORT.md`), so the win holds against configurations tried. A filter in C or Wasm is untested |
 | F2 needs escape-heavy and long-string tests | **Open:** in the pilot's adversarial data |
 | Host contract, `read_file_range` short reads, Windows guard behaviour, huge-page validation | **Open,** and paused with the compiler work |
 

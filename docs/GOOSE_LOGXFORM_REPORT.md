@@ -1,10 +1,10 @@
-# Goose logxform: results, changes and plan
+# logXform of Goose: results, changes and plan
 
-2026-11-04. A consolidated report on experiments 2–5: how a fixed-purpose log processor written in
+2026-11-04. Earlier records call this program "Goose logxform". A consolidated report on experiments 2–5: how a fixed-purpose log processor written in
 [Goose](https://github.com/aardappel/goose) compares with Fluent Bit, Vector and tuned Rust, what was changed in Goose to get
 there, how it was tested, and what comes next. Detailed records: [experiments/](../experiments/).
 
-**Goose logxform** is this project's name for the program in `experiments/02-logxform/goose/`. It is a benchmark
+**logXform of Goose** is this project's name for the program in `experiments/02-logxform/goose/`. It is a benchmark
 today, not a shipped product. The project is not affiliated with Goose's authors.
 
 **Revised after an independent review** ([Symidx_Audit_04-11-2026.md](../Symidx_Audit_04-11-2026.md)). It found a real bug in a local compiler patch, and that several conclusions here went further than the evidence. Both are corrected below. The plan has changed: compiler work is paused, and one
@@ -15,7 +15,7 @@ bounded product pilot comes next ([spec](../experiments/07-pilot/SPEC.md)).
 - **Against Fluent Bit and Vector, on one core: about 20× and 42× the throughput, and 19× and 43× less CPU per
   gigabyte, with less memory** (1.10× and 2.67×). This met the decision rule set before the comparison. That justifies testing a real workflow. It doesn't show that anyone wants this tool, or that Goose is the right language for it. The rule also judged one core, chosen when Goose's multi-core weakness was already known.
 - **That win likely comes mostly from being a fixed-purpose program, not from Goose.** Tuned Rust wins by about as much, though the comparison doesn't isolate each component's share.
-- **Against tuned Rust, on one core: parity to a small lead.** Goose logxform with the fixes below reaches 1.10× tuned Rust, and
+- **Against tuned Rust, on one core: parity to a small lead.** logXform of Goose with the fixes below reaches 1.10× tuned Rust, and
   1.03× once Rust is given the same scan trick. A second run through a different harness put those two level.
 - **On six cores it trails tuned Rust: 0.62× the throughput and 1.4× the memory** on a quiet machine. It stops improving at 4 threads, and the cause isn't established yet. This is the largest measured gap, and the
   next work item.
@@ -33,28 +33,28 @@ random order within each round. Raw data: [`experiments/05-goose-fixes/data/cons
 ### One core
 
 3 rounds, load average about 2. Each program runs once per input file through the same wrapper. Multiples are medians of paired
-rounds, and compare the other program with Goose logxform with fixes.
+rounds, and compare the other program with logXform of Goose with fixes.
 
 | | Throughput | Lines per second | Peak RSS | CPU per GB | Speed advantage over it | Its RSS ÷ ours | Its CPU ÷ ours |
 |---|---|---|---|---|---|---|---|
-| **Goose logxform, with fixes** | 251.3 MB/s | 1.80 M | 36.1 MiB | 3.9 s | — | — | — |
-| Goose logxform, release | 237.0 MB/s | 1.70 M | 36.0 MiB | 4.2 s | 1.06× | 1.00 | 1.08 |
+| **logXform of Goose, with fixes** | 251.3 MB/s | 1.80 M | 36.1 MiB | 3.9 s | — | — | — |
+| logXform of Goose, release | 237.0 MB/s | 1.70 M | 36.0 MiB | 4.2 s | 1.06× | 1.00 | 1.08 |
 | Tuned Rust (rust-arena) | 225.3 MB/s | 1.62 M | 36.1 MiB | 4.2 s | 1.12× | 1.00 | 1.07 |
 | Tuned Rust, same scan | 254.8 MB/s | 1.83 M | 36.2 MiB | 3.9 s | 0.99× | 1.00 | 1.00 |
 | Fluent Bit 5.1.5 (Lua) | 12.7 MB/s | 0.09 M | 39.6 MiB | 74.0 s | **19.8×** | 1.10 | **19.2** |
 | Vector 0.61.0 (VRL) | 5.9 MB/s | 0.04 M | 96.2 MiB | 173.4 s | **41.9×** | 2.67 | **43.5** |
 
-The per-round spread in this table is wide for the fast programs: Goose logxform with fixes took 6.6, 7.7 and 6.6 s. The next table is the
+The per-round spread in this table is wide for the fast programs: logXform of Goose with fixes took 6.6, 7.7 and 6.6 s. The next table is the
 better comparison among them.
 
-### One core, Goose logxform against tuned Rust
+### One core, logXform of Goose against tuned Rust
 
 5 rounds, three neutral rebuilds of each (only a usage string differs), one process over all input, load average 3.5–4.5. By round, each
 ratio stayed within 0.02, so this is the most reliable comparison here.
 
-| | Throughput | Peak RSS | CPU | Goose logxform with fixes, ÷ this |
+| | Throughput | Peak RSS | CPU | logXform of Goose with fixes, ÷ this |
 |---|---|---|---|---|
-| **Goose logxform, with fixes** | 240.1 MB/s | 36.0 MiB | 6.87 s | — |
+| **logXform of Goose, with fixes** | 240.1 MB/s | 36.0 MiB | 6.87 s | — |
 | Tuned Rust, same scan | 233.2 MB/s | 38.5 MiB | 7.09 s | **1.029×** (1.023–1.035 by round) |
 | Tuned Rust | 218.7 MB/s | 38.3 MiB | 7.56 s | **1.098×** (1.090–1.109 by round) |
 
@@ -65,14 +65,14 @@ the medians aren't reliable, and the fastest run of each is shown beside them. M
 
 | | Median | Fastest run | Peak RSS | CPU per GB |
 |---|---|---|---|---|
-| **Goose logxform, with fixes** | 322 MB/s | 699 MB/s | 471 MiB | 6.4 s |
-| Goose logxform, release | 312 MB/s | 517 MB/s | 473 MiB | 6.9 s |
+| **logXform of Goose, with fixes** | 322 MB/s | 699 MB/s | 471 MiB | 6.4 s |
+| logXform of Goose, release | 312 MB/s | 517 MB/s | 473 MiB | 6.9 s |
 | Tuned Rust | 495 MB/s | 902 MB/s | 349 MiB | 4.9 s |
 | Tuned Rust, same scan | 498 MB/s | 866 MB/s | 349 MiB | 4.5 s |
 | Fluent Bit | 10.4 MB/s | 15.1 MB/s | 42.9 MiB | 79.3 s |
 | Vector | 4.5 MB/s | 13.4 MB/s | 205 MiB | 200 s |
 
-A separate run gives the better Goose-against-Rust number: three rebuilds each, 3 rounds, `-t 6`. Goose logxform with fixes reached 490.8 MB/s and tuned Rust 859.1 MB/s
+A separate run gives the better Goose-against-Rust number: three rebuilds each, 3 rounds, `-t 6`. logXform of Goose with fixes reached 490.8 MB/s and tuned Rust 859.1 MB/s
 (**0.57×**), at 480 and 366 MiB, with load average up to 9.7. An earlier, quieter run of the tools alone
 ([experiment 4](../experiments/04-vs-tools/REPORT.md)) measured release Goose at 605 MB/s, Fluent Bit at 14.2 and Vector at 13.0.
 
@@ -80,7 +80,7 @@ A separate run gives the better Goose-against-Rust number: three rebuilds each, 
 
 The cleanest multi-core data here: 3 rounds, load average about 1–3 ([experiment 6](../experiments/06-parallelism/PLAN.md)). Fluent Bit and Vector aren't in this run.
 
-| Threads | Goose logxform with fixes | Peak RSS | CPU | Tuned Rust | Peak RSS | CPU | Goose ÷ Rust |
+| Threads | logXform of Goose with fixes | Peak RSS | CPU | Tuned Rust | Peak RSS | CPU | Goose ÷ Rust |
 |---|---|---|---|---|---|---|---|
 | 1 | 259 MB/s | 36 MiB | 6.4 s | 236 MB/s | 38 MiB | 7.0 s | 1.10× |
 | 2 | 433 MB/s | 168 MiB | 9.0 s | 482 MB/s | 132 MiB | 7.3 s | 0.90× |
@@ -92,7 +92,7 @@ The cleanest multi-core data here: 3 rounds, load average about 1–3 ([experime
 
 | | Executable | Download | Lines for this task |
 |---|---|---|---|
-| Goose logxform | 0.1 MB | — | 597 lines of Goose, including I/O and threads |
+| logXform of Goose | 0.1 MB | — | 597 lines of Goose, including I/O and threads |
 | Tuned Rust | 0.4 MB | — | 773 lines of Rust, plus crates |
 | Fluent Bit | 76.6 MB | 64 MB | 113 lines of Lua and YAML |
 | Vector | 161.1 MB | 59 MB | 122 lines of VRL and YAML |
@@ -126,7 +126,7 @@ improvement plan, the choice of Rust for that product doesn't reopen.
 transform, 3.0 s with VRL and no output, and 7.2 s with JSON output. Fluent Bit converts each record to a Lua table and back. logxform does none of that. This task is transform-heavy, which is the worst
 case for those layers.
 
-**A native Fluent Bit config doesn't narrow the gap** ([experiment 4](../experiments/04-vs-tools/REPORT.md)). With native regex parsing, native `grep` and minimal Lua, Fluent Bit used 93 s of CPU per GB, against 72 s for Fluent Bit with Lua alone, and 3.8 s for Goose logxform. So among Fluent Bit's own configs, the native one is the slower: its regex parser costs more than LuaJIT's patterns here. Goose logxform is far ahead of both. Across formats, Lua alone stays at 14–19× Goose's CPU, with HDFS at 19×, though Apache is too short for a precise ratio. Fluent Bit doing only `tail` to `stdout` uses about twice Goose's whole job, which is indicative rather than a bound, because it writes every line. A filter written in C or Wasm wasn't tried, and it's the one option that could change this materially.
+**A native Fluent Bit config doesn't narrow the gap** ([experiment 4](../experiments/04-vs-tools/REPORT.md)). With native regex parsing, native `grep` and minimal Lua, Fluent Bit used 93 s of CPU per GB, against 72 s for Fluent Bit with Lua alone, and 3.8 s for logXform of Goose. So among Fluent Bit's own configs, the native one is the slower: its regex parser costs more than LuaJIT's patterns here. logXform of Goose is far ahead of both. Across formats, Lua alone stays at 14–19× Goose's CPU, with HDFS at 19×, though Apache is too short for a precise ratio. Fluent Bit doing only `tail` to `stdout` uses about twice Goose's whole job, which is indicative rather than a bound, because it writes every line. A filter written in C or Wasm wasn't tried, and it's the one option that could change this materially.
 
 **What the win isn't.** Tuned Rust does the same job at about the same speed, so a fixed-purpose Rust tool would beat these products by as much. What these numbers show is that Goose is
 already well inside the range where a specialized tool pays off.
@@ -153,7 +153,7 @@ Why Goose gains more isn't known. Removing a loop's early exit was not the fix t
 
 **The six-core gap** ([experiment 6](../experiments/06-parallelism/PLAN.md)). Goose's threads share nothing, so each batch crosses a queue by copy, in both directions; tuned Rust moves and reuses buffers. What's measured: scaling stops at 4 threads, total CPU grows 80% from 1 to 6 threads against Rust's 13%, and the main thread's stages are expensive.
 What's *not* established is the cause. Those stage timers measure elapsed time, which includes blocking and descheduling, not CPU. In the saved run at 6 threads, main's stages other than receiving are 79% of its time, just under the 80% rule set in advance, and workers' time in `qget` is 26%, which includes copying as well as waiting. So a saturated main thread and copy traffic are credible explanations, but clock speeds, the scheduler (six workers plus main on six cores) and cache or memory contention aren't ruled out. A test with independent processes would separate them.
-This doesn't block the pilot: Goose logxform at `-t 1` already outruns both tools at six cores.
+This doesn't block the pilot: logXform of Goose at `-t 1` already outruns both tools at six cores.
 
 **Huge pages depend on the task.** On layout A they add up to 33% memory on small indexes for no speed. On `fixed` they cost nothing on small indexes and make large loads about 43% faster. On log processing, they gave
 no single-thread gain and about 7% more memory. A process-wide run-time switch handles this, but it's a local experiment, not a recommendation.
@@ -170,7 +170,7 @@ reproduced from this repository alone. Benchmark code that uses them is in `expe
 | Patch 2, `from_file` | Reads a saved array straight into its own storage and verifies it there | compiler, runtime | L memory 2.7× → 1.8× rust-expert's | Keep |
 | `os.read_file_range` | Reads part of a file straight into an array | stdlib, runtime | Needed by `from_file` users | Keep |
 | F1, `find_any` | Single-byte searches go to `memchr` from the program's own code | runtime | No measurable gain | Drop |
-| F2, `json::plain` | Compare-free loop that vectorizes | stdlib | About 11–13% in Goose logxform | Keep |
+| F2, `json::plain` | Compare-free loop that vectorizes | stdlib | About 11–13% in logXform of Goose | Keep |
 | F3, in-place assignment | `a, n, ok = from_file(...)` onto an existing array no longer copies | compiler | L memory 78 → 50 MiB. **Had a miscompilation, now fixed** | Local only, unproven beyond its tests |
 
 **The F3 bug.** A `from_file` nested in another's arguments took its parent's pending reset, so the program got wrong data, with the load reporting success: `XNE` instead of `NEW`, in release and debug. An independent review found it. Unpatched Goose was never affected, and logxform doesn't use F3. The reset now belongs to one specific call and is taken before its arguments are generated, and F3 only applies to plain variables.
@@ -186,8 +186,8 @@ Program and benchmark changes, none of them language changes:
 
 | Program | Versions | Build or install | Run settings |
 |---|---|---|---|
-| Goose logxform, release | Goose v2026.3, clang 21.1.8 | `goose build --cc clang` (`-O2`) | `-t 1`, `-t 6` |
-| Goose logxform, with fixes | The same, plus F1, F2, F3 | The same, from the local compiler | `-t 1`, `-t 6` |
+| logXform of Goose, release | Goose v2026.3, clang 21.1.8 | `goose build --cc clang` (`-O2`) | `-t 1`, `-t 6` |
+| logXform of Goose, with fixes | The same, plus F1, F2, F3 | The same, from the local compiler | `-t 1`, `-t 6` |
 | Goose variants, for F1 and F2 alone | The same | Three neutral rebuilds of each | `-t 1`, `-t 4` (correctness), `-t 6` |
 | Tuned Rust | rustc 1.99.1 | `--release`, fat LTO, `codegen-units = 1`, `panic = "abort"` | `-t 1`, `-t 6` |
 | Tuned Rust, same scan | The same | The same, plus `rust-arena-fair.patch` | `-t 1`, `-t 6` |
@@ -249,7 +249,7 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 ```
 goose/fetch-toolchain.sh                                        # pinned Goose v2026.3
 experiments/02-logxform/corpus/fetch.sh                         # Loghub, about 1.7 GB
-experiments/02-logxform/goose/build.sh                          # Goose logxform, release
+experiments/02-logxform/goose/build.sh                          # logXform of Goose, release
 cargo build --release --locked --manifest-path experiments/02-logxform/rust-arena/Cargo.toml
 ```
 
@@ -279,4 +279,4 @@ Revised after the independent review. **The long-term goal stands:** products on
 
 Open decisions for the project owner:
 - Whether to publish the compiler patches, or offer F2 upstream, once it has held-out tests.
-- Whether "Goose logxform" stays as a public product name, which should be checked with Goose's authors first.
+- Whether "logXform of Goose" stays as a public product name, which should be checked with Goose's authors first.

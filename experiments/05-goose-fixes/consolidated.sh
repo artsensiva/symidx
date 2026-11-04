@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The same-session run behind docs/GOOSE_LOGXFORM_REPORT.md. usage: consolidated.sh OUT_DIR BIN_DIR
-#   1. Goose logxform (fixes), rust-arena, rust-arena-fair: three neutral rebuilds, -t 1 (5 rounds) and -t 6 (3 rounds).
+#   1. logXform of Goose (fixes), rust-arena, rust-arena-fair: three neutral rebuilds, -t 1 (5 rounds) and -t 6 (3 rounds).
 #   2. All six programs, one process per file through one wrapper, one core then all cores, 3 rounds.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"; OUT=$1; B=$2; mkdir -p "$OUT"

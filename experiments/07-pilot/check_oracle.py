@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """A program under test against gen_adversarial.py's expectations, and requirement 6's failure cases (SPEC A2).
 
-usage: check_oracle.py CASES_DIR SCRATCH_DIR CMD [ARG ...]
-Exits 1 on any failure, listing each one.
+usage: check_oracle.py [--semantic] CASES_DIR SCRATCH_DIR CMD [ARG ...]
+Exits 1 on any failure, listing each one. Outputs must match byte for byte. --semantic relaxes that for tools that can't control JSON key
+order: each line is parsed and compared with keys sorted, and [] counts as an empty kv, the same rules as experiments/04-vs-tools/check.py. Everything else still counts,
+including order of records and the exact bytes of values.
 """
-import glob, os, subprocess, sys, time
+import glob, json, os, subprocess, sys, time
 
-cases, scratch = sys.argv[1], sys.argv[2]
-cmd = sys.argv[3:]
+argv = sys.argv[1:]
+semantic = argv[0] == "--semantic"
+if semantic:
+    argv = argv[1:]
+cases, scratch = argv[0], argv[1]
+cmd = argv[2:]
 os.makedirs(scratch, exist_ok=True)
 fails = []
 passed = 0
@@ -21,7 +27,36 @@ def check(name, cond, detail=""):
         fails.append(f"{name}: {detail}")
 
 
+def canon(data):
+    out = []
+    for line in data.split(b"\n"):
+        if not line:
+            continue
+        try:
+            r = json.loads(line.decode("utf-8", "surrogateescape"))
+        except ValueError:
+            return ("not JSON", line[:100])
+        if isinstance(r, dict) and r.get("kv") == []:
+            r["kv"] = {}
+        out.append(json.dumps(r, sort_keys=True))
+    return out
+
+
+def same(got, want):
+    if not semantic or got == want:
+        return got == want
+    return canon(got) == canon(want)
+
+
 def first_diff(a, b):
+    if semantic:
+        ca, cb = canon(a), canon(b)
+        if isinstance(ca, tuple):
+            return f"{ca}"
+        for i, (x, y) in enumerate(zip(ca, cb)):
+            if x != y:
+                return f"record {i}: got {x[:150]}, want {y[:150]}"
+        return f"got {len(ca)} records, want {len(cb)}"
     n = min(len(a), len(b))
     for i in range(n):
         if a[i] != b[i]:
@@ -38,17 +73,17 @@ for path in inputs:
     check(f"{name}: exit", p.returncode == 0, f"exit {p.returncode}: {p.stderr[-200:]!r}")
     got = open(out, "rb").read() if os.path.exists(out) else b"<no file>"
     want = open(base + ".expected", "rb").read()
-    check(f"{name}: output", got == want, first_diff(got, want) if got != want else "")
+    check(f"{name}: output", same(got, want), first_diff(got, want) if not same(got, want) else "")
     got = open(rej, "rb").read() if os.path.exists(rej) else b"<no file>"
     want = open(base + ".rejects", "rb").read()
     check(f"{name}: rejects", got == want, first_diff(got, want) if got != want else "")
     want = open(base + ".summary", "rb").read().strip()
     check(f"{name}: summary", want in p.stderr, f"got {p.stderr[-120:]!r}, want {want!r}")
     p2 = subprocess.run(cmd + [fmt, path], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    check(f"{name}: stdout equals --out", p2.stdout == open(base + ".expected", "rb").read(), "differs")
+    check(f"{name}: stdout equals --out", same(p2.stdout, open(base + ".expected", "rb").read()), "differs")
     with open(path, "rb") as f:
         p3 = subprocess.run(cmd + [fmt, "-"], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    check(f"{name}: stdin equals file", p3.stdout == open(base + ".expected", "rb").read(), "differs")
+    check(f"{name}: stdin equals file", same(p3.stdout, open(base + ".expected", "rb").read()), "differs")
     for f in (out, rej):
         if os.path.exists(f):
             os.unlink(f)
@@ -56,7 +91,7 @@ for path in inputs:
 # Several inputs in one run, in order.
 a, b = os.path.join(cases, "redaction"), os.path.join(cases, "levels")
 p = subprocess.run(cmd + ["apache", a + ".apache", "hdfs", b + ".hdfs"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-check("two inputs, in order", p.stdout == open(a + ".expected", "rb").read() + open(b + ".expected", "rb").read(), "differs")
+check("two inputs, in order", same(p.stdout, open(a + ".expected", "rb").read() + open(b + ".expected", "rb").read()), "differs")
 
 # Requirement 6 and the rest of SPEC A2.
 good = os.path.join(cases, "levels.hdfs")
