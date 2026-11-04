@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Experiment 6's measurements. usage: run.sh OUT_DIR BIN_DIR  (BIN_DIR holds both-0, rust-0, timed and qbench, built as PLAN.md says)
-set -uo pipefail
+set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"; OUT=$1; B=$2; mkdir -p "$OUT"
 C=$ROOT/experiments/02-logxform/corpus/src; M="apache $C/Apache.log ssh $C/SSH.log hdfs $C/HDFS.log"
 cut -d' ' -f1-3 /proc/loadavg > "$OUT/load.txt"

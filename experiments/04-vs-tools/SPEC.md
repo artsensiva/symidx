@@ -75,6 +75,7 @@ Recorded before the M run, after correctness checks and the tuning pass on S (a 
     adopted**. `inotify_watcher: false` was set because this machine hit its inotify limit.
   - Fluent Bit's wall time came out at exactly 6.01 s in all runs, with about 5.3 s of CPU, which suggests its exit at
     end of file waits for a timer. So its CPU time is reported beside wall time.
+- **A4. After an independent review.** `check.py` was too loose: it accepted any empty `kv`, ignored extra fields and passed reordered output. It's now strict, with its own tests (`test_check.py`), and `check_tools.sh` runs every tool on the edge corpus, S and M (`data/correctness.txt`). That found a bug in the Fluent Bit config, fixed: it stripped a second trailing CR, which `tail` had already removed. Throughput wasn't re-measured for it. **The one-core rule also deserves a caveat:** it was chosen when Goose's multi-core weakness was known, and it isn't tied to a real user's budget.
 - **A3. Recorded after the M run.** Vector logs `Failed to close file. path=/dev/null` at each exit; it exits 0, and
   the same sink passed the correctness check writing a real file. A2 promised Fluent Bit's CPU time beside its wall
   time, but `measure.py` records only wall time, so M has none. At most a few seconds of its roughly 124 s can be

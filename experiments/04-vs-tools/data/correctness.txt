@@ -1,0 +1,21 @@
+25 of 25 check.py cases passed
+== edge: reference has 26 records
+vector:
+ok: 26 of 26 reference records, in order, 0 missing
+fluentbit (up to 1 final lines without a newline may be missing, SPEC A1):
+  allowed missing: ('2008-11-09T20:35:18Z', 'ERROR', 3, 'dfs.X', 'last line, no newline, ctrl \x01 \x1f del \x7f', (('pid', '143'),))
+ok: 25 of 26 reference records, in order, 1 missing
+== S: reference has 989056 records
+vector:
+ok: 989056 of 989056 reference records, in order, 0 missing
+fluentbit (up to 2 final lines without a newline may be missing, SPEC A1):
+  allowed missing: ('2006-02-28T03:49:01Z', 'ERROR', 3, 'httpd', '[client <ip>] Directory index forbidden by rule: /var/www/html/', ())
+  allowed missing: ('2018-01-07T17:22:01Z', 'INFO', 6, 'sshd', 'pam_unix(sshd:session): session opened for user jmzhu by (uid=0)', (('host', 'LabSZ'), ('pid', '30291')))
+ok: 989054 of 989056 reference records, in order, 2 missing
+== M: reference has 7067378 records
+vector:
+ok: 7067378 of 7067378 reference records, in order, 0 missing
+fluentbit (up to 2 final lines without a newline may be missing, SPEC A1):
+  allowed missing: ('2006-02-28T03:49:01Z', 'ERROR', 3, 'httpd', '[client <ip>] Directory index forbidden by rule: /var/www/html/', ())
+  allowed missing: ('2018-01-07T17:22:01Z', 'INFO', 6, 'sshd', 'pam_unix(sshd:session): session opened for user jmzhu by (uid=0)', (('host', 'LabSZ'), ('pid', '30291')))
+ok: 7067376 of 7067378 reference records, in order, 2 missing

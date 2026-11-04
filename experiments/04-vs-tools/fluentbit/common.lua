@@ -31,10 +31,9 @@ function M.finish(ts, level, component, msg, kv)
   return {ts=ts, level=level, sev=SEV[level], component=component, msg=red, kv=kv}
 end
 
+-- tail has already removed one trailing CR, which is all the task removes.
 function M.line(record)
-  local s = record["log"]
-  if s and s:byte(-1) == 13 then s = s:sub(1, -2) end
-  return s
+  return record["log"]
 end
 
 return M

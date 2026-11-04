@@ -7,17 +7,20 @@ there, how it was tested, and what comes next. Detailed records: [experiments/](
 **Goose logxform** is this project's name for the program in `experiments/02-logxform/goose/`. It is a benchmark
 today, not a shipped product. The project is not affiliated with Goose's authors.
 
+**Revised after an independent review** ([Symidx_Audit_04-11-2026.md](../Symidx_Audit_04-11-2026.md)). It found a real bug in a local compiler patch, and that several conclusions here went further than the evidence. Both are corrected below. The plan has changed: compiler work is paused, and one
+bounded product pilot comes next ([spec](../experiments/07-pilot/SPEC.md)).
+
 ## Summary
 
 - **Against Fluent Bit and Vector, on one core: about 20× and 42× the throughput, and 19× and 43× less CPU per
-  gigabyte, with less memory** (1.10× and 2.67×). This met the decision rule set before the comparison, so the log product goes ahead.
-- **Most of that win comes from being a fixed-purpose program, not from Goose.** Tuned Rust wins by about as much.
+  gigabyte, with less memory** (1.10× and 2.67×). This met the decision rule set before the comparison. That justifies testing a real workflow. It doesn't show that anyone wants this tool, or that Goose is the right language for it. The rule also judged one core, chosen when Goose's multi-core weakness was already known.
+- **That win likely comes mostly from being a fixed-purpose program, not from Goose.** Tuned Rust wins by about as much, though the comparison doesn't isolate each component's share.
 - **Against tuned Rust, on one core: parity to a small lead.** Goose logxform with the fixes below reaches 1.10× tuned Rust, and
   1.03× once Rust is given the same scan trick. A second run through a different harness put those two level.
-- **On six cores it trails tuned Rust: 0.62× the throughput and 1.4× the memory** on a quiet machine. It stops improving at 4 threads, because the main thread saturates. This is the largest measured gap, and the
+- **On six cores it trails tuned Rust: 0.62× the throughput and 1.4× the memory** on a quiet machine. It stops improving at 4 threads, and the cause isn't established yet. This is the largest measured gap, and the
   next work item.
-- **The gains came cheaply.** One library loop gave about 11%. A small compiler change, `from_file`, took the symbol index's
-  large-corpus memory from 2.7× rust-expert's to 1.16×.
+- **The gains came cheaply, with one serious stumble.** One library loop gave about 11%. A small compiler change, `from_file`, took the symbol index's
+  large-corpus memory from 2.7× rust-expert's to 1.16×. But part of that change (F3) silently miscompiled valid programs, which the review found and our tests had missed. It's now fixed with a differential regression test, and its measured memory didn't change.
 - **logxform is not yet a product.** It reads finished files and writes to stdout. Nothing here measures the cost of following files,
   retries, sinks or backpressure.
 
@@ -146,10 +149,9 @@ Single numbers from a busy desktop have repeatedly moved by several percent. A f
 **Where the speed came from.** Replacing `json::plain`'s early-exit byte loop with a compare-free one that the C compiler vectorizes gave Goose about 11–13%, and Rust about 6–7% with the identical loop.
 Why Goose gains more isn't known. Removing a loop's early exit was not the fix the profile suggested.
 
-**The six-core gap** ([experiment 6](../experiments/06-parallelism/PLAN.md)). Goose's threads share nothing, so each batch crosses a queue by copy, in both directions; tuned Rust moves and reuses buffers. Stage timers show the
-single main thread is close to fully busy from 4 threads on, reading, scanning and copying, and at 6 threads workers wait about a third of their time. A message's cost is mostly not page faults, as first suspected: Goose's extra system time is about 0.5 s
-against about 2.9 s of extra user time. Goose's total CPU grows 80% from 1 to 6 threads, Rust's 13%. Workers' processing time also grows from about 5.9 to 9–11 s though it does no queue copying; competition for cache and memory from about 10 GB of copies is the likely reason, not confirmed.
-The memory cost is optional in practice: Goose logxform at `-t 1` already outruns both tools at six cores.
+**The six-core gap** ([experiment 6](../experiments/06-parallelism/PLAN.md)). Goose's threads share nothing, so each batch crosses a queue by copy, in both directions; tuned Rust moves and reuses buffers. What's measured: scaling stops at 4 threads, total CPU grows 80% from 1 to 6 threads against Rust's 13%, and the main thread's stages are expensive.
+What's *not* established is the cause. Those stage timers measure elapsed time, which includes blocking and descheduling, not CPU. In the saved run at 6 threads, main's stages other than receiving are 79% of its time, just under the 80% rule set in advance, and workers' time in `qget` is 26%, which includes copying as well as waiting. So a saturated main thread and copy traffic are credible explanations, but clock speeds, the scheduler (six workers plus main on six cores) and cache or memory contention aren't ruled out. A test with independent processes would separate them.
+This doesn't block the pilot: Goose logxform at `-t 1` already outruns both tools at six cores.
 
 **Huge pages depend on the task.** On layout A they add up to 33% memory on small indexes for no speed. On `fixed` they cost nothing on small indexes and make large loads about 43% faster. On log processing, they gave
 no single-thread gain and about 7% more memory. A process-wide run-time switch handles this, but it's a local experiment, not a recommendation.
@@ -167,7 +169,10 @@ reproduced from this repository alone. Benchmark code that uses them is in `expe
 | `os.read_file_range` | Reads part of a file straight into an array | stdlib, runtime | Needed by `from_file` users | Keep |
 | F1, `find_any` | Single-byte searches go to `memchr` from the program's own code | runtime | No measurable gain | Drop |
 | F2, `json::plain` | Compare-free loop that vectorizes | stdlib | About 11–13% in Goose logxform | Keep |
-| F3, in-place assignment | `a, n, ok = from_file(...)` onto an existing array no longer copies | compiler | L memory 78 → 50 MiB | Keep |
+| F3, in-place assignment | `a, n, ok = from_file(...)` onto an existing array no longer copies | compiler | L memory 78 → 50 MiB. **Had a miscompilation, now fixed** | Local only, unproven beyond its tests |
+
+**The F3 bug.** A `from_file` nested in another's arguments took its parent's pending reset, so the program got wrong data, with the load reporting success: `XNE` instead of `NEW`, in release and debug. An independent review found it. Unpatched Goose was never affected, and logxform doesn't use F3. The reset now belongs to one specific call and is taken before its arguments are generated, and F3 only applies to plain variables.
+`experiments/05-goose-fixes/check_f3.sh` builds the same tests with and without F3 at `-O0`, `-O1`, `-O2` and `--debug`, and requires identical output; it fails on the old code in two cases, one of which the review hadn't reported. That's evidence, not a proof of soundness. Compiler work is now paused.
 
 Program and benchmark changes, none of them language changes:
 - Layouts `fixed` and `chunked` for the index (`experiments/03-goose-patches/layout/`).
@@ -203,16 +208,17 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 
 **Correctness.**
 - Every Goose build and the Rust fairness build match the SHA-256 of a Python reference's output, on the S corpus and an edge-case corpus, at 1 and 4 threads. M is also checked, for each Goose fix at one thread. Tuned Rust itself was checked in experiment 2.
-- The tools can't produce byte-identical JSON (their key order differs), so `check.py` compares parsed records. Vector matches on S, including order. Fluent Bit matches except for 2 of 989,056 records: its `tail` drops a final line with no
-  newline. M wasn't re-checked for the tools.
+- The tools can't produce byte-identical JSON (their key order differs), so `check.py` compares parsed records: exact keys and types, in order, failing on any difference, with 25 tests of its own. Vector matches on the edge corpus, S and the full M corpus (7,067,378 records). Fluent Bit matches in order except for final lines with no newline, which its `tail` drops: 2 records on S and M, 1 on the edge corpus.
+- That stricter check found a bug in our Fluent Bit config on the edge corpus: it stripped a second trailing CR. It's fixed. Throughput wasn't re-measured for this, which removes one check per line.
 - `json::plain`'s rewrite: every byte value, in every position, in strings up to length 80 (829,521 strings), in release and `--debug` builds.
-- `from_file`: 29 tests, covering rejection paths and aliasing with its own target, in release and `--debug`. The index variants match their reference on S, M and L.
+- `from_file`: 29 tests, plus 14 differential checks with F3, at every optimization level. The index variants match their reference on S, M and L.
 - Corrupted images: 428 per variant (truncations and seeded byte flips). No crash, and all modes agree.
-- Goose's own test suite, patched against unpatched: the same totals, including 31 failures that also occur on the unmodified compiler and look environmental. It wasn't re-run on the run-time huge-page branch.
+- Goose's own test suite, patched against unpatched, compared by failing test name: identical, with 4,647 passing. One test fails on both, because it clears `GOOSE_STDLIB` and an out-of-tree compiler can't find the standard library (upstream's #209). An earlier count of 31 failures came from running the suite without that variable set. Native-toolchain tests are skipped, because `cmake` wasn't on the path. It wasn't re-run on the run-time huge-page branch.
 
 **Measurement.**
-- `measure.py` runs each program once per round in a fresh random order. Wall time comes from a direct run, and peak RSS and CPU from a second run under GNU time.
-- Results are medians of paired rounds, with neutral rebuilds where differences are small, because a rebuild alone can shift speed.
+- `measure.py` runs each program once per round in a fresh random order. Wall time comes from a direct run, and peak RSS and CPU from a second run under GNU time, so their quotient isn't one run's utilization. Since this review it also records order, timestamps, load and binary hashes; the runs in this report predate that.
+- Results are medians of paired rounds, with neutral rebuilds where differences are small. Three to five rounds can't support general claims: they show the spread, and a rebuild isn't an independent machine. A round containing multi-minute tools also pairs short programs only weakly in time.
+- Scripts now stop on any failure. Before this review, some only printed `BAD` and continued; nothing suggests a recorded run was affected.
 - Targets and kill rules were written before each measurement. The experiment 4 and 5 specs were written first but not committed first, so that order rests on the session's record. Changes after results are recorded as amendments.
 - For fairness, each trick found for Goose was applied to the Rust comparator, and the tools got a tuning pass.
 
@@ -221,6 +227,10 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 - `from_file` assigned to an existing variable still copied (found from an impossible RSS number), which led to F3.
 - "`json::format_string` scans each string twice" was wrong, as an outside audit said. Both sides scan once and then copy. Corrected where it appeared.
 - The profile suggested about 2.6% for F1 and F2 together. F1 gave nothing, and F2 about 11%.
+- F3's miscompilation, above, which our own tests shared a blind spot with.
+- "The main thread is the bottleneck" and "workers wait a third of the time" were stronger than elapsed-time data allows, and the saved run gives 79% and 26%.
+- "The log product goes ahead" treated a benchmark win as a product decision.
+- `check.py` accepted any empty `kv`, ignored extra fields and passed reordered output. The Fluent Bit CR bug went unnoticed until that was fixed.
 
 ## What this doesn't show
 
@@ -229,7 +239,8 @@ the best of each against each other was 0.96. Native code generation helps Rust 
 - **Other hardware or conditions.** One machine, warm cache, a busy desktop, 3–5 rounds. The tool ratios are large enough to survive that, but small ratios among Goose and Rust aren't general.
 - **Protobuf, Wuffs or `cbindgen`.** The other competitors in the product plan have no measurements yet.
 - **Development cost.** All code was written by one AI agent, so it says nothing about human effort. The agent knows Goose best, and a specialist might configure the tools better.
-- **Independent review.** The report and code have had no outside check since these changes. A brief for one is in [AUDIT.md](../AUDIT.md), which also lists findings from the previous review that are still open.
+- **That Goose is the right choice.** Nothing here shows a Goose tool is better than the same tool in Rust. Preferring Goose is a legitimate choice, but it's a bet that the pilot is meant to test, not a benchmark result.
+- **That this review's fixes are complete.** [AUDIT.md](../AUDIT.md) lists what the reviews found and what's still open, including steady-state memory, per-format results and the `async class` erratum.
 
 ## Reproducing
 
@@ -245,18 +256,23 @@ Vector and Fluent Bit go in `toolchain/vs/` as `experiments/04-vs-tools/SPEC.md`
 
 ## Plan
 
-The goal is products built on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. The first candidate is a log parser and filter, as a standalone tool and then
-a Fluent Bit plugin.
+Revised after the independent review. **The long-term goal stands:** products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. But those are different markets, and the near-term plan pursues one bounded trial, not all of them.
 
-| Step | Work | Estimated effort | Target, or stop if |
+| Step | Work | Limit | Target, or stop if |
 |---|---|---|---|
-| 1. Done | Run the real tools on the same corpus | — | Clear win on one core: met |
-| 2. Done | Cheap fixes | — | At least 1.0× tuned Rust, one core: met |
-| **3. Waiting** | Embedding: calls from any host thread, errors returned instead of aborts. [Asked on goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) | 2–4 weeks, least certain | 4 host threads give byte-identical output at ≥ 0.9× of `-t 4`, and a failed check leaves the host running. Stop if every call needs host-side locking |
-| **4. In progress** | Six-core gap. Measured: the main thread saturates. Proposed, not built: workers read their own input ([details](../experiments/06-parallelism/PLAN.md)) | 1–3 weeks | ≥ 0.9× tuned Rust at 6 threads, RSS ≤ 1.1×. Stop below 0.75× after a prototype |
-| 5. | Fluent Bit plugin pilot on real data, plus one realistic change request | 1–2 weeks | Stop if there's no benefit a user would notice |
+| 1. Done | Fix F3, correct these documents, make checks fail on any mismatch | — | — |
+| **2. Next** | A native Fluent Bit parser configuration, since 20× only covers a Lua filter | About a day | Reported whichever way it goes |
+| **3.** | **[Pilot](../experiments/07-pilot/SPEC.md):** sanitize rotated logs for an analytics store, in Goose and in Rust, against Fluent Bit, Vector and Python, including one change request set in advance | 2 weeks of work | Is the tool worthwhile: ≥ 1.3× end-to-end CPU per GB against the best alternative. Why Goose: no worse than 0.9× Rust, no compiler change needed, and a measured advantage over Rust. Otherwise the recommendation is Rust |
+
+**Paused, until a real need appears:**
+- **The six-core work.** The workers-read-input proposal stays on paper. If it comes back, a test with independent processes comes first.
+- **Embedding.** The question on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) stays open. A subprocess may meet a real user's need more cheaply.
+- **The verified view, ownership transfer, and any further compiler work.** The patches stay local.
+
+**A kill rule has to stop work, not start the next project.** That was a flaw in the earlier plan, where missing a target led to a harder language feature. Each step above has an effort cap, and the project owner decides.
+
+**The largest gap is still a real user.** The pilot's requirements were written by the agent implementing it, and its result can show feasibility, not demand.
 
 Open decisions for the project owner:
-- Whether to publish the compiler patches, or offer them upstream (F2 and F3 first).
-- Whether to build on a private compiler if upstream declines embedding. That would mean maintaining a compiler indefinitely.
+- Whether to publish the compiler patches, or offer F2 upstream, once it has held-out tests.
 - Whether "Goose logxform" stays as a public product name, which should be checked with Goose's authors first.

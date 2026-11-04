@@ -1,0 +1,43 @@
+{
+ "started": "2026-11-04T09:14:53+0100",
+ "rounds": 30,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "base": {
+   "argv": [
+    "/home/artem/symidx/toolchain/p3/symidx-base",
+    "load",
+    "/home/artem/symidx/toolchain/p3/base-L.img"
+   ],
+   "env": {},
+   "sha256": "e23759a401e635054f37dace52bc72e35d6625ccadfa8b2bd20d5e7c496279bf"
+  },
+  "p2": {
+   "argv": [
+    "/home/artem/symidx/toolchain/p3/symidx-p2",
+    "load",
+    "/home/artem/symidx/toolchain/p3/base-L.img"
+   ],
+   "env": {},
+   "sha256": "7b350f82e7bf094d74dcdaed59f419db8241b0f4bab035b70e3fadafdea3cf3c"
+  },
+  "f3": {
+   "argv": [
+    "/home/artem/symidx/toolchain/p3/symidx-f3fixed",
+    "load",
+    "/home/artem/symidx/toolchain/p3/base-L.img"
+   ],
+   "env": {},
+   "sha256": "a49403d7453f96d50cebaaed88dcd5ffe767079be12b6e7aabf75cf79a8a7563"
+  },
+  "rx": {
+   "argv": [
+    "/home/artem/symidx/rust-expert/target/release/symidx",
+    "load",
+    "/home/artem/symidx/toolchain/p3/rx-L.img"
+   ],
+   "env": {},
+   "sha256": "b7755c8918798bd4965fa1a35ba00b49163305736e873faeeb92a8d02e05c7cf"
+  }
+ }
+}

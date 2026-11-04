@@ -113,3 +113,13 @@ unmodified compiler.
 - **`-t 6`, three rebuilds, 3 rounds, load up to 9.7:** F1+F2 490.8 MB/s, base 468.6, rust-arena 859.1, rust-arena-fair 828.4. F1+F2 ÷ rust-arena 0.57.
 - **All six programs, one process per file, 3 rounds:** see the report. In this harness F1+F2 ÷ rust-arena-fair is 0.99, with rounds from 0.82 to 1.04. The all-cores stage was disturbed.
 
+## After the independent review (added 2026-11-04)
+
+**F3 had a miscompilation** ([review](../../Symidx_Audit_04-11-2026.md), finding 1). A `from_file` nested in another's arguments took its parent's pending reset, giving wrong data reported as success. It's fixed, and it applied only to plain variables after I restored a check I had dropped while debugging. `check_f3.sh` compares each program built with and without F3 at `-O0`, `-O1`, `-O2` and `--debug`, and `test_f3_differential.goose` fails in two cases on the old code. So the F3 row above came from an unsound patch.
+
+**Re-measured on the fixed compiler** (`data/f3-fixed/`, load average about 10, so its timings are noisy): L serving RSS is 50,954 KiB, unchanged. Load on L is 87.7 ms there, against 79.4 ms in the earlier, quieter run. Output matches on S, M and L, and 428 corrupted images give no crash or disagreement.
+
+**Goose's test suite, compared by failing test name** (`compare_tests.py`): base and fixed compiler are identical, with 4,647 passing and 1 failing. That one clears `GOOSE_STDLIB`, and an out-of-tree compiler can't find the standard library (upstream's #209). The 31 failures reported above came from running without that variable set, so the earlier "environmental" reading turned out right, but it had been presumed. Native-toolchain tests are skipped (`cmake` isn't on the path), and 27 JIT tests are skipped by the suite itself.
+
+**Compiler work is now paused.**
+

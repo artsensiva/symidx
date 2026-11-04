@@ -2,7 +2,7 @@
 
 *Units: in this document's tables, "MB" of RSS is KiB ÷ 1000, a slip. Divide by 1.024 for this repo's MB (1024² bytes), as the [report](../../docs/GOOSE_LOGXFORM_REPORT.md) does. Ratios aren't affected.*
 
-*Later: experiment 5's F3 removes the copy this plan describes for layout A (L memory 51 MB); see [docs/GOOSE_LOGXFORM_REPORT.md](../../docs/GOOSE_LOGXFORM_REPORT.md).*
+*Later: experiment 5's F3 removes the copy this plan describes for layout A (L memory 50 MiB), after a bug fix; see [docs/GOOSE_LOGXFORM_REPORT.md](../../docs/GOOSE_LOGXFORM_REPORT.md).*
 
 Pre-registered 2026-11-04, before any measurement. Goose v2026.3 built from source (tag `v2026.3`,
 commit `8511ae3`), patched on a local branch in `toolchain/goose-src` (gitignored). Patches stay local:

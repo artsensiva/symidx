@@ -10,6 +10,8 @@ record, not on git history.
 
 ## Result: the decision rule is met
 
+*Qualified after an independent review:* this rule justifies testing a real workflow. It isn't evidence that anyone wants this tool, or that Goose is the right language for it. It also covers a Lua filter only, not a native Fluent Bit parser, and was chosen when Goose's multi-core weakness was known.
+
 On one core, logxform has a clear win over both tools (rule: at least 1.5× throughput or 1/1.5 of the RSS, with the
 other metric no more than 1.1× worse).
 

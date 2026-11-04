@@ -29,3 +29,4 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-04 | Experiment 5: F1, F2, F3, fairness check | goose patches | ≈04:20 | 05:25 | ≈65 | about 35 min is unattended runs |
 | 2026-11-04 | Consolidated run, report, docs | docs | 05:28 | 07:34 | ≈126 | about 120 min is the unattended run |
 | 2026-11-04 | Experiment 6 measurements, documentation for a second review | parallelism, docs | ≈07:35 | 08:04 | — | includes unattended runs |
+| 2026-11-04 | Independent review: F3 fix, corrections, fail-closed checks, pilot spec | goose patches, docs, harness | ≈08:50 | 09:35 | — | times approximate; includes unattended runs |

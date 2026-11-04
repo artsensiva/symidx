@@ -16,14 +16,15 @@ development cost and safety (a free verified loader, no lifetimes, no `unsafe`),
 
 ## Status, 2026-11-04
 
-Results: [GOOSE_LOGXFORM_REPORT.md](GOOSE_LOGXFORM_REPORT.md). The product goal changed the order: embedding now comes before the view, because every planned product needs it, and the
-six-core gap comes next since embedding is waiting on upstream. Targets below are unchanged.
+**Paused.** After an independent review, the project owner paused compiler work until a [bounded product pilot](../experiments/07-pilot/SPEC.md) shows a need. Everything below stays as a record. If this resumes, a kill rule ends that line of work; it doesn't start the next one.
+
+Results: [GOOSE_LOGXFORM_REPORT.md](GOOSE_LOGXFORM_REPORT.md).
 
 | Gap | State | Against its target |
 |---|---|---|
 | 1. View | `from_file` and layouts, locally | RSS 1.16× on L and 1.36× on M with layout A, 1.05× and 1.24× with `fixed`; load 2.5–12×. Not met (≤ 1.2×, ≤ 2×) |
 | 2. Embedding | Asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) | Not started |
-| 3. Parallelism | 0.62× at `-t 6`; the main thread saturates ([experiment 6](../experiments/06-parallelism/PLAN.md)); a fix is proposed | Not met (≥ 0.9×); in progress |
+| 3. Parallelism | 0.62× at `-t 6`; the cause isn't established ([experiment 6](../experiments/06-parallelism/PLAN.md)); a fix is proposed, not built | Not met (≥ 0.9×); on hold |
 | 4. Codegen | F2 locally | **Met:** 1.10× and 1.12× (≥ 1.0×). 1.03× with Rust given the same scan |
 
 ## The four gaps

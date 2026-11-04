@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Experiment 5 (PLAN.md): correctness, Goose's test suite, then the measurements. usage: run.sh OUT_DIR
-set -uo pipefail
+set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"; OUT=$1; mkdir -p "$OUT/bin"; B=$OUT/bin
 TC=$ROOT/toolchain; REL=$TC/goose-v2026.3-linux-x64/stdlib; X=$ROOT/experiments/02-logxform; C=$X/corpus/src
 # Patched json only, so that F2 can be built with the base compiler and F1 without F2.
@@ -26,15 +26,19 @@ echo "== correctness"
 want() { awk -v s="$1" '$1==s{print $2}' "$X/ref-checksums.txt"; }
 EDGE=$(sha256sum < "$X/test/edge.expected" | cut -d' ' -f1)
 S="apache $C/Apache.log ssh $C/SSH.log hdfs $C/HDFS_head500k.log"; M="apache $C/Apache.log ssh $C/SSH.log hdfs $C/HDFS.log"
+bad=0
 for v in base f1 f2 both; do for i in 0 1 2; do for t in 1 4; do
-  a=$("$B/$v-$i" -t $t $S 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$(want S)" ] || echo "BAD S $v-$i -t $t"
-  a=$("$B/$v-$i" -t $t hdfs "$X/test/edge.hdfs" ssh "$X/test/edge.ssh" apache "$X/test/edge.apache" 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$EDGE" ] || echo "BAD edge $v-$i -t $t"
+  a=$("$B/$v-$i" -t $t $S 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$(want S)" ] || { echo "BAD S $v-$i -t $t"; bad=1; }
+  a=$("$B/$v-$i" -t $t hdfs "$X/test/edge.hdfs" ssh "$X/test/edge.ssh" apache "$X/test/edge.apache" 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$EDGE" ] || { echo "BAD edge $v-$i -t $t"; bad=1; }
 done; done; done
-for v in f1 f2 both; do a=$("$B/$v-0" -t 1 $M 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$(want M)" ] && echo "ok M $v" || echo "BAD M $v"; done
+for v in f1 f2 both; do a=$("$B/$v-0" -t 1 $M 2>/dev/null | sha256sum | cut -d' ' -f1); [ "$a" = "$(want M)" ] && echo "ok M $v" || { echo "BAD M $v"; bad=1; }; done
+[ "$bad" = 0 ] || { echo "correctness failed"; exit 1; }
 echo "correctness done"
+"$ROOT/experiments/05-goose-fixes/check_f3.sh" "$OUT/f3"
 echo "== goose tests"
-(cd "$TC/goose-src" && timeout 1500 python3 test/run_tests.py --exe ../goose-build-s2/goose --cc clang -j 5 > "$OUT/tests-s2.log" 2>&1; echo "exit $?")
-diff <(grep "^== " "$TC/tests-base.log") <(grep "^== " "$OUT/tests-s2.log") && echo "same section totals as base"
+# Both suites are expected to report some failures, so their exit codes aren't the test; the failing tests' names must match.
+(cd "$TC/goose-src" && GOOSE_STDLIB=$TC/goose-src/stdlib timeout 1500 python3 test/run_tests.py --exe ../goose-build-s2/goose --cc clang -j 5 > "$OUT/tests-s2.log" 2>&1) || true
+python3 -I "$ROOT/experiments/05-goose-fixes/compare_tests.py" "$TC/tests-base-v2.log" "$OUT/tests-s2.log"
 echo "== logxform matrix"
 cmds=(); for v in base f1 f2 both rust; do for i in 0 1 2; do cmds+=("$v-$i=$B/$v-$i -t 1 $M"); done; done
 taskset -c 3 python3 -I experiments/03-goose-patches/measure.py 5 "$OUT/log-t1.csv" "${cmds[@]}" 2>/dev/null

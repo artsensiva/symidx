@@ -1,0 +1,34 @@
+Goose test/run_tests.py, base compiler against step2-fixes with the F3 fix, GOOSE_STDLIB set, by failing test name:
+failing tests: base 1, patched 1
+same failing tests and section totals
+
+Section totals, patched:
+== lexer, shader compiler and native module APIs: 5 ok
+== parse, roundtrip and typecheck: 1181 ok
+== optimizer, stack report and C shapes: 9 ok
+== bounds-check annotations: 50 ok
+== generated C, built and run at -O0 and -O2: 558 ok
+== dump-runtime programs: 7 ok
+== GS_DEBUG programs: 123 ok
+== compiler roots, runtime lifecycle and clang: 11 ok
+== extern types: 1 ok
+== resource paths: 1 ok
+== packages from git: 1 ok
+== driver verbs: 27 ok, 1 FAIL
+== goose_in_goose bootstrap: 21 ok
+== JIT (TinyCC) runs: 653 ok
+== parse errors (errors/): 59 ok
+== typecheck errors (errors_tc/ and native modules' rejection tests): 1871 ok
+== recovery (errors_tc/recovery/): 11 ok
+== long call chains and guard runs: 6 ok
+== language reference examples (docs/reference.md): 1 ok
+== samples: 51 ok
+
+Skips:
+skip running 32 audio, gfx, physics or ui test(s) (no layer for them, or no GPU device): audio_errors.goose, a
+skip native toolchain (no cmake)
+skip native rebuild (no cmake)
+skip native builder (no cmake)
+skip 27 JIT test(s) the backend cannot run yet: append_limited_queue.goose, codegen_threads.goose, const_types
+skip JIT for sample(s) the backend cannot run yet: 23_mandelbrot_threads.goose
+skip audio, gfx, physics or ui sample(s) (no layer for them, or no GPU device): 27_gfx_cube.goose, 28_physics_

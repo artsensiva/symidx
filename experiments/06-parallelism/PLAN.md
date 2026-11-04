@@ -1,5 +1,7 @@
 # Experiment 6: why Goose logxform trails tuned Rust at six threads
 
+**Status: on hold.** An independent review ([Symidx_Audit_04-11-2026.md](../../Symidx_Audit_04-11-2026.md)) found the causal claims below stronger than the instrumentation allows, so they're corrected in place. Since Goose logxform at `-t 1` already outruns Fluent Bit and Vector at six cores, this waits until a real user needs multi-core.
+
 Step 4 of the product plan. Written 2026-11-04 before these measurements. This stage only measures: no design is chosen until the numbers are in.
 Current state: at `-t 6` on M, Goose logxform is about 0.57× tuned Rust's throughput with 1.3× the memory
 ([report](../../docs/GOOSE_LOGXFORM_REPORT.md)). The improvement plan's gap 3 target is ≥ 0.9× and RSS ≤ 1.1×, with a stop below 0.75× after a prototype.
@@ -67,19 +69,22 @@ A warm 9 MB `memcpy` here takes about 0.83 ms (measured from Python, so approxim
 
 **Answers.**
 1. **Scaling.** Goose logxform stops improving at 4 threads: 665 to 673 MB/s from 4 to 6, while workers' waiting grows fivefold. Tuned Rust keeps improving, 903 to 1,082 MB/s. (A single run above suggested Rust was flat too. The 3-round run shows that was noise.)
-2. **The main thread is the bottleneck, by the rule above.** At 6 threads, reading, sending, and the out-of-order buffer account for about 80% of its time, and receiving is the rest. Since a receive at that point rarely waits, it's mostly copying, so main is close to fully busy from 4 threads on.
-3. **Workers** idle because main can't feed them. Waiting is about a third of their time at 6 threads.
+2. **The main thread is a credible bottleneck, not an established one.** In the saved run at 6 threads, reading, sending and the out-of-order buffer are 79% of its elapsed time, just under the rule's 80%, and 76–77% at 4 threads. I wrote that receiving rarely waits, and so main is close to fully busy, but that was inferred. These timers measure elapsed time, which includes blocking and descheduling, so they don't show CPU use.
+3. **Workers.** Their time in `qget` is 26% at 6 threads in the saved run (9% at 4), not the "about a third" this said, and it includes copying as well as waiting. So it isn't pure idle time.
 4. **A message's cost.** Not mainly page faults, so that rule doesn't fire. A 9 MB send takes about 2.6× a warm `memcpy`, and page faults explain part of it. Goose takes 2.7× Rust's faults at 6 threads, but its extra system time is about 0.5 s, against about 2.9 s of extra user time.
 
-**A finding that wasn't predicted.** Goose's total CPU grows 80% from 1 to 6 threads, Rust's 13%. All three directions of copying are part of it: each byte crosses a queue with up to three copies, in both directions, about 10 GB in all for this 1.66 GB input. Also, the sum of workers' `process` time grows from about 5.9 s at one thread to 9–11 s at six, even though `process` itself doesn't copy across queues. Competition for cache and memory bandwidth from those copies is the likely reason, not confirmed.
+**A finding that wasn't predicted.** Goose's total CPU grows 80% from 1 to 6 threads, Rust's 13%. Copying is part of it: each byte crosses a queue with up to three copies, in both directions, about 10 GB in all for this 1.66 GB input. Also, the sum of workers' `process` intervals grows from about 5.9 s at one thread to 9–11 s at six, even though `process` itself doesn't copy across queues. Those intervals are elapsed time, so this could be cache or memory contention, lower all-core clocks, or scheduling with seven threads on six cores. None has been isolated.
+
+**What would separate these:** thread CPU time beside wall time, queue occupancy and blocked time, and a control with independent single-thread processes on balanced file shards. If those scale and queues don't, the coordination explanation strengthens. If they stall too, look at the machine before changing the design.
 
 ## Proposed next step (not built; awaiting outside review)
 
 **Workers read their own input.** The main thread splits each file into byte ranges at line boundaries and sends each worker an offset and a length, not the bytes. Each worker reads its range itself. That removes reading, scanning and sending from
-the main thread (about 70% of its time at 6 threads) and every input copy. No language or compiler change is needed.
+the main thread (about 70% of its elapsed time at 6 threads), and the input queue copies. Reading from the kernel and building records still happen, in the workers. No language or compiler change is needed.
 
-- **Estimate, not a measurement:** 1.6–2.0 s at 6 threads, about 0.75–0.95× tuned Rust as it stands. Main would be left with about 0.6 s of receiving and buffering, and workers' `process` sum (9–11 s now) should fall, if its growth comes from copy traffic, as suspected.
+- **Estimate, not a measurement:** 1.6–2.0 s at 6 threads, about 0.77–0.96× tuned Rust as it stands. Meeting 0.9× needs about 1.70 s or less, so most of that range misses the target. Main would be left with about 0.6 s of receiving and buffering, and workers' `process` sum (9–11 s now) should fall, if its growth comes from copy traffic, as suspected.
 - **Costs.** It works on files, not pipes or stdin, which would keep today's path. It leaves experiment 2's spec, where main reads and a batch is 65,536 lines, so it needs its own benchmark, with output still byte-identical.
 - **Fairness.** Rust gets the same design, and results are given against both Rust versions.
-- **Target (gap 3's):** ≥ 0.9× tuned Rust at `-t 6`, RSS ≤ 1.1×. **Stop:** below 0.75× after this prototype, which would point to the alternative below.
+- **Also needed:** bounded byte-size jobs with correct newline alignment and maximum-line handling, exact-once coverage, a policy for files replaced while being read, and an output budget in bytes, not jobs.
+- **Target (gap 3's):** ≥ 0.9× matched Rust at `-t 6`, RSS ≤ 1.1×. **Stop:** below 0.75× ends this route. It doesn't automatically start the alternative below.
 - **Alternative: transferring ownership of a message's storage** in the runtime, so no bytes are copied in either direction. It would also help output, which the proposal doesn't touch, but it changes the language's model, so it needs upstream's agreement.

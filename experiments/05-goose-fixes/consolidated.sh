@@ -2,7 +2,7 @@
 # The same-session run behind docs/GOOSE_LOGXFORM_REPORT.md. usage: consolidated.sh OUT_DIR BIN_DIR
 #   1. Goose logxform (fixes), rust-arena, rust-arena-fair: three neutral rebuilds, -t 1 (5 rounds) and -t 6 (3 rounds).
 #   2. All six programs, one process per file through one wrapper, one core then all cores, 3 rounds.
-set -uo pipefail
+set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"; OUT=$1; B=$2; mkdir -p "$OUT"
 E=$ROOT/experiments/04-vs-tools; C=$ROOT/experiments/02-logxform/corpus/src
 M="apache $C/Apache.log ssh $C/SSH.log hdfs $C/HDFS.log"; P="python3 -I experiments/03-goose-patches/measure.py"

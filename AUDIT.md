@@ -3,6 +3,8 @@
 For an outside reviewer of this repository. Written 2026-11-03 at v1.2.1, updated 2026-11-04 for a second review. Every headline number is
 traced to its source in [CLAIMS.md](CLAIMS.md).
 
+**Reviews so far, verbatim:** [first](Symidx_Audit_03-11-2026.md), [second](Symidx_Audit_03-11-2026_2.md), [third](Symidx_Audit_04-11-2026.md). The third's links to its own evidence files are dead, since those files weren't kept. Their status is in "Findings", below.
+
 **Start here for the second review:** [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md) has the results, changes and plan, and [experiments/06-parallelism/PLAN.md](experiments/06-parallelism/PLAN.md) has the newest work. The
 project's aim has changed since the first review. It's no longer only to test Goose against Rust. The owner wants to build products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. The owner prefers Goose,
 so be alert to bias in that direction, and don't soften findings on that account. Questions for this review are in "Questions for the second review", below.
@@ -112,7 +114,7 @@ An outside review of v1.2.1 raised these. They're listed so that you can check t
 | hyperfine doesn't interleave runs, so implementation and time are confounded | Fixed from experiment 3 on (`measure.py`). Experiment 2's own numbers still have it |
 | "Code-layout effect" isn't isolated: one binary varies 6.37–8.00 s | Partly: neutral rebuilds and within-binary spread are reported. Noise from the machine remains, and no run is on a quiet dedicated machine |
 | "Scans twice" was wrong for `json::format_string` | Fixed: corrected, and F2 is a different fix |
-| Zero-copy forecast was too confident, given the 33.5 ms validation pass | Confirmed: the view target was missed, and the pass remains on layout A |
+| Zero-copy forecast was too confident, given the 33.5 ms validation pass | The pass remains on layout A. *Corrected:* this said "the view target was missed", but no mmap view has been built, so that forecast is untested. Owned direct reads and layouts missed the same target |
 | **"Serving memory" is a startup peak (load plus one query), not what a server retains** | **Open.** No steady-state measurement exists |
 | **Implementations filter before keeping records, while experiment 2's SPEC requires building every record first** | **Open.** Confirmed in both Goose (`logxform.goose`, `process`) and rust-arena (`main.rs`, line 524). Both deviate alike, and about 41% of lines are dropped. Relative bias unknown |
 | **`bench/SPEC.md` rejects `async class`; `bench/ref.py` and the implementations accept it** | **Open.** Checksums agree, because they share the behaviour |
@@ -122,6 +124,21 @@ An outside review of v1.2.1 raised these. They're listed so that you can check t
 | Phase 1 changed its primary metric mid-experiment | Disclosed; nothing further |
 | The jump from "this test failed" to "these products are falsified" | Addressed: `docs/GOOSE_OPPORTUNITIES.md` has a note, and the report separates the two |
 | Build-order: product first, not language features first | Partly adopted: the tools were measured before compiler work, but no user or customer has been consulted |
+
+## Findings from the latest review (Symidx_Audit_04-11-2026.md): status
+
+| Finding | Status |
+|---|---|
+| F3 silently miscompiles valid programs | **Fixed and regression-tested.** Reproduced first. `experiments/05-goose-fixes/check_f3.sh`. Local only, and evidence rather than a proof |
+| "The product goes ahead" crosses an evidentiary gap | **Corrected** in the report and experiment 4. The pilot's spec separates "is this tool worthwhile?" from "why Goose?" |
+| Experiment 6's causal diagnosis is too strong | **Corrected** in place. **Open:** thread CPU time, queue occupancy and a process-sharding control aren't measured; on hold |
+| Correctness gates don't enforce their contract | **Fixed:** scripts stop on failure, `check.py` is strict and tested, the test suite is compared by name, and tools are checked on the edge corpus, S and M. The 31 failures are explained |
+| Small speed claims exceed the design | **Partly fixed.** `measure.py` records order, timestamps, load and hashes, and prints ranges rather than bootstrap intervals. Published runs predate that. The pilot requires at least 5 rounds over 2 sessions |
+| Original defects (steady-state memory, filtering before records, corpus concentration, `async class`, macOS, cold cache) | **Mostly open.** Cold-cache claim corrected. The pilot covers per-format results, held-out data and adversarial cases, and states its filtering. `async class` isn't fixed |
+| Stop the broad program; run one bounded trial | **Adopted** by the project owner. [Pilot spec](experiments/07-pilot/SPEC.md), committed before any pilot code. Compiler work is paused. The long-term goal stands |
+| Native Fluent Bit parser untested | **Open:** next step, then part of the pilot |
+| F2 needs escape-heavy and long-string tests | **Open:** in the pilot's adversarial data |
+| Host contract, `read_file_range` short reads, Windows guard behaviour, huge-page validation | **Open,** and paused with the compiler work |
 
 ## Questions for the second review
 

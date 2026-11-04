@@ -19,8 +19,9 @@ against a ≥ 1.3× kill criterion: **not met; the Goose track ends.** Goose bea
 
 **Since then: experiments 3–5 and a product goal.** The aim is now products built on Goose, starting with a log processor. Full results, changes and
 methods: **[docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md)**. On one core, Goose logxform runs about 20× and 42× as fast as Fluent Bit and Vector on the same task,
-with 19× and 43× less CPU per GB and less memory, though it's a fixed-purpose program and not yet a product, and tuned Rust wins by about as much. Against tuned Rust it reaches 1.10× on one core
+with 19× and 43× less CPU per GB and less memory, though it's a fixed-purpose program and not yet a product, and tuned Rust wins by about as much, so this doesn't show Goose is the right language for it. Against tuned Rust it reaches 1.10× on one core
 (1.03× once Rust gets the same scan trick, so parity to a small lead) and 0.62× on six cores. These rely on local Goose patches, not yet published.
+An [independent review](Symidx_Audit_04-11-2026.md) found a miscompilation in one patch (now fixed) and overclaims (corrected). Compiler work is paused while [one bounded pilot](experiments/07-pilot/SPEC.md) tests a real workflow.
 
 ## What it is
 
@@ -202,17 +203,16 @@ variable-size records, transform them, emit, drop everything at once.
 Poor fits: serving large read-mostly images (until something like goose#221 exists), long-lived mutable
 shared state, libraries for multithreaded hosts, WebAssembly and microcontrollers, flat numeric kernels.
 
-## Next: improving Goose
+## Next: one bounded pilot
 
-The goal is products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. Results and the plan:
-[docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md); the gaps in detail: [docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md).
+The long-term goal is products on Goose that compete with `serde` + arenas and Protobuf arenas, Vector and Fluent Bit, and Wuffs and Rust with `cbindgen`. After an [independent review](Symidx_Audit_04-11-2026.md), the near-term plan is narrower. Results and plan:
+[docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
 
-- **Done: the real tools.** Goose logxform against Fluent Bit and Vector ([experiment 4](experiments/04-vs-tools/REPORT.md)): a clear win on one core.
-- **Done: cheap fixes** ([experiment 5](experiments/05-goose-fixes/PLAN.md)), and verified loading with new layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)). They stay on local branches.
-- **Waiting: embedding.** Asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555).
-- **In progress: the six-core gap** ([experiment 6](experiments/06-parallelism/PLAN.md)). Goose logxform stops improving at 4 threads, because its main thread saturates. A fix is proposed and not built, pending outside review.
+- **Done:** Goose logxform against the real tools ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
+- **Next:** a native Fluent Bit parser configuration, then the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
+- **Paused:** the six-core work ([experiment 6](experiments/06-parallelism/PLAN.md)), embedding (asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555)), and all compiler work ([docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md)).
 
-For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, limitations, questions) and
+For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, findings and their status, questions) and
 [CLAIMS.md](CLAIMS.md) (every headline claim with its evidence).
 
 ## Reproducing
@@ -258,7 +258,9 @@ experiments/02-logxform/  experiment 2: SPEC (pre-registered), REPORT, ref.py, g
 experiments/03-goose-patches/  huge pages, from_file, index layouts, Rust stream mode; measure.py
 experiments/04-vs-tools/  Goose logxform against Fluent Bit and Vector: SPEC, REPORT, configs, data/
 experiments/05-goose-fixes/  single-thread fixes, the fairness check, the consolidated run; data/
-experiments/06-parallelism/  why six threads stall: stage timers, queue benchmark, scaling; the proposed fix; data/
+experiments/06-parallelism/  why six threads stall: stage timers, queue benchmark, scaling; a proposal; on hold; data/
+experiments/07-pilot/  the pilot's spec, committed before any pilot code
+Symidx_Audit_*.md      independent reviews, verbatim
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
 CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
 ```
@@ -282,7 +284,7 @@ CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases
 - **Open item:** rust-expert's higher build RAM on the macOS CI VM, not investigated.
 - **Experiment 2 (logxform): complete**, released as v1.2: kill criterion not met
   ([experiments/02-logxform/REPORT.md](experiments/02-logxform/REPORT.md)). Open item: macOS RSS. That ended the search for a ≥ 1.3× win over tuned Rust, not work on Goose.
-- **Experiments 3–5: complete, not released.** See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md). Experiment 6 (the six-core gap) has measurements and a proposal, not a fix. Next: outside review, then the prototype, then embedding once upstream has answered.
+- **Experiments 3–5: complete, not released.** See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md). Experiment 6 (the six-core gap) has measurements and a proposal, on hold. Next: the [pilot](experiments/07-pilot/SPEC.md).
 - **Phase 2: draft, not started, pending decision.** [docs/PHASE2.md](docs/PHASE2.md) covers an instant-start
   code navigation index for AI coding agents, as an MCP server in Rust, built on rust-expert's design.
 

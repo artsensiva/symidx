@@ -2,7 +2,12 @@
 
 ## Unreleased (2026-11-04)
 
-Goose patches, a comparison with the real tools, and a new product goal. See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
+Goose patches, a comparison with the real tools, a new product goal, and an independent review. See [docs/GOOSE_LOGXFORM_REPORT.md](docs/GOOSE_LOGXFORM_REPORT.md).
+
+- **Fixed** a miscompilation in local patch F3, found by the [independent review](Symidx_Audit_04-11-2026.md), with a differential regression test.
+- **Corrected** overclaims the review found: "the product goes ahead", experiment 6's causal diagnosis and its 79% and 26% figures, the cold-cache claim, and the view's status.
+- **Made checks fail closed:** scripts stop on failure; `check.py` is strict and tested; Goose's suite is compared by failing test name; tools are checked on the edge corpus, S and M; `measure.py` records order, timestamps, load and hashes.
+- **Added** the three reviews, verbatim, and the [pilot's spec](experiments/07-pilot/SPEC.md), committed before any pilot code. Compiler work is paused.
 
 - **Added** the report, and experiments 3 (`from_file`, huge pages, index layouts), 4 (Goose logxform against Fluent Bit and Vector) and 5 (single-thread fixes,
   fairness check, consolidated run), with their data.
@@ -10,7 +15,7 @@ Goose patches, a comparison with the real tools, and a new product goal. See [do
 - **Compiler patches stay local** (`toolchain/goose-src`, gitignored): results needing them can't yet be reproduced from this repository.
 - **Fixed** `measure.py`'s peak RSS, which had a floor at the Python process's own 13 MB; it now also records CPU time.
 - **Corrected** the claim that `json::format_string` scans twice, in experiment 2's report, the improvement plan and the README.
-- **Added** experiment 6: why six threads stall (the main thread saturates, at 0.62× tuned Rust), with a proposed fix, not built.
+- **Added** experiment 6: six threads stall at 0.62× tuned Rust, with candidate causes and a proposed fix, on hold.
 - **Updated** `AUDIT.md` for a new outside review, including findings from the previous one that are still open.
 - **Upstream:** a comment on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555) about threads and failed checks in hosts.
 

@@ -124,7 +124,7 @@ share nothing, so every batch is copied into a typed queue and out of it, and ev
 rust-arena moves buffers through channels and recycles them.
 
 **Cold cache** isn't measured: the reference machine has no passwordless sudo, and CI runs logxform warm
-only. The verdict wouldn't change: the input is read once, in sequence, identically by all three.
+only. *Corrected after review:* this said the verdict wouldn't change, because the input is read once and in sequence by all three. That was an argument, not a measurement.
 
 ## Fairness audit
 
