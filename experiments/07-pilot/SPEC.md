@@ -108,3 +108,29 @@ If B fails, the recommendation is to build the tool in Rust. The project owner m
   - **Long runs and large inputs.** Peak memory for logXform of Goose and Rust over a long stream through stdin, and on one very long line, so that growth or unbounded buffering shows up.
   - **Feature table.** For all five programs: crash recovery, retries, disk buffering, backpressure, following rotated files. This workflow excludes these, and the tools are built for them, so the table is what stops a batch result reading as a general one.
   - **Not assessed, and stated as such:** security updates and CVE history, supply chain, and the size of each community.
+- **A6, 2026-11-04, the change request starts here, before any implementation of it: exact rules.** From inspecting `BGL.log` (4,747,963 lines, sha256 `666130b1…a5d2`, in `BGL.zip`, sha256 `d67fd82a…6da8`, full values in [fetch_bgl.sh](fetch_bgl.sh)).
+
+  **Format `bgl`:** `LABEL EPOCH DATE NODE DATETIME NODE2 TYPE COMPONENT LEVEL MSG`, single spaces. If a check fails, the line is malformed.
+  - `LABEL`: non-empty, no spaces. `-` means no alert.
+  - `EPOCH`: one or more digits. `DATE`: `YYYY.MM.DD`, digits. Neither is range-checked or compared with `DATETIME`.
+  - `NODE`: non-empty, no spaces.
+  - `DATETIME`: `YYYY-MM-DD-HH.MM.SS.ffffff`, digits, in the base spec's timestamp ranges. `ts` is `YYYY-MM-DDTHH:MM:SSZ`: the fraction is dropped, and the time is taken as UTC, like the other formats.
+  - `NODE2`: non-empty, no spaces. It's absent when `NODE` is `-` and the next token is `RAS` or `NULL`, which is then `TYPE`. The data has 306 such lines, all real events, so rejecting them wouldn't be reasonable.
+  - `TYPE`: `RAS` or `NULL`.
+  - `COMPONENT`: non-empty, no spaces.
+  - `LEVEL`, mapped for `level` and `sev`: `INFO` → `INFO`, `WARNING` → `WARN`, `ERROR` → `ERROR`, `SEVERE` → `ERROR`, `FATAL` → `FATAL`, `FAILURE` → `FATAL`. Anything else is malformed.
+  - `MSG`: all bytes after the space following `LEVEL`. A line ending right after `LEVEL` has an empty message; the data has about 34,000.
+  - `kv`, in order: `node` = `NODE`; `alert` = `LABEL`, only when `LABEL` isn't `-`; then the usual message pairs.
+
+  **Filter:** in `bgl` only, the component `APP` (exact, case-sensitive) has minimum level `ERROR`, compared after mapping, so `SEVERE` stays. Everything else follows the base rules, including the two existing per-component minimums. **In this data every `APP` record is `FATAL`, so the rule drops nothing on the real corpus.** It's tested only by the adversarial cases, and the report must say so.
+
+  **Hex redaction, every format:** in `msg`, straight after IP redaction and before message pairs are extracted: `0x` (lowercase `x`) followed by exactly 8 hex digits in either case, where the byte before (if any) and the byte after (if any) aren't ASCII letters or digits, becomes `<hex>`. So `0x00544eb8,` → `<hex>,`, `0x00544EB8` → `<hex>`, `iar=0x00544eb8` gives the pair `iar` = `<hex>`. Unchanged: `0x123456789`, `0x1234567`, `a0x12345678`, `0X12345678`, `0x1234567g`. Because IP redaction goes first, `1.2.3.0x12345678` → `<ip>x12345678`. `HDFS.log`, `SSH.log` and `Apache.log` contain no match, so their recorded checksums must not change.
+
+  **Choices that could have gone another way.** `SEVERE` → `ERROR` because the seven-level scale has nothing between `WARN` and `ERROR`, and calling `SEVERE` a warning would hide it. Garbled lines where `NODE2` contains spaces (10 in the data) stay malformed and go to rejects.
+
+  **Measuring it.**
+  - **Order:** Python reference first, since the oracle checks against it; then logXform of Goose; then Rust; then the tools. Goose going before Rust biases the comparison against Goose, since Rust's version benefits from what was learned. That's deliberate, because the comparison favouring Goose is the one that would need defending.
+  - **Lines changed:** `git diff --numstat` per program, added plus removed, comments and blanks included.
+  - **Working minutes:** wall clock from the first edit of a program until it passes all checks. Waiting on other work isn't counted.
+  - **Tests broken:** the 114 base checks, run unchanged after the change, plus S and M checksums.
+  - **Performance:** BGL itself, and the base corpus again, compared with sessions 1 and 2.

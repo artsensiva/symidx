@@ -64,7 +64,7 @@ def first_diff(a, b):
     return f"lengths differ: got {len(a)}, want {len(b)}; {'got' if len(a) > len(b) else 'want'} continues {(a if len(a) > len(b) else b)[n:n + 60]!r}"
 
 
-inputs = sorted(p for p in glob.glob(os.path.join(cases, "*")) if p.rsplit(".", 1)[1] in ("hdfs", "ssh", "apache"))
+inputs = sorted(p for p in glob.glob(os.path.join(cases, "*")) if p.rsplit(".", 1)[1] in ("hdfs", "ssh", "apache", "bgl"))
 for path in inputs:
     base, fmt = path.rsplit(".", 1)
     name = os.path.basename(base)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Adversarial test data for the pilot, each case with its expected results (SPEC A2).
 
-usage: gen_adversarial.py OUT_DIR
+usage: gen_adversarial.py OUT_DIR [--change]
 Writes, for each case: NAME.FORMAT (input), NAME.expected (stdout), NAME.rejects, NAME.summary. Deterministic.
 
 This is the oracle, so it must not share a parser with the programs under test. It parses nothing: every line is assembled from
@@ -246,10 +246,118 @@ def format_pairs():
     return c
 
 
+# The change request (SPEC A6). Generated only with --change, beside the base cases, so the base oracle stays as it was.
+B_DT = b"2005-06-03-15.42.50.363779"
+B_ISO = b"2005-06-03T15:42:50Z"
+BGL_LEVELS = ((b"INFO", b"INFO"), (b"WARNING", b"WARN"), (b"ERROR", b"ERROR"), (b"SEVERE", b"ERROR"), (b"FATAL", b"FATAL"), (b"FAILURE", b"FATAL"))
+
+
+def bgl(msg, comp=b"KERNEL", level=b"INFO", label=b"-", node=b"R02-M1", node2=b"R02-M1", typ=b"RAS", dt=B_DT, epoch=b"1117838570", date=b"2005.06.03"):
+    head = [label, epoch, date, node, dt]
+    if node2 is not None:
+        head.append(node2)
+    line = b" ".join(head + [typ, comp, level])
+    return line if msg is None else line + b" " + msg
+
+
+def bgl_rec(msg, comp=b"KERNEL", level=b"INFO", node=b"R02-M1", alert=None, kv=()):
+    base = [(b"node", node)] + ([(b"alert", alert)] if alert else [])
+    return record(B_ISO, level, comp, b"" if msg is None else msg, base + list(kv))
+
+
+def change_bgl():
+    c = Case("change_bgl", "bgl")
+    for raw, mapped in BGL_LEVELS:
+        c.kept_line(bgl(b"a message", level=raw), bgl_rec(b"a message", level=mapped))
+    # An empty message: the line ends at the level, or a space follows it.
+    c.kept_line(bgl(None, level=b"FATAL"), bgl_rec(None, level=b"FATAL"))
+    c.kept_line(bgl(b"", level=b"FATAL"), bgl_rec(b"", level=b"FATAL"))
+    c.kept_line(bgl(b"m", label=b"KERNDTLB"), bgl_rec(b"m", alert=b"KERNDTLB"))
+    c.kept_line(bgl(b"m", typ=b"NULL"), bgl_rec(b"m"))
+    # NODE2 absent only when NODE is -, and the next token is a type.
+    for t in (b"RAS", b"NULL"):
+        c.kept_line(bgl(b"Kill job 1", node=b"-", node2=None, typ=t, level=b"FATAL"), bgl_rec(b"Kill job 1", node=b"-", level=b"FATAL"))
+    c.kept_line(bgl(b"m", node=b"-", node2=b"X"), bgl_rec(b"m", node=b"-"))
+    c.bad_line(bgl(b"m", node2=None))
+    c.bad_line(bgl(b"m", node=b"-", node2=b"RAS"))
+    # The filter: APP only, exact, after mapping; and the base spec's per-component minimums still apply.
+    for raw, mapped, keep in ((b"INFO", b"INFO", False), (b"WARNING", b"WARN", False), (b"ERROR", b"ERROR", True), (b"SEVERE", b"ERROR", True), (b"FATAL", b"FATAL", True), (b"FAILURE", b"FATAL", True)):
+        if keep:
+            c.kept_line(bgl(b"m", comp=b"APP", level=raw), bgl_rec(b"m", comp=b"APP", level=mapped))
+        else:
+            c.dropped_line(bgl(b"m", comp=b"APP", level=raw))
+    for comp in (b"app", b"APPX", b"XAPP"):
+        c.kept_line(bgl(b"m", comp=comp), bgl_rec(b"m", comp=comp))
+    c.dropped_line(bgl(b"m", comp=b"dfs.FSDataset"))
+    c.kept_line(bgl(b"m", comp=b"dfs.FSDataset", level=b"WARNING"), bgl_rec(b"m", comp=b"dfs.FSDataset", level=b"WARN"))
+    # Message pairs, redaction, and pairs overriding the format's, keeping position.
+    c.kept_line(bgl(b"a=1 src=1.2.3.4 iar=0x00544eb8"), bgl_rec(b"a=1 src=<ip> iar=<hex>", kv=[(b"a", b"1"), (b"src", b"<ip>"), (b"iar", b"<hex>")]))
+    c.kept_line(bgl(b"node=mine z=1", label=b"AL"), record(B_ISO, b"INFO", b"KERNEL", b"node=mine z=1", [(b"node", b"mine"), (b"alert", b"AL"), (b"z", b"1")]))
+    c.kept_line(bgl(b"alert=mine"), bgl_rec(b"alert=mine", kv=[(b"alert", b"mine")]))
+    c.kept_line(bgl(b"two  spaces \"q\" \\"), bgl_rec(b"two  spaces \"q\" \\"))
+    # Fields that aren't checked, and bytes in fields that aren't output.
+    c.kept_line(bgl(b"m", epoch=b"0", date=b"1999.13.40"), bgl_rec(b"m"))
+    c.kept_line(bgl(b"m", node2=b"\x0f.\xc2\xb2\xff"), bgl_rec(b"m"))
+    c.kept_line(bgl(b"bad \xff byte k=\xfe"), bgl_rec(b"bad \xff byte k=\xfe", kv=[(b"k", b"\xfe")]))
+    c.kept_line(bgl(b"m", node=b"\xff\"n"), bgl_rec(b"m", node=b"\xff\"n"))
+    # Malformed.
+    for bad in (bgl(b"m", level=b"TRACE"), bgl(b"m", level=b"WARN"), bgl(b"m", level=b"info"), bgl(b"m", typ=b"X"), bgl(b"m", epoch=b"12a"), bgl(b"m", epoch=b""),
+                bgl(b"m", date=b"2005-06-03"), bgl(b"m", date=b"2005.6.03"), bgl(b"m", date=b"2005.06.0x"), bgl(b"m", dt=b"2005-13-03-15.42.50.363779"),
+                bgl(b"m", dt=b"2005-00-03-15.42.50.363779"), bgl(b"m", dt=b"2005-06-32-15.42.50.363779"), bgl(b"m", dt=b"2005-06-00-15.42.50.363779"),
+                bgl(b"m", dt=b"2005-06-03-24.42.50.363779"), bgl(b"m", dt=b"2005-06-03-15.60.50.363779"), bgl(b"m", dt=b"2005-06-03-15.42.60.363779"),
+                bgl(b"m", dt=b"2005-06-03-15.42.50.36377"), bgl(b"m", dt=b"2005-06-03-15.42.50.3637790"), bgl(b"m", dt=b"2005-06-03-15.42.50"),
+                bgl(b"m", dt=b"2005-06-03 15.42.50.363779"), bgl(b"m", dt=b"2005-06-03-15:42:50.363779"), bgl(b"m", dt=b"2005-06-03-15.42.50.36377x"),
+                bgl(b"m", label=b""), bgl(b"m", node=b""), bgl(b"m", node2=b""), bgl(b"m", comp=b""), b"", b"-", b"- 1117838570 2005.06.03 R02-M1",
+                bgl(None, level=b""), b"- 1117838570 2005.06.03 - 2005-12-01-06.37.41.417709 time for a single RAS KERNEL INFO 0 microseconds"):
+        c.bad_line(bad)
+    c.bad_line(bgl(b"m").replace(b" ", b"\t", 1))
+    c.kept_line(bgl(b"last"), bgl_rec(b"last"), end=b"")
+    return c
+
+
+def change_bgl_crlf():
+    c = Case("change_bgl_crlf", "bgl")
+    c.kept_line(bgl(b"m"), bgl_rec(b"m"), end=b"\r\n")
+    c.kept_line(bgl(None), bgl_rec(None), end=b"\r\n")
+    c.bad_line(bgl(b"m", typ=b"X"), end=b"\r\n")
+    c.dropped_line(bgl(b"m", comp=b"APP"), end=b"\r\n")
+    return c
+
+
+HEX_CASES = (
+    (b"0x00544eb8,", b"<hex>,", []), (b"0x00544EB8", b"<hex>", []), (b"iar=0x00544eb8", b"iar=<hex>", [(b"iar", b"<hex>")]),
+    (b"0x123456789", None, []), (b"0x1234567", None, []), (b"a0x12345678", None, []), (b"00x12345678", None, []), (b"0X12345678", None, []),
+    (b"0x1234567g", None, []), (b"0x12345678g", None, []), (b"0x0x12345678", None, []), (b"0x123456780x12345678", None, []),
+    (b"_0x12345678", b"_<hex>", []), (b"(0x12345678)", b"(<hex>)", []), (b"0x12345678 0xabcdef01", b"<hex> <hex>", []), (b"0x12345678-0xABCDEF01", b"<hex>-<hex>", []),
+    (b"at 0x12345678", b"at <hex>", []), (b"1.2.3.4 0x12345678", b"<ip> <hex>", []), (b"1.2.3.0x12345678", b"<ip>x12345678", []), (b"0x12.3.4.5", b"0x<ip>", []),
+    (b"\xff0x12345678\xff", b"\xff<hex>\xff", []), (b"x=0x12345678,y=2", b"x=<hex>,y=2", [(b"x", b"<hex>,y=2")]), (b"=0x12345678", b"=<hex>", []),
+)
+
+
+def change_hex():
+    h, s, a, b = Case("change_hex_hdfs", "hdfs"), Case("change_hex_ssh", "ssh"), Case("change_hex_apache", "apache"), Case("change_hex_bgl", "bgl")
+    for raw, red, kv in HEX_CASES:
+        red = raw if red is None else red
+        h.kept_line(hdfs(raw), hdfs_rec(red, kv=kv))
+        s.kept_line(ssh(raw), ssh_rec(red, kv=kv))
+        a.kept_line(apache(raw), apache_rec(red, kv=kv))
+        b.kept_line(bgl(raw), bgl_rec(red, kv=kv))
+    # Only msg is redacted, not other fields.
+    s.kept_line(ssh(b"m", host=b"0x12345678"), ssh_rec(b"m", host=b"0x12345678"))
+    h.kept_line(hdfs(b"m", comp=b"0x12345678"), hdfs_rec(b"m", comp=b"0x12345678"))
+    b.kept_line(bgl(b"m", node=b"0x12345678", label=b"0x12345678"), bgl_rec(b"m", node=b"0x12345678", alert=b"0x12345678"))
+    # In other formats APP is an ordinary component.
+    s.kept_line(ssh(b"m", prog=b"APP"), ssh_rec(b"m", prog=b"APP"))
+    h.kept_line(hdfs(b"m", comp=b"APP"), hdfs_rec(b"m", comp=b"APP"))
+    return [h, s, a, b]
+
+
 def main():
     d = sys.argv[1]
     os.makedirs(d, exist_ok=True)
     cases = [escape_heavy(), long_lines(), invalid_utf8(), empty(), only_newlines(), no_newline(), crlf(), levels(), hdfs_fields(), ssh_fields(), apache_fields(), redaction(), pairs(), format_pairs()] + filtered()
+    if "--change" in sys.argv[2:]:
+        cases += [change_bgl(), change_bgl_crlf()] + change_hex()
     for c in cases:
         c.write(d)
     print(f"{len(cases)} cases in {d}")
