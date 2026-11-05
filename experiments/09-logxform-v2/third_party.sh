@@ -3,6 +3,7 @@
 # such as a c7i.4xlarge. It installs what's missing, checks the pinned versions, and runs the frozen tests. It rents nothing:
 # someone has to start the machine and run this on it. usage: third_party.sh LABEL [ROUNDS, default 3]
 # LABEL names the hardware, for example c7i.4xlarge. Published results are compared when the label is a published tier.
+# Keep this script outside the clone, because it checks out the frozen commit there.
 set -euo pipefail
 LABEL=${1:?usage: third_party.sh LABEL [ROUNDS]}; ROUNDS=${2:-3}
 REPO=${REPO:-https://github.com/artsensiva/symidx}
@@ -14,7 +15,7 @@ if ! command -v docker >/dev/null; then
   sudo usermod -aG docker "$USER"
   echo "Docker installed. Log in again, so the docker group applies, and rerun this script."; exit 0
 fi
-sudo apt-get install -y -qq python3 git curl make >/dev/null
+sudo apt-get install -y -qq python3 git curl make unzip >/dev/null
 if [ ! -x go/bin/go ]; then
   curl -fsSL -o go.tgz https://go.dev/dl/go1.26.5.linux-amd64.tar.gz
   sha256sum go.tgz | grep -q "^$GO_SHA256" || { echo "Go archive doesn't match"; exit 1; }
