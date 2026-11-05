@@ -2,6 +2,10 @@
 
 **Status: the local evaluation is finished, 3 of 3 rounds, including the correctness tests on Vector and Fluent Bit ([amendment A8](SPEC.md)).** Independent hardware hasn't been tested, and the tool configs need fixing first, so this isn't the end of the evaluation.
 
+First full evaluation with code frozen beforehand, comparing logXform of Goose and a Rust version with Vector and Fluent Bit on one machine. It was planned as a final evaluation, but its main result is a list of problems to resolve: faults in the shipped tool configs, unexplained tool failures, our high memory on four tests, and two missed batch marks. The performance lead over the tools is not confirmed.
+
+All results, for every build, are in one place in [RESULTS.md](RESULTS.md), with links to the method documents.
+
 This report covers logXform of Goose and a Rust version with the same design, against Vector and Fluent Bit, on the owner's i5-8400T. It is one machine, shared with the load generator and receiver, and PipeBench's maintainer sells a competing tool. These numbers can't be compared with PipeBench's published ones.
 
 ## What this does and doesn't show
@@ -36,7 +40,7 @@ These marks were set before the fixes. Timing ran pinned to one core, in paired 
 |---|---|---|
 | Hex scan at most 10% over the pre-change Goose program, HDFS | 12.9% over (range 8.5–19.6%), 10 rounds | **Missed** |
 | Goose at least 0.9× Rust's speed, HDFS | 0.94× by wall time and by CPU | Met |
-| Goose at least 0.9× Rust's speed, BGL | 0.897× by wall time, 0.89× by CPU | **Missed, narrowly** |
+| Goose at least 0.9× Rust's speed, BGL | 0.897× by wall time, 0.896× by CPU | **Missed, narrowly** |
 | Goose memory at most 1.1× Rust's, escape-heavy data | 1.00× | Met |
 | 0 leftover dashed IPs on SSH | 0 on the frozen binaries, 655,147 lines, under the stricter count in amendment A9. Goose and Rust outputs are byte-identical | Met |
 | Stated maximum line length, same handling in all programs | Covered by the 31 batch tests | Met |
@@ -146,6 +150,8 @@ These 66 runs used the configs PipeBench ships. All have results and different t
 | `wrapped_json` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
 
 The tools fail the same tests here as in PipeBench's published c7i.12xlarge results, so this machine isn't the cause.
+
+The percentages on `tcp_to_http_persistent` aren't on the same load. The generator sent about 18.0 million lines to our servers, 11.8 million to Fluent Bit and 2.16 million to Vector. The cause is unverified.
 
 **Finding the causes.** These reruns changed one thing at a time. They are development runs under a separate label, they don't change the counted results above, and each has only one or two samples. The evidence is in [results/i5-8400t/investigation](results/i5-8400t/investigation).
 
