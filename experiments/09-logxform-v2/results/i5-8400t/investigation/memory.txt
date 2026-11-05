@@ -1,0 +1,8 @@
+tcp_to_tcp logxform-goose: samples 66, harness peak 449 MB; at the sampled peak: used 471, anon 6, sock 462, kernel 2, slab 1, shmem 0, excluded file cache 1, process RSS 7
+tcp_to_tcp logxform-rust: samples 66, harness peak 426 MB; at the sampled peak: used 447, anon 6, sock 440, kernel 1, slab 1, shmem 0, excluded file cache 2, process RSS 8
+regex_mask logxform-goose: samples 67, harness peak 232 MB; at the sampled peak: used 250, anon 11, sock 238, kernel 2, slab 1, shmem 0, excluded file cache 1, process RSS 13
+regex_mask logxform-rust: samples 65, harness peak 256 MB; at the sampled peak: used 262, anon 11, sock 249, kernel 1, slab 1, shmem 0, excluded file cache 1, process RSS 14
+tcp_to_tcp_persistent logxform-goose: samples 69, harness peak 482 MB; at the sampled peak: used 484, anon 24, sock 349, kernel 110, slab 108, shmem 0, excluded file cache 3617, process RSS 26
+tcp_to_tcp_persistent logxform-rust: samples 70, harness peak 393 MB; at the sampled peak: used 393, anon 24, sock 247, kernel 122, slab 121, shmem 0, excluded file cache 4059, process RSS 26
+disk_buffer logxform-goose: samples 70, harness peak 389 MB; at the sampled peak: used 389, anon 24, sock 262, kernel 102, slab 100, shmem 0, excluded file cache 3336, process RSS 26
+disk_buffer logxform-rust: samples 70, harness peak 333 MB; at the sampled peak: used 333, anon 24, sock 197, kernel 111, slab 110, shmem 0, excluded file cache 3688, process RSS 26

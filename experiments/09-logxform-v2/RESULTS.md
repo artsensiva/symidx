@@ -15,7 +15,7 @@ Figures are the median of 3 rounds, with the lowest and highest in brackets. All
 | Findings, conduct of the run, what isn't done | [REPORT.md](REPORT.md) |
 | PipeBench driver, frozen | [pipebench/run_formal.sh](pipebench/run_formal.sh) |
 | PipeBench driver for the tools' correctness runs | [pipebench/run_tools_correctness.sh](pipebench/run_tools_correctness.sh) |
-| Server behavior tests, comparison with Vector, broken versions | [test_server.py](test_server.py), [compare_vector.py](compare_vector.py), [mutate_server.py](mutate_server.py) |
+| Server behavior tests (one test added after the evaluation), comparison with Vector, broken versions | [test_server.py](test_server.py), [compare_vector.py](compare_vector.py), [mutate_server.py](mutate_server.py) |
 | Batch tests and fuzz | [batch_test.py](batch_test.py), [batch_fuzz.py](batch_fuzz.py) |
 | Leftover check | [check_leftovers.py](check_leftovers.py) |
 | Script for independent hardware, never run end to end | [third_party.sh](third_party.sh) |
@@ -41,7 +41,7 @@ PipeBench is pinned at `cdb484f6a187384f3589e0bbcda8c1d6d7d0e528`. Its maintaine
 | `tcp_to_tcp` | 7.13 (6.92–7.49) | 6.94 (6.50–7.59) | 0.68 (0.64–0.71) | | 1.16 (1.07–1.20) | Forwarding, no transforms |
 | `tcp_to_blackhole` | 29.24 (29.01–29.40) | 29.22 (29.18–29.50) | 1.20 (1.20–1.21) | | 1.34 (1.34–1.35) | Input handling only, nothing is sent out |
 | `regex_mask` | 6.02 (5.84–6.99) | 6.77 (6.25–6.87) | 0.47 (0.47–0.48) | 0.56 (0.55–0.56) | 0.21 (0.21–0.22) | Goose and Rust ranges overlap |
-| `set_field` | 4.72 (4.70–4.77) | 4.71 (4.58–4.74) | 0.35 (0.35–0.35) | | 0.65 (0.65–0.67) | Adds one field. Our lines are 2 bytes longer than Vector's, cause not found |
+| `set_field` | 4.72 (4.70–4.77) | 4.71 (4.58–4.74) | 0.35 (0.35–0.35) | | 0.65 (0.65–0.67) | Adds one field. Our lines are about 2 bytes longer than Vector's because of the label: `logxform-pipeline` against `vector-pipeline` |
 | `syslog_parsing` | 5.49 (5.21–5.58) | 5.60 (5.56–5.61) | 0.30 (0.30–0.30) | | 0.10 (0.10–0.10) | |
 | `real_world_1` | 5.54 (5.52–5.56) | 5.62 (5.57–5.62) | 0.30 (0.29–0.30) | | 0.08 (0.08–0.08) | Parsing, filtering and routing. Rust leads slightly |
 | `real_ssh_mask` (ours) | 9.32 (9.30–9.38) | 9.12 (9.09–9.18) | 0.55 (0.54–0.55) | 0.64 (0.64–0.65) | 0.26 (0.25–0.26) | Our own test on real logs. Goose leads slightly |
@@ -108,7 +108,7 @@ PipeBench is pinned at `cdb484f6a187384f3589e0bbcda8c1d6d7d0e528`. Its maintaine
 | `tcp_to_tcp_persistent` | 427 (396–445) | 417 (395–420) | 119 (119–121) | | **33** (32–34) | **We lose to both tools** |
 | `disk_buffer` | 339 (298–381) | 349 (346–401) | 121 (115–122) | | **31** (30–32) | **We lose to both tools** |
 
-We haven't found why our memory is high on these four tests. Kernel socket or file cache is possible but unverified.
+A later diagnosis found that our memory on these four tests is mostly kernel socket buffers (197–462 MB), and our process's own RSS is only 7–26 MB. It's real memory on the machine, so these stay losses, and the tools' breakdown wasn't measured. Details are in the [report](REPORT.md#found-after-the-evaluation).
 
 ## 6. Loss in performance tests (%)
 
@@ -187,4 +187,4 @@ Ratios are medians of paired rounds, so they can differ slightly from dividing t
 | Batch fuzz against Python | 20,000 cases, 0 failures | Same | Reference | Not run |
 | Leftover dashed IPs, 655,147 SSH lines | 0 | 0, output byte-identical to Goose | | Not run |
 
-The one broken version that wasn't caught had its SIGPIPE guard removed; the cause wasn't verified during the evaluation.
+The one broken version that wasn't caught had its SIGPIPE guard removed. That was a gap in the tests, closed after the evaluation by a new test, as the [report](REPORT.md#found-after-the-evaluation) explains.

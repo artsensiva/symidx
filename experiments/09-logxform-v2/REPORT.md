@@ -25,7 +25,7 @@ The code was frozen at `e763a39` before any PipeBench round; see [FREEZE.md](FRE
 | Behavior tests, both servers | All passed |
 | Output compared with Vector, both servers | 2,286 records, 0 differences |
 | PipeBench correctness tests, both servers | 11 of 11 passed in each of 3 rounds, 0% loss |
-| Deliberately broken versions of the Goose server | 14 of 15 caught. Removing the SIGPIPE guard wasn't caught, cause unverified |
+| Deliberately broken versions of the Goose server | 14 of 15 caught. Removing the SIGPIPE guard wasn't caught; a test added later catches it, see [Found after the evaluation](#found-after-the-evaluation) |
 | Batch tool tests: Python, Goose, Rust | 31 of 31 each |
 | Batch adversarial data: Python, Goose, Rust | 114 of 114 and 150 of 150 each |
 | Batch fuzz: Goose and Rust against Python | 20,000 cases, 0 failures |
@@ -110,7 +110,7 @@ Both servers pass the competing bar from the spec, 1.3× better CPU per event on
 | `tcp_to_tcp_persistent` | 427 (396–445) | 417 (395–420) | 119 | | **33** |
 | `disk_buffer` | 339 (298–381) | 349 (346–401) | 121 | | **31** |
 
-**Where we lose:** Vector uses less memory than both of our servers on `tcp_to_tcp` and `regex_mask`, and about a third of ours on the two disk tests, where Fluent Bit uses less than a tenth. We haven't established why ours is high there, and our figures on those tests vary widely between rounds. It may be kernel socket or file cache charged to the container, but that is unverified, so these count as losses for now. Fluent Bit's figures of 9 to 10 GB on the plain TCP tests may come from buffering at the generator's full rate, which is also unverified.
+**Where we lose:** Vector uses less memory than both of our servers on `tcp_to_tcp` and `regex_mask`, and about a third of ours on the two disk tests, where Fluent Bit uses less than a tenth. Our figures on those tests vary widely between rounds. A later diagnosis found that nearly all of ours is kernel socket buffers, not the process; see [Found after the evaluation](#found-after-the-evaluation). This is real memory on the machine, so these stay losses. Fluent Bit's figures of 9 to 10 GB on the plain TCP tests may come from buffering at the generator's full rate, which is also unverified.
 
 ### Loss and output size
 
@@ -129,7 +129,7 @@ Both servers pass the competing bar from the spec, 1.3× better CPU per event on
 | `tcp_to_tcp_persistent` | 0 / 0 | 0.63 | | 0.05 | 257, 257, 292 |
 | `disk_buffer` | 0 / 0 | 0.58 | | 0.07 | 257, 257, 292 |
 
-`tcp_to_blackhole` sends nothing out, so PipeBench shows 100% loss for every program, and its numbers show input handling only. On `set_field` our lines are 2 bytes longer than Vector's, cause not found. PipeBench's receiver only counts lines, so these runs don't verify content. Content was checked separately against Vector, as listed above.
+`tcp_to_blackhole` sends nothing out, so PipeBench shows 100% loss for every program, and its numbers show input handling only. On `set_field` our lines are about 2 bytes longer than Vector's because of the label: PipeBench's Vector config writes `vector-pipeline`, and ours writes `logxform-pipeline`. PipeBench's receiver only counts lines, so these runs don't verify content. Content was checked separately against Vector, as listed above.
 
 ## Correctness on the tools
 
@@ -211,10 +211,27 @@ The [fairness review](FAIRNESS.md) changed Rust before this run. It removed four
 - **Tool correctness runs** came after the frozen rounds, on the same PipeBench commit and images. These tests are pass or fail and light on CPU, but I can't rule out other use of the machine then either.
 - **A weakness in the frozen driver.** `take_result.py` takes the last stored result for a test, so a run that timed out could have repeated an earlier round's numbers. All 228 timestamps differ, so that didn't happen. The tool script stores each round separately, and its 66 timestamps differ too.
 
+## Found after the evaluation
+
+These are development work, done after the three rounds. They don't change any counted result, and the frozen server code and images are unchanged.
+
+- **`set_field`: not a fault.** Our lines were about 2 bytes longer than Vector's only because each config writes its own label, `logxform-pipeline` (17 characters) and `vector-pipeline` (15).
+- **SIGPIPE: a gap in the tests, now closed.** The existing test had the sink close before the server wrote again on that connection, so the guard was never needed. The new test `sink_closes_between_writes` has the sink read once and then close. With the frozen compiler, the broken version fails only this test, and the unbroken build and both frozen servers pass it. The other 14 broken versions weren't rerun.
+- **Our high memory: mostly kernel socket buffers.** One run per server per test, sampled once a second, in [results/i5-8400t/investigation/memory.txt](results/i5-8400t/investigation/memory.txt). PipeBench's collector already leaves out page cache, so file cache isn't the cause. I didn't measure the tools' breakdown, and they ran at much lower rates, so this doesn't show how they would compare at the same rate. I also haven't established which sockets hold the buffers.
+
+| Test | Peak used, MB (Goose / Rust) | Kernel socket buffers | Kernel slab | Process RSS |
+|---|---:|---:|---:|---:|
+| `tcp_to_tcp` | 471 / 447 | 462 / 440 | 1 / 1 | 7 / 8 |
+| `regex_mask` | 250 / 262 | 238 / 249 | 1 / 1 | 13 / 14 |
+| `tcp_to_tcp_persistent` | 484 / 393 | 349 / 247 | 108 / 121 | 26 / 26 |
+| `disk_buffer` | 389 / 333 | 262 / 197 | 100 / 110 | 26 / 26 |
+
+Capping socket buffers might lower this, but it isn't an obvious fix: it could reduce throughput and turns off the kernel's automatic sizing. I haven't tried it.
+
 ## Not done yet
 
 - Corrected tool configs, in a new freeze with new runs, since the fixes above aren't counted.
 - Expert review of the Vector and Fluent Bit configs. This is the owner's decision, since it means asking publicly.
 - A test at a fixed, lower rate.
-- The cause of our high memory on `tcp_to_tcp`, `regex_mask` and the disk tests, and of Vector's lost lines and Fluent Bit's `file_truncate` failure.
+- The cause of Vector's lost lines and Fluent Bit's `file_truncate` failure.
 - Independent hardware. `third_party.sh` has never been run end to end, and renting the c7i.4xlarge is the owner's decision. Running it before the configs are fixed would repeat the same faults.

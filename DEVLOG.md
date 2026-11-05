@@ -41,3 +41,4 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-05 | Experiment 9: frozen evaluation, 3 rounds, unattended | experiment 9 | 04:47 | 10:28 | 341 | |
 | 2026-11-05 | Experiment 9: correctness tests on Vector and Fluent Bit, unattended | experiment 9 | 10:31 | 12:50 | 139 | amendment A8 |
 | 2026-11-05 | Experiment 9: reruns to find causes of the tool failures, final report | experiment 9, docs | 12:50 | ≈13:40 | ≈50 | development runs, not counted |
+| 2026-11-05 | Experiment 9: results tables, SIGPIPE test, `set_field` and memory diagnosis | experiment 9, docs | 19:25 | ≈20:00 | ≈35 | development runs, not counted |

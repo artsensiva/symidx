@@ -176,6 +176,22 @@ def t_sink_closes_connection():
     s = Srv(tcp_conf(pi, po), pi); send(pi, b"x" * 1023 + b"\n" * 1 + b"y\n" * 500000); time.sleep(1); assert s.p.poll() is None, "server died"
     stop.append(1); time.sleep(0.1); eq(s.stop(), 0); l.close()
 
+def t_sink_closes_between_writes():
+    # The sink reads once and closes cleanly, so a later write on that connection raises SIGPIPE unless it's ignored.
+    pi, po = next(ports), next(ports); l = socket.socket(); l.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); l.bind(("127.0.0.1", po)); l.listen(64); l.settimeout(0.05)
+    stop = []
+    def read_once_then_close():
+        while not stop:
+            try:
+                c, _ = l.accept(); c.settimeout(0.5); c.recv(65536); c.close()
+            except OSError: pass
+    threading.Thread(target=read_once_then_close, daemon=True).start()
+    s = Srv(tcp_conf(pi, po), pi); c = send(pi, b"a\n", close=False)
+    for _ in range(200):
+        c.sendall(b"a\n"); time.sleep(0.005)
+    assert s.p.poll() is None, "server died"
+    c.close(); stop.append(1); time.sleep(0.1); eq(s.stop(), 0); l.close()
+
 def t_sighup():
     pi, po = next(ports), next(ports); r = Recv(po); s = Srv(tcp_conf(pi, po), pi); c = send(pi, b"a\n", close=False)
     assert wait(lambda: b"a\n" in r.all()); s.p.send_signal(signal.SIGHUP); time.sleep(0.4); assert s.p.poll() is None
