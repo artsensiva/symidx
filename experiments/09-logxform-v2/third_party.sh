@@ -37,5 +37,8 @@ python3 -I "$X/pipebench/real_cases.py" PipeBench symidx/experiments/02-logxform
 "$X/pipebench/build_images.sh"
 export PIPEBENCH=$ROOT/PipeBench
 "$X/pipebench/run_formal.sh" "$LABEL" "$ROUNDS"
+# Added after the freeze (amendment A8), so it comes from main. It runs the tools, not the frozen code.
+git -C symidx checkout -q origin/main -- experiments/09-logxform-v2/pipebench/run_tools_correctness.sh
+"$X/pipebench/run_tools_correctness.sh" "$LABEL" "$ROUNDS"
 python3 -I "$X/pipebench/summarize.py" "$X/results/$LABEL" --published "PipeBench/web/results/$LABEL" | tee "$X/results/$LABEL/summary.md"
 echo "Results are in $X/results/$LABEL"

@@ -25,7 +25,7 @@ The code was frozen at `e763a39` before any PipeBench round; see [FREEZE.md](FRE
 | Batch adversarial data: Python, Goose, Rust | 114 of 114 and 150 of 150 each |
 | Batch fuzz: Goose and Rust against Python | 20,000 cases, 0 failures |
 
-Correctness tests were run for our two servers only, so they say nothing about how Vector or Fluent Bit would score.
+So far, correctness tests have run on our two servers only, so they say nothing about how Vector or Fluent Bit would score. That was an omission of mine. Amendment A8 adds them after round 3. PipeBench's published c7i.12xlarge results show Vector failing 3 of these 11 tests and Fluent Bit 4. On different hardware, and without looking into the causes, that can't be read as us being more correct than the tools.
 
 ## Batch tool marks
 
@@ -152,7 +152,8 @@ The [fairness review](FAIRNESS.md) changed Rust before this run. It removed four
 
 ## Not done yet
 
-- Rounds 2 and 3.
-- The 0-leftover check on the frozen binary, after the rounds.
+- Rounds 2 and 3, then the correctness tests on Vector and Fluent Bit (amendment A8).
+- The 0-leftover check on the frozen binary, after the rounds (amendment A9).
+- A check that no round reused a stale result. `take_result.py` takes the last stored result for a test, so a run that timed out in round 2 or 3 could repeat an earlier round's numbers. The 136 runs checked so far have 136 different timestamps.
 - Independent hardware. `third_party.sh` has never been run end to end, and renting the c7i.4xlarge is the owner's decision.
 - Expert review of the Vector and Fluent Bit configs, also the owner's decision, since it means asking publicly.
