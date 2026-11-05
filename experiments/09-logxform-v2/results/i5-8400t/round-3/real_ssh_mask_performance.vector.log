@@ -1,0 +1,58 @@
+→ test=real_ssh_mask_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-real_ssh_mask_performance-255424197_bench Creating 
+ Network bench-real_ssh_mask_performance-255424197_bench Creating 
+ Network bench-real_ssh_mask_performance-255424197_bench Created 
+ Network bench-real_ssh_mask_performance-255424197_bench Created 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Started 
+ Container bench-subject-vector Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 546,389 lines/s
+  lines in: 33,168,332  lines out: 33,069,777  loss: 0.30%
+  cpu: avg 404.4% max 416.1%  mem: avg 99 MB max 103 MB
+  io throughput: avg 243.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.3s  recv: 60.5s  active: 60.5s  total: 66.8s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_mask_performance-255424197_bench Removing 
+ Network bench-real_ssh_mask_performance-255424197_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT  STATUS  EPS      CPU%   MEM    LOSS%
+real_ssh_mask_performance  vector   OK      546,389  404.4  99 MB  0.30%

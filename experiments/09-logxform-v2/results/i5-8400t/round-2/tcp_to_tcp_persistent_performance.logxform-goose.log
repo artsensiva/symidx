@@ -1,0 +1,58 @@
+→ test=tcp_to_tcp_persistent_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Creating 
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Creating 
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Created 
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-logxform-goose Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 2,399,130 lines/s
+  lines in: 152,884,023  lines out: 152,884,023  loss: 0.00%
+  cpu: avg 143.1% max 330.8%  mem: avg 289 MB max 396 MB
+  io throughput: avg 2345.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 63.7s  recv: 63.7s  active: 63.7s  total: 71.0s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Removing 
+ Network bench-tcp_to_tcp_persistent_performance-2370226456_bench Removed 
+
+Summary (1 run):
+TEST                               SUBJECT         STATUS  EPS        CPU%   MEM     LOSS%
+tcp_to_tcp_persistent_performance  logxform-goose  OK      2,399,130  143.1  289 MB  0.00%

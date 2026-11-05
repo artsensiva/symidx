@@ -1,0 +1,58 @@
+→ test=syslog_parsing_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-syslog_parsing_performance-4046552061_bench Creating 
+ Network bench-syslog_parsing_performance-4046552061_bench Creating 
+ Network bench-syslog_parsing_performance-4046552061_bench Created 
+ Network bench-syslog_parsing_performance-4046552061_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 102,724 lines/s
+  lines in: 6,415,908  lines out: 6,333,515  loss: 1.28%
+  cpu: avg 203.0% max 212.6%  mem: avg 60 MB max 65 MB
+  io throughput: avg 110.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.7s  recv: 61.0s  active: 61.7s  total: 66.9s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-collector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-fluent-bit Removed 
+ Network bench-syslog_parsing_performance-4046552061_bench Removing 
+ Network bench-syslog_parsing_performance-4046552061_bench Removed 
+
+Summary (1 run):
+TEST                        SUBJECT     STATUS  EPS      CPU%   MEM    LOSS%
+syslog_parsing_performance  fluent-bit  OK      102,724  203.0  60 MB  1.28%

@@ -1,0 +1,58 @@
+→ test=real_hdfs_mask_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-real_hdfs_mask_performance-1527243815_bench Creating 
+ Network bench-real_hdfs_mask_performance-1527243815_bench Creating 
+ Network bench-real_hdfs_mask_performance-1527243815_bench Created 
+ Network bench-real_hdfs_mask_performance-1527243815_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-vector Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 524,065 lines/s
+  lines in: 31,733,116  lines out: 31,634,488  loss: 0.31%
+  cpu: avg 382.1% max 405.5%  mem: avg 97 MB max 102 MB
+  io throughput: avg 281.2 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.4s  active: 60.4s  total: 66.8s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_hdfs_mask_performance-1527243815_bench Removing 
+ Network bench-real_hdfs_mask_performance-1527243815_bench Removed 
+
+Summary (1 run):
+TEST                        SUBJECT  STATUS  EPS      CPU%   MEM    LOSS%
+real_hdfs_mask_performance  vector   OK      524,065  382.1  97 MB  0.31%

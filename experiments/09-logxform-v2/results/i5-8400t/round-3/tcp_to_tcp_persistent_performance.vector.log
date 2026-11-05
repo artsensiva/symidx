@@ -1,0 +1,58 @@
+→ test=tcp_to_tcp_persistent_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Creating 
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Creating 
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Created 
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-vector Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Started 
+ Container bench-subject-vector Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 193,626 lines/s
+  lines in: 11,806,688  lines out: 11,731,458  loss: 0.64%
+  cpu: avg 232.1% max 251.8%  mem: avg 113 MB max 119 MB
+  io throughput: avg 187.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.4s  recv: 60.6s  active: 60.6s  total: 67.0s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Removing 
+ Network bench-tcp_to_tcp_persistent_performance-3563883118_bench Removed 
+
+Summary (1 run):
+TEST                               SUBJECT  STATUS  EPS      CPU%   MEM     LOSS%
+tcp_to_tcp_persistent_performance  vector   OK      193,626  232.1  113 MB  0.64%

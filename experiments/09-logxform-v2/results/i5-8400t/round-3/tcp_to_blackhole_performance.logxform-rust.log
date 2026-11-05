@@ -1,0 +1,97 @@
+→ test=tcp_to_blackhole_performance  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Creating 
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Creating 
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Created 
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Created 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-rust Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-rust Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 29,215,061 lines/s
+  lines in: 1,756,996,833  lines out: 0  loss: 100.00%
+  cpu: avg 106.8% max 110.6%  mem: avg 8 MB max 13 MB
+  io throughput: avg 14364.7 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 0.0s  active: 60.1s  total: 66.9s
+
+  WARNING: 0 lines received. Container logs:
+
+  --- generator ---
+bench-generator  | generator: waiting up to 15s for subject:9000
+bench-generator  | generator: target ready: subject:9000
+bench-generator  | generator: mode=tcp target=subject:9000 rate=0/s duration=1m0s connections=18
+bench-generator  | generator: connection 0 done: lines=95726421 bytes=24601690197
+bench-generator  | generator: connection 2 done: lines=98570225 bytes=25332547825
+bench-generator  | generator: connection 1 done: lines=99859524 bytes=25663897668
+bench-generator  | generator: connection 3 done: lines=93883253 bytes=24127996021
+bench-generator  | generator: connection 4 done: lines=99509659 bytes=25573982363
+bench-generator  | generator: connection 5 done: lines=96577114 bytes=24820318298
+bench-generator  | generator: connection 6 done: lines=96375151 bytes=24768413807
+bench-generator  | generator: connection 7 done: lines=98067357 bytes=25203310749
+bench-generator  | generator: connection 8 done: lines=98790548 bytes=25389170836
+bench-generator  | generator: connection 9 done: lines=98928250 bytes=25424560250
+bench-generator  | generator: connection 10 done: lines=99301576 bytes=25520505032
+bench-generator  | generator: connection 11 done: lines=98192158 bytes=25235384606
+bench-generator  | generator: connection 12 done: lines=97614259 bytes=25086864563
+bench-generator  | generator: connection 13 done: lines=99484159 bytes=25567428863
+bench-generator  | generator: connection 14 done: lines=94136217 bytes=24193007769
+bench-generator  | generator: connection 15 done: lines=98968001 bytes=25434776257
+bench-generator  | generator: connection 16 done: lines=96074246 bytes=24691081222
+bench-generator  | generator: connection 17 done: lines=96938715 bytes=24913249755
+bench-generator  | {
+bench-generator  |   "lines_sent": 1756996833,
+bench-generator  |   "bytes_sent": 451548186081,
+bench-generator  |   "duration_ms": 60140,
+bench-generator  |   "first_sent_ns": 1793865894048034927,
+bench-generator  |   "last_sent_ns": 1793865954188137925
+bench-generator  | }
+bench-generator  | generator: done. lines=1756996833 bytes=451548186081 send_duration=1m0.140102998s
+
+  --- subject ---
+
+  --- receiver ---
+bench-receiver  | receiver: mode=tcp listen=:9001 http_data=:9002 metrics=:9090 dedup=false content=false
+bench-receiver  | receiver: listening on :9001
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Removing 
+ Network bench-tcp_to_blackhole_performance-3073007628_bench Removed 
+
+Summary (1 run):
+TEST                          SUBJECT        STATUS  EPS         CPU%   MEM   LOSS%
+tcp_to_blackhole_performance  logxform-rust  OK      29,215,061  106.8  8 MB  100.00%

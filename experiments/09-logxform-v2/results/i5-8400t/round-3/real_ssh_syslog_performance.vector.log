@@ -1,0 +1,58 @@
+→ test=real_ssh_syslog_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-real_ssh_syslog_performance-1184111946_bench Creating 
+ Network bench-real_ssh_syslog_performance-1184111946_bench Creating 
+ Network bench-real_ssh_syslog_performance-1184111946_bench Created 
+ Network bench-real_ssh_syslog_performance-1184111946_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 306,620 lines/s
+  lines in: 18,868,352  lines out: 18,721,959  loss: 0.78%
+  cpu: avg 301.8% max 317.9%  mem: avg 102 MB max 106 MB
+  io throughput: avg 195.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.7s  recv: 61.0s  active: 61.1s  total: 66.7s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_syslog_performance-1184111946_bench Removing 
+ Network bench-real_ssh_syslog_performance-1184111946_bench Removed 
+
+Summary (1 run):
+TEST                         SUBJECT  STATUS  EPS      CPU%   MEM     LOSS%
+real_ssh_syslog_performance  vector   OK      306,620  301.8  102 MB  0.78%

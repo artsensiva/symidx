@@ -1,0 +1,80 @@
+→ test=tcp_to_tcp_persistent_crash_correctness  subject=logxform-goose  version=dev  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Created 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Created 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-collector Created 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Started 
+ Container bench-collector Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-logxform-goose Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 25,000 lines
+  phase 3: killing subject (SIGKILL — no graceful shutdown)…
+ Container bench-subject-logxform-goose Killing 
+ Container bench-subject-logxform-goose Killed 
+  phase 4: starting receiver (subject still stopped)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: restarting subject (should replay persisted logs)…
+ Container bench-subject-logxform-goose Starting 
+ Container bench-subject-logxform-goose Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  lines sent: 25,000  lines received: 25,000  loss: 0.00%
+  cpu: avg 0.0% max 0.9%  mem: avg 1 MB max 3 MB
+  io throughput: avg 0.4 MB/s
+  unique lines: 25,000  duplicates: 0
+  total time: 77.7s
+  persistence restart correctness: PASSED ✓
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-subject-logxform-goose Removed 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Removing 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3825310620_bench Removed 
+
+Summary (1 run):
+TEST                                     SUBJECT         STATUS  EPS      CPU%  MEM   LOSS%
+tcp_to_tcp_persistent_crash_correctness  logxform-goose  PASS    599,582  0.0   1 MB  0.00%

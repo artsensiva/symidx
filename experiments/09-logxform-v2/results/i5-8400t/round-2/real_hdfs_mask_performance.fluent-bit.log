@@ -1,0 +1,58 @@
+→ test=real_hdfs_mask_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-real_hdfs_mask_performance-2020566458_bench Creating 
+ Network bench-real_hdfs_mask_performance-2020566458_bench Creating 
+ Network bench-real_hdfs_mask_performance-2020566458_bench Created 
+ Network bench-real_hdfs_mask_performance-2020566458_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 128,316 lines/s
+  lines in: 8,189,189  lines out: 7,990,705  loss: 2.42%
+  cpu: avg 119.0% max 120.2%  mem: avg 365 MB max 690 MB
+  io throughput: avg 75.2 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 61.3s  recv: 62.0s  active: 62.3s  total: 68.5s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-collector Removed 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_hdfs_mask_performance-2020566458_bench Removing 
+ Network bench-real_hdfs_mask_performance-2020566458_bench Removed 
+
+Summary (1 run):
+TEST                        SUBJECT     STATUS  EPS      CPU%   MEM     LOSS%
+real_hdfs_mask_performance  fluent-bit  OK      128,316  119.0  365 MB  2.42%

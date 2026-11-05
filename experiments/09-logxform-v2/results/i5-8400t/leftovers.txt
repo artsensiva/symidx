@@ -1,0 +1,2 @@
+sanitize-goose: exit 0, 655147 lines out, 0 leftovers, sha256 70ce07cc2adbdeeb82f783c57b1566ffd6fa92bf87c8762e928ff97404113411
+sanitize-rust: exit 0, 655147 lines out, 0 leftovers, sha256 70ce07cc2adbdeeb82f783c57b1566ffd6fa92bf87c8762e928ff97404113411

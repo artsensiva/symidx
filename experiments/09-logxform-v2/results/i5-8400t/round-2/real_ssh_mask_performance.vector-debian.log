@@ -1,0 +1,58 @@
+→ test=real_ssh_mask_performance  subject=vector-debian  version=0.54.0-debian  config=default
+  starting containers…
+ Network bench-real_ssh_mask_performance-495321202_bench Creating 
+ Network bench-real_ssh_mask_performance-495321202_bench Creating 
+ Network bench-real_ssh_mask_performance-495321202_bench Created 
+ Network bench-real_ssh_mask_performance-495321202_bench Created 
+ Container bench-subject-vector-debian Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-vector-debian Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector-debian Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-vector-debian Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector-debian Stopping 
+ Container bench-subject-vector-debian Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector-debian.json
+  throughput: 637,408 lines/s
+  lines in: 38,676,719  lines out: 38,547,627  loss: 0.33%
+  cpu: avg 378.7% max 392.2%  mem: avg 102 MB max 105 MB
+  io throughput: avg 283.7 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.3s  recv: 60.5s  active: 60.5s  total: 66.7s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector-debian Stopping 
+ Container bench-subject-vector-debian Stopped 
+ Container bench-subject-vector-debian Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector-debian Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_mask_performance-495321202_bench Removing 
+ Network bench-real_ssh_mask_performance-495321202_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT        STATUS  EPS      CPU%   MEM     LOSS%
+real_ssh_mask_performance  vector-debian  OK      637,408  378.7  102 MB  0.33%

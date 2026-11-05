@@ -1,0 +1,112 @@
+→ test=tcp_to_blackhole_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Creating 
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Creating 
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Created 
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 1,349,246 lines/s
+  lines in: 80,995,362  lines out: 0  loss: 100.00%
+  cpu: avg 100.9% max 101.6%  mem: avg 145 MB max 171 MB
+  io throughput: avg 660.0 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 0.0s  active: 60.0s  total: 66.6s
+
+  WARNING: 0 lines received. Container logs:
+
+  --- generator ---
+bench-generator  | generator: waiting up to 15s for subject:9000
+bench-generator  | generator: target ready: subject:9000
+bench-generator  | generator: mode=tcp target=subject:9000 rate=0/s duration=1m0s connections=18
+bench-generator  | generator: connection 5 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 3 done: lines=4501329 bytes=1156841553
+bench-generator  | generator: connection 10 done: lines=4498269 bytes=1156055133
+bench-generator  | generator: connection 8 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 4 done: lines=4501329 bytes=1156841553
+bench-generator  | generator: connection 1 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 12 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 2 done: lines=4500309 bytes=1156579413
+bench-generator  | generator: connection 16 done: lines=4498269 bytes=1156055133
+bench-generator  | generator: connection 7 done: lines=4498269 bytes=1156055133
+bench-generator  | generator: connection 17 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 9 done: lines=4499289 bytes=1156317273
+bench-generator  | generator: connection 6 done: lines=4501329 bytes=1156841553
+bench-generator  | generator: connection 0 done: lines=4500309 bytes=1156579413
+bench-generator  | generator: connection 14 done: lines=4498269 bytes=1156055133
+bench-generator  | generator: connection 11 done: lines=4500309 bytes=1156579413
+bench-generator  | generator: connection 15 done: lines=4501329 bytes=1156841553
+bench-generator  | generator: connection 13 done: lines=4500309 bytes=1156579413
+bench-generator  | generator: done. lines=80995362 bytes=20815808034 send_duration=1m0.030082573s
+bench-generator  | {
+bench-generator  |   "lines_sent": 80995362,
+bench-generator  |   "bytes_sent": 20815808034,
+bench-generator  |   "duration_ms": 60030,
+bench-generator  |   "first_sent_ns": 1793866033276169510,
+bench-generator  |   "last_sent_ns": 1793866093306252083
+bench-generator  | }
+
+  --- subject ---
+bench-subject-fluent-bit  | Fluent Bit v5.0.11
+bench-subject-fluent-bit  | * Copyright (C) 2015-2026 The Fluent Bit Authors
+bench-subject-fluent-bit  | * Fluent Bit is a CNCF graduated project under the Fluent organization
+bench-subject-fluent-bit  | * https://fluentbit.io
+bench-subject-fluent-bit  | 
+bench-subject-fluent-bit  | ______ _                  _    ______ _ _           _____  _____ 
+bench-subject-fluent-bit  | |  ___| |                | |   | ___ (_) |         |  ___||  _  |
+bench-subject-fluent-bit  | | |_  | |_   _  ___ _ __ | |_  | |_/ /_| |_  __   _|___ \ | |/' |
+bench-subject-fluent-bit  | |  _| | | | | |/ _ \ '_ \| __| | ___ \ | __| \ \ / /   \ \|  /| |
+bench-subject-fluent-bit  | | |   | | |_| |  __/ | | | |_  | |_/ / | |_   \ V //\__/ /\ |_/ /
+bench-subject-fluent-bit  | \_|   |_|\__,_|\___|_| |_|\__| \____/|_|\__|   \_/ \____(_)\___/
+bench-subject-fluent-bit  | 
+bench-subject-fluent-bit  | 
+bench-subject-fluent-bit  | [2026/11/05 08:08:19] [engine] caught signal (SIGTERM)
+bench-subject-fluent-bit  | [2026/11/05 08:08:19.157] [ warn] [engine] service will shutdown in max 5 seconds
+
+  --- receiver ---
+bench-receiver  | receiver: mode=tcp listen=:9001 http_data=:9002 metrics=:9090 dedup=false content=false
+bench-receiver  | receiver: listening on :9001
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-collector Removed 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Removing 
+ Network bench-tcp_to_blackhole_performance-2088128391_bench Removed 
+
+Summary (1 run):
+TEST                          SUBJECT     STATUS  EPS        CPU%   MEM     LOSS%
+tcp_to_blackhole_performance  fluent-bit  OK      1,349,246  100.9  145 MB  100.00%

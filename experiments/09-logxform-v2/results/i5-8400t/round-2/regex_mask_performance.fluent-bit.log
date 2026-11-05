@@ -1,0 +1,58 @@
+→ test=regex_mask_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-regex_mask_performance-169524004_bench Creating 
+ Network bench-regex_mask_performance-169524004_bench Creating 
+ Network bench-regex_mask_performance-169524004_bench Created 
+ Network bench-regex_mask_performance-169524004_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+ Container bench-collector Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 209,990 lines/s
+  lines in: 12,934,825  lines out: 12,846,432  loss: 0.68%
+  cpu: avg 132.0% max 141.5%  mem: avg 1023 MB max 1967 MB
+  io throughput: avg 217.3 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.7s  recv: 61.1s  active: 61.2s  total: 66.6s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-regex_mask_performance-169524004_bench Removing 
+ Network bench-regex_mask_performance-169524004_bench Removed 
+
+Summary (1 run):
+TEST                    SUBJECT     STATUS  EPS      CPU%   MEM      LOSS%
+regex_mask_performance  fluent-bit  OK      209,990  132.0  1023 MB  0.68%

@@ -1,0 +1,64 @@
+→ test=file_to_tcp_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-file_to_tcp_performance-399360566_bench Creating 
+ Network bench-file_to_tcp_performance-399360566_bench Creating 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Creating 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Creating 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Created 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Created 
+ Network bench-file_to_tcp_performance-399360566_bench Created 
+ Network bench-file_to_tcp_performance-399360566_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 25,792 lines/s
+  lines in: 199,873,192  lines out: 1,750,314  loss: 99.12%
+  cpu: avg 8.4% max 102.9%  mem: avg 12 MB max 128 MB
+  io throughput: avg 10.4 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 15.2s  active: 67.9s  total: 83.7s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Removing 
+ Network bench-file_to_tcp_performance-399360566_bench Removing 
+ Volume bench-file_to_tcp_performance-399360566_shared-data Removed 
+ Network bench-file_to_tcp_performance-399360566_bench Removed 
+
+Summary (1 run):
+TEST                     SUBJECT     STATUS  EPS     CPU%  MEM    LOSS%
+file_to_tcp_performance  fluent-bit  OK      25,792  8.4   12 MB  99.12%

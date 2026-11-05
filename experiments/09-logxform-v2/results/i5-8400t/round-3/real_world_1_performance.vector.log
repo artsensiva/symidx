@@ -1,0 +1,58 @@
+→ test=real_world_1_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-real_world_1_performance-3480507928_bench Creating 
+ Network bench-real_world_1_performance-3480507928_bench Creating 
+ Network bench-real_world_1_performance-3480507928_bench Created 
+ Network bench-real_world_1_performance-3480507928_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+ Container bench-collector Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 295,900 lines/s
+  lines in: 17,921,684  lines out: 17,860,641  loss: 0.34%
+  cpu: avg 306.9% max 315.4%  mem: avg 102 MB max 107 MB
+  io throughput: avg 348.7 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.4s  active: 60.4s  total: 66.7s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-subject-vector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_world_1_performance-3480507928_bench Removing 
+ Network bench-real_world_1_performance-3480507928_bench Removed 
+
+Summary (1 run):
+TEST                      SUBJECT  STATUS  EPS      CPU%   MEM     LOSS%
+real_world_1_performance  vector   OK      295,900  306.9  102 MB  0.34%

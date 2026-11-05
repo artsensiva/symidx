@@ -1,0 +1,58 @@
+→ test=real_ssh_syslog_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-real_ssh_syslog_performance-1838844976_bench Creating 
+ Network bench-real_ssh_syslog_performance-1838844976_bench Creating 
+ Network bench-real_ssh_syslog_performance-1838844976_bench Created 
+ Network bench-real_ssh_syslog_performance-1838844976_bench Created 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 6,606,187 lines/s
+  lines in: 397,807,163  lines out: 397,807,163  loss: 0.00%
+  cpu: avg 285.6% max 294.2%  mem: avg 28 MB max 40 MB
+  io throughput: avg 4245.8 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.2s  active: 60.2s  total: 67.3s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_syslog_performance-1838844976_bench Removing 
+ Network bench-real_ssh_syslog_performance-1838844976_bench Removed 
+
+Summary (1 run):
+TEST                         SUBJECT         STATUS  EPS        CPU%   MEM    LOSS%
+real_ssh_syslog_performance  logxform-goose  OK      6,606,187  285.6  28 MB  0.00%

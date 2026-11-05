@@ -1,0 +1,97 @@
+→ test=tcp_to_blackhole_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-tcp_to_blackhole_performance-776823683_bench Creating 
+ Network bench-tcp_to_blackhole_performance-776823683_bench Creating 
+ Network bench-tcp_to_blackhole_performance-776823683_bench Created 
+ Network bench-tcp_to_blackhole_performance-776823683_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-subject-logxform-goose Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Started 
+ Container bench-subject-logxform-goose Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 29,235,796 lines/s
+  lines in: 1,759,570,202  lines out: 0  loss: 100.00%
+  cpu: avg 108.8% max 111.6%  mem: avg 9 MB max 12 MB
+  io throughput: avg 14323.3 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 0.0s  active: 60.2s  total: 66.9s
+
+  WARNING: 0 lines received. Container logs:
+
+  --- generator ---
+bench-generator  | generator: waiting up to 15s for subject:9000
+bench-generator  | generator: target ready: subject:9000
+bench-generator  | generator: mode=tcp target=subject:9000 rate=0/s duration=1m0s connections=18
+bench-generator  | generator: connection 2 done: lines=103166415 bytes=26513768655
+bench-generator  | generator: connection 0 done: lines=99260775 bytes=25510019175
+bench-generator  | generator: connection 3 done: lines=93519107 bytes=24034410499
+bench-generator  | generator: connection 1 done: lines=101587431 bytes=26107969767
+bench-generator  | generator: connection 6 done: lines=97529809 bytes=25065160913
+bench-generator  | generator: connection 4 done: lines=92927498 bytes=23882366986
+bench-generator  | generator: connection 7 done: lines=98276460 bytes=25257050220
+bench-generator  | generator: connection 5 done: lines=99619821 bytes=25602293997
+bench-generator  | generator: connection 8 done: lines=97500054 bytes=25057513878
+bench-generator  | generator: connection 9 done: lines=97943935 bytes=25171591295
+bench-generator  | generator: connection 10 done: lines=97696618 bytes=25108030826
+bench-generator  | generator: connection 11 done: lines=101454829 bytes=26073891053
+bench-generator  | generator: connection 12 done: lines=98263200 bytes=25253642400
+bench-generator  | generator: connection 13 done: lines=94288199 bytes=24232067143
+bench-generator  | generator: connection 14 done: lines=91175380 bytes=23432072660
+bench-generator  | generator: connection 15 done: lines=97820521 bytes=25139873897
+bench-generator  | generator: connection 16 done: lines=96566914 bytes=24817696898
+bench-generator  | generator: connection 17 done: lines=100973236 bytes=25950121652
+bench-generator  | generator: done. lines=1759570202 bytes=452209541914 send_duration=1m0.18547234s
+bench-generator  | {
+bench-generator  |   "lines_sent": 1759570202,
+bench-generator  |   "bytes_sent": 452209541914,
+bench-generator  |   "duration_ms": 60185,
+bench-generator  |   "first_sent_ns": 1793865824560838848,
+bench-generator  |   "last_sent_ns": 1793865884746311188
+bench-generator  | }
+
+  --- subject ---
+
+  --- receiver ---
+bench-receiver  | receiver: mode=tcp listen=:9001 http_data=:9002 metrics=:9090 dedup=false content=false
+bench-receiver  | receiver: listening on :9001
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_blackhole_performance-776823683_bench Removing 
+ Network bench-tcp_to_blackhole_performance-776823683_bench Removed 
+
+Summary (1 run):
+TEST                          SUBJECT         STATUS  EPS         CPU%   MEM   LOSS%
+tcp_to_blackhole_performance  logxform-goose  OK      29,235,796  108.8  9 MB  100.00%

@@ -1,0 +1,58 @@
+→ test=real_ssh_syslog_performance  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-real_ssh_syslog_performance-1869628994_bench Creating 
+ Network bench-real_ssh_syslog_performance-1869628994_bench Creating 
+ Network bench-real_ssh_syslog_performance-1869628994_bench Created 
+ Network bench-real_ssh_syslog_performance-1869628994_bench Created 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-logxform-rust Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-rust Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 6,574,111 lines/s
+  lines in: 396,796,098  lines out: 396,796,098  loss: 0.00%
+  cpu: avg 296.5% max 303.4%  mem: avg 30 MB max 39 MB
+  io throughput: avg 4215.0 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.3s  recv: 60.4s  active: 60.4s  total: 67.2s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_syslog_performance-1869628994_bench Removing 
+ Network bench-real_ssh_syslog_performance-1869628994_bench Removed 
+
+Summary (1 run):
+TEST                         SUBJECT        STATUS  EPS        CPU%   MEM    LOSS%
+real_ssh_syslog_performance  logxform-rust  OK      6,574,111  296.5  30 MB  0.00%
