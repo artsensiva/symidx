@@ -1,0 +1,58 @@
+→ test=real_hdfs_mask_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-real_hdfs_mask_performance-2594973551_bench Creating 
+ Network bench-real_hdfs_mask_performance-2594973551_bench Creating 
+ Network bench-real_hdfs_mask_performance-2594973551_bench Created 
+ Network bench-real_hdfs_mask_performance-2594973551_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-logxform-goose Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Started 
+ Container bench-subject-logxform-goose Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 7,866,659 lines/s
+  lines in: 473,467,788  lines out: 473,467,788  loss: 0.00%
+  cpu: avg 253.6% max 259.1%  mem: avg 17 MB max 24 MB
+  io throughput: avg 4304.0 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.2s  active: 60.2s  total: 67.1s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_hdfs_mask_performance-2594973551_bench Removing 
+ Network bench-real_hdfs_mask_performance-2594973551_bench Removed 
+
+Summary (1 run):
+TEST                        SUBJECT         STATUS  EPS        CPU%   MEM    LOSS%
+real_hdfs_mask_performance  logxform-goose  OK      7,866,659  253.6  17 MB  0.00%

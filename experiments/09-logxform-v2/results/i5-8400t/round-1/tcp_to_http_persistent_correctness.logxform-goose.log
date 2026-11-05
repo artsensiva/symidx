@@ -1,0 +1,75 @@
+→ test=tcp_to_http_persistent_correctness  subject=logxform-goose  version=dev  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Creating 
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Creating 
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Created 
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Created 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-collector Created 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-collector Started 
+ Container bench-subject-logxform-goose Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-logxform-goose Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 18,000,018 lines
+  phase 3: waiting for subject to persist data…
+  phase 4: starting receiver (subject should forward buffered logs)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: waiting for logs to drain (up to 2m0s)…
+    received: 17,417,781 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    received: 18,000,018 / 18,000,018 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  lines sent: 18,000,018  lines received: 18,000,018  loss: 0.00%
+  cpu: avg 14.6% max 93.0%  mem: avg 40 MB max 155 MB
+  io throughput: avg 196.4 MB/s
+  total time: 96.7s
+  persistence correctness: PASSED ✓
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-receiver Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-subject-logxform-goose Removed 
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Removing 
+ Network bench-tcp_to_http_persistent_correctness-2263729941_bench Removed 
+
+Summary (1 run):
+TEST                                SUBJECT         STATUS  EPS        CPU%  MEM    LOSS%
+tcp_to_http_persistent_correctness  logxform-goose  PASS    3,445,656  14.6  40 MB  0.00%

@@ -1,0 +1,58 @@
+→ test=disk_buffer_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-disk_buffer_performance-1997545449_bench Creating 
+ Network bench-disk_buffer_performance-1997545449_bench Creating 
+ Network bench-disk_buffer_performance-1997545449_bench Created 
+ Network bench-disk_buffer_performance-1997545449_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-goose Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 2,547,817 lines/s
+  lines in: 162,568,050  lines out: 162,568,050  loss: 0.00%
+  cpu: avg 166.4% max 340.8%  mem: avg 259 MB max 381 MB
+  io throughput: avg 2493.7 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 63.8s  recv: 63.8s  active: 63.8s  total: 71.1s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-disk_buffer_performance-1997545449_bench Removing 
+ Network bench-disk_buffer_performance-1997545449_bench Removed 
+
+Summary (1 run):
+TEST                     SUBJECT         STATUS  EPS        CPU%   MEM     LOSS%
+disk_buffer_performance  logxform-goose  OK      2,547,817  166.4  259 MB  0.00%

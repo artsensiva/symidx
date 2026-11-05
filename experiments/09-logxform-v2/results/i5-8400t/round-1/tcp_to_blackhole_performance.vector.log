@@ -1,0 +1,108 @@
+→ test=tcp_to_blackhole_performance  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Creating 
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Creating 
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Created 
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-vector Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector.json
+  throughput: 1,209,086 lines/s
+  lines in: 72,611,857  lines out: 0  loss: 100.00%
+  cpu: avg 506.5% max 523.8%  mem: avg 86 MB max 90 MB
+  io throughput: avg 593.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 0.0s  active: 60.1s  total: 67.0s
+
+  WARNING: 0 lines received. Container logs:
+
+  --- generator ---
+bench-generator  | generator: waiting up to 15s for subject:9000
+bench-generator  | generator: target ready: subject:9000
+bench-generator  | generator: mode=tcp target=subject:9000 rate=0/s duration=1m0s connections=18
+bench-generator  | generator: connection 4 done: lines=4067823 bytes=1045430511
+bench-generator  | generator: connection 3 done: lines=4108623 bytes=1055916111
+bench-generator  | generator: connection 0 done: lines=4078023 bytes=1048051911
+bench-generator  | generator: connection 12 done: lines=4086183 bytes=1050149031
+bench-generator  | generator: connection 2 done: lines=3992341 bytes=1026031637
+bench-generator  | generator: connection 7 done: lines=3981121 bytes=1023148097
+bench-generator  | generator: connection 15 done: lines=4078023 bytes=1048051911
+bench-generator  | generator: connection 1 done: lines=4023962 bytes=1034158234
+bench-generator  | generator: connection 13 done: lines=3951541 bytes=1015546037
+bench-generator  | generator: connection 6 done: lines=3948481 bytes=1014759617
+bench-generator  | generator: connection 14 done: lines=3978061 bytes=1022361677
+bench-generator  | generator: connection 10 done: lines=3958681 bytes=1017381017
+bench-generator  | generator: connection 11 done: lines=4067823 bytes=1045430511
+bench-generator  | generator: connection 17 done: lines=3995401 bytes=1026818057
+bench-generator  | generator: connection 8 done: lines=4061702 bytes=1043857414
+bench-generator  | generator: connection 16 done: lines=4041302 bytes=1038614614
+bench-generator  | generator: connection 9 done: lines=4084143 bytes=1049624751
+bench-generator  | generator: connection 5 done: lines=4108623 bytes=1055916111
+bench-generator  | generator: done. lines=72611857 bytes=18661247249 send_duration=1m0.055149248s
+bench-generator  | {
+bench-generator  |   "lines_sent": 72611857,
+bench-generator  |   "bytes_sent": 18661247249,
+bench-generator  |   "duration_ms": 60055,
+bench-generator  |   "first_sent_ns": 1793852830532255428,
+bench-generator  |   "last_sent_ns": 1793852890587404676
+bench-generator  | }
+
+  --- subject ---
+bench-subject-vector  | 2026-11-05T04:27:10.406106Z  INFO vector::app: Log level is enabled. level="info"
+bench-subject-vector  | 2026-11-05T04:27:10.406839Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.toml"]
+bench-subject-vector  | 2026-11-05T04:27:10.410137Z  INFO vector::topology::running: Running healthchecks.
+bench-subject-vector  | 2026-11-05T04:27:10.410211Z  INFO vector: Vector has started. debug="false" version="0.54.0" arch="x86_64" revision="2b8b875 2026-03-10 15:47:37.284215410"
+bench-subject-vector  | 2026-11-05T04:27:10.410253Z  INFO vector::app: API is disabled, enable by setting `api.enabled` to `true` and use commands like `vector top`.
+bench-subject-vector  | 2026-11-05T04:27:10.410422Z  INFO source{component_kind="source" component_id=in component_type=socket}: vector::sources::util::net::tcp: Listening. addr=0.0.0.0:9000
+bench-subject-vector  | 2026-11-05T04:27:10.410541Z  INFO vector::topology::builder: Healthcheck passed.
+bench-subject-vector  | 2026-11-05T04:28:16.845463Z  INFO vector::signal: Signal received. signal="SIGTERM"
+bench-subject-vector  | 2026-11-05T04:28:16.845504Z  INFO vector: Vector has stopped.
+bench-subject-vector  | 2026-11-05T04:28:16.846941Z  INFO vector::topology::running: Shutting down... Waiting on running components. remaining_components="in, out" time_remaining="59 seconds left"
+bench-subject-vector  | 2026-11-05T04:28:21.846704Z  INFO vector::topology::running: Internal log [Shutting down... Waiting on running components.] is being suppressed to avoid flooding.
+
+  --- receiver ---
+bench-receiver  | receiver: mode=tcp listen=:9001 http_data=:9002 metrics=:9090 dedup=false content=false
+bench-receiver  | receiver: listening on :9001
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Removing 
+ Network bench-tcp_to_blackhole_performance-4214612508_bench Removed 
+
+Summary (1 run):
+TEST                          SUBJECT  STATUS  EPS        CPU%   MEM    LOSS%
+tcp_to_blackhole_performance  vector   OK      1,209,086  506.5  86 MB  100.00%

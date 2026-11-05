@@ -1,0 +1,80 @@
+→ test=tcp_to_tcp_persistent_crash_correctness  subject=logxform-rust  version=dev  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Created 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Created 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-rust Created 
+ Container bench-collector Created 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-rust Started 
+ Container bench-collector Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-logxform-rust Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 25,000 lines
+  phase 3: killing subject (SIGKILL — no graceful shutdown)…
+ Container bench-subject-logxform-rust Killing 
+ Container bench-subject-logxform-rust Killed 
+  phase 4: starting receiver (subject still stopped)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: restarting subject (should replay persisted logs)…
+ Container bench-subject-logxform-rust Starting 
+ Container bench-subject-logxform-rust Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  lines sent: 25,000  lines received: 25,000  loss: 0.00%
+  cpu: avg 0.0% max 0.8%  mem: avg 1 MB max 3 MB
+  io throughput: avg 0.4 MB/s
+  unique lines: 25,000  duplicates: 0
+  total time: 75.7s
+  persistence restart correctness: PASSED ✓
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-receiver Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-collector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-subject-logxform-rust Removed 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Removing 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-2833286723_bench Removed 
+
+Summary (1 run):
+TEST                                     SUBJECT        STATUS  EPS      CPU%  MEM   LOSS%
+tcp_to_tcp_persistent_crash_correctness  logxform-rust  PASS    630,719  0.0   1 MB  0.00%

@@ -1,3 +1,34 @@
 == servers
 experiments/09-logxform-v2/goose/logxform
 all passed
+records 2286 differences 0
+experiments/09-logxform-v2/rust/target/release/logxform
+all passed
+records 2286 differences 0
+== batch
+ok sanitize.py: 31 of 31
+ok sanitize-goose: 31 of 31
+ok sanitize-rust: 31 of 31
+adversarial sanitize-goose: 114 of 114 checks passed
+adversarial sanitize-rust: 114 of 114 checks passed
+adversarial python3: 114 of 114 checks passed
+adversarial-change sanitize-goose: 150 of 150 checks passed
+adversarial-change sanitize-rust: 150 of 150 checks passed
+adversarial-change python3: 150 of 150 checks passed
+== mutants
+CAUGHT       backslash not escaped: json_escapes, ['json_escapes']
+CAUGHT       facility from the wrong bits: syslog_rfc3339, syslog_bsd, syslog_5424, ['syslog_rfc3339',
+CAUGHT       time zone offset ignored: syslog_rfc3339, ['syslog_rfc3339']
+CAUGHT       delivered offset not saved: disk_no_resend_after_restart, ['disk_no_resend_after_restart']
+CAUGHT       truncation not noticed: file_truncate, file_exact_name, ['file_truncate',
+CAUGHT       checkpoint not saved: file_restart, ['file_restart']
+CAUGHT       failed send treated as delivered: backpressure_and_retry, http, ['backpressure_and_retry',
+CAUGHT       line limit not enforced: long_line, ['long_line']
+CAUGHT       final partial line lost: no_final_newline, ['no_final_newline']
+CAUGHT       debug severity not tagged: syslog_tag, ['syslog_tag']
+CAUGHT       non-2xx HTTP treated as success: http, ['http']
+CAUGHT       SIGHUP not handled: sink_restart, sighup, config_reload, ['sink_restart',
+MISSED       SIGPIPE not ignored: 
+CAUGHT       replay not started: disk_restart, disk_sigkill, ['disk_restart',
+CAUGHT       reader tied to the sink: disk_restart, disk_sigkill, ['disk_restart',
+14 of 15 caught

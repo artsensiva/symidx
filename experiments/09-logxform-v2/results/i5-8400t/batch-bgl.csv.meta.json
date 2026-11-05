@@ -1,0 +1,33 @@
+{
+ "started": "2026-11-05T04:28:33+0100",
+ "rounds": 10,
+ "machine": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+ "commands": {
+  "goose_v2": {
+   "argv": [
+    "/home/artem/symidx/toolchain/pilot/v2/bin/sanitize-goose",
+    "--out",
+    "/home/artem/symidx/toolchain/pilot/work/o",
+    "--rejects",
+    "/home/artem/symidx/toolchain/pilot/work/r",
+    "bgl",
+    "/home/artem/symidx/toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "a27bb387e745efee7ecfb7a611445c784ca8c0add61f5a1e885dfa54b3067adc"
+  },
+  "rust_v2": {
+   "argv": [
+    "/home/artem/symidx/toolchain/pilot/v2/bin/sanitize-rust",
+    "--out",
+    "/home/artem/symidx/toolchain/pilot/work/o",
+    "--rejects",
+    "/home/artem/symidx/toolchain/pilot/work/r",
+    "bgl",
+    "/home/artem/symidx/toolchain/pilot/bgl/BGL.log"
+   ],
+   "env": {},
+   "sha256": "e8e41e6ed63b0c9bc11e6fa3d545611305e692815b4b918c477456a0de6474b3"
+  }
+ }
+}

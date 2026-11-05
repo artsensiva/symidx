@@ -1,0 +1,79 @@
+→ test=file_truncate_correctness  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-file_truncate_correctness-2327852693_bench Creating 
+ Network bench-file_truncate_correctness-2327852693_bench Creating 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Creating 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Creating 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Created 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Created 
+ Network bench-file_truncate_correctness-2327852693_bench Created 
+ Network bench-file_truncate_correctness-2327852693_bench Created 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-logxform-rust Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-logxform-rust Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 499 lines/s
+  lines in: 29,951  lines out: 29,951  loss: 0.00%
+  cpu: avg 0.6% max 0.7%  mem: avg 2 MB max 2 MB
+  io throughput: avg 0.2 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 59.5s  active: 60.0s  total: 142.8s
+  correctness: PASSED
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Removing 
+ Network bench-file_truncate_correctness-2327852693_bench Removing 
+ Volume bench-file_truncate_correctness-2327852693_shared-data Removed 
+ Network bench-file_truncate_correctness-2327852693_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT        STATUS  EPS  CPU%  MEM   LOSS%
+file_truncate_correctness  logxform-rust  PASS    499  0.6   2 MB  0.00%

@@ -1,0 +1,73 @@
+→ test=disk_buffer_persistence_correctness  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Created 
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-rust Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-subject-logxform-rust Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 17,992 lines/s
+  lines in: 1,080,018  lines out: 1,080,018  loss: 0.00%
+  cpu: avg 23.5% max 24.5%  mem: avg 18 MB max 22 MB
+  io throughput: avg 17.5 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 59.0s  active: 60.0s  total: 127.0s
+  correctness: PASSED
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Removing 
+ Network bench-disk_buffer_persistence_correctness-739785465_bench Removed 
+
+Summary (1 run):
+TEST                                 SUBJECT        STATUS  EPS     CPU%  MEM    LOSS%
+disk_buffer_persistence_correctness  logxform-rust  PASS    17,992  23.5  18 MB  0.00%

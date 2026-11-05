@@ -1,0 +1,58 @@
+→ test=disk_buffer_performance  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-disk_buffer_performance-1423927360_bench Creating 
+ Network bench-disk_buffer_performance-1423927360_bench Creating 
+ Network bench-disk_buffer_performance-1423927360_bench Created 
+ Network bench-disk_buffer_performance-1423927360_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-rust Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-rust Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 2,849,120 lines/s
+  lines in: 179,094,339  lines out: 179,094,339  loss: 0.00%
+  cpu: avg 163.2% max 336.3%  mem: avg 249 MB max 401 MB
+  io throughput: avg 2747.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 62.8s  recv: 62.9s  active: 62.9s  total: 69.0s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-disk_buffer_performance-1423927360_bench Removing 
+ Network bench-disk_buffer_performance-1423927360_bench Removed 
+
+Summary (1 run):
+TEST                     SUBJECT        STATUS  EPS        CPU%   MEM     LOSS%
+disk_buffer_performance  logxform-rust  OK      2,849,120  163.2  249 MB  0.00%

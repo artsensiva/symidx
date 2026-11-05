@@ -1,0 +1,58 @@
+→ test=tcp_to_tcp_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-tcp_to_tcp_performance-3205881442_bench Creating 
+ Network bench-tcp_to_tcp_performance-3205881442_bench Creating 
+ Network bench-tcp_to_tcp_performance-3205881442_bench Created 
+ Network bench-tcp_to_tcp_performance-3205881442_bench Created 
+ Container bench-receiver Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 1,073,984 lines/s
+  lines in: 65,506,428  lines out: 65,506,428  loss: 0.00%
+  cpu: avg 267.5% max 301.7%  mem: avg 5374 MB max 8244 MB
+  io throughput: avg 1111.0 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.5s  active: 61.0s  total: 67.0s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-tcp_to_tcp_performance-3205881442_bench Removing 
+ Network bench-tcp_to_tcp_performance-3205881442_bench Removed 
+
+Summary (1 run):
+TEST                    SUBJECT     STATUS  EPS        CPU%   MEM      LOSS%
+tcp_to_tcp_performance  fluent-bit  OK      1,073,984  267.5  5374 MB  0.00%

@@ -1,0 +1,58 @@
+→ test=syslog_parsing_performance  subject=logxform-goose  version=dev  config=default
+  starting containers…
+ Network bench-syslog_parsing_performance-3452396836_bench Creating 
+ Network bench-syslog_parsing_performance-3452396836_bench Creating 
+ Network bench-syslog_parsing_performance-3452396836_bench Created 
+ Network bench-syslog_parsing_performance-3452396836_bench Created 
+ Container bench-subject-logxform-goose Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-logxform-goose Created 
+ Container bench-receiver Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-goose Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-goose Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-subject-logxform-goose Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-goose.json
+  throughput: 5,577,328 lines/s
+  lines in: 335,232,228  lines out: 335,232,228  loss: 0.00%
+  cpu: avg 374.7% max 384.4%  mem: avg 35 MB max 45 MB
+  io throughput: avg 6474.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 60.1s  active: 60.1s  total: 67.6s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-goose Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-goose Stopped 
+ Container bench-subject-logxform-goose Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-goose Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-syslog_parsing_performance-3452396836_bench Removing 
+ Network bench-syslog_parsing_performance-3452396836_bench Removed 
+
+Summary (1 run):
+TEST                        SUBJECT         STATUS  EPS        CPU%   MEM    LOSS%
+syslog_parsing_performance  logxform-goose  OK      5,577,328  374.7  35 MB  0.00%

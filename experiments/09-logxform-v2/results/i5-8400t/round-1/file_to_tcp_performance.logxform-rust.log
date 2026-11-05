@@ -1,0 +1,64 @@
+→ test=file_to_tcp_performance  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-file_to_tcp_performance-297612209_bench Creating 
+ Network bench-file_to_tcp_performance-297612209_bench Creating 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Creating 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Creating 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Created 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Created 
+ Network bench-file_to_tcp_performance-297612209_bench Created 
+ Network bench-file_to_tcp_performance-297612209_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-subject-logxform-rust Created 
+ Container bench-generator Creating 
+ Container bench-collector Created 
+ Container bench-generator Created 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-logxform-rust Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 3,743,278 lines/s
+  lines in: 224,882,076  lines out: 224,882,076  loss: 0.00%
+  cpu: avg 49.6% max 145.8%  mem: avg 10 MB max 49 MB
+  io throughput: avg 1781.0 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 60.1s  active: 60.1s  total: 83.4s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-collector Removed 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Removing 
+ Network bench-file_to_tcp_performance-297612209_bench Removing 
+ Network bench-file_to_tcp_performance-297612209_bench Removed 
+ Volume bench-file_to_tcp_performance-297612209_shared-data Removed 
+
+Summary (1 run):
+TEST                     SUBJECT        STATUS  EPS        CPU%  MEM    LOSS%
+file_to_tcp_performance  logxform-rust  OK      3,743,278  49.6  10 MB  0.00%

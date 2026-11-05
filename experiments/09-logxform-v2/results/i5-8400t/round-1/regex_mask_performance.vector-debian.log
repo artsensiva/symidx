@@ -1,0 +1,58 @@
+→ test=regex_mask_performance  subject=vector-debian  version=0.54.0-debian  config=default
+  starting containers…
+ Network bench-regex_mask_performance-864735293_bench Creating 
+ Network bench-regex_mask_performance-864735293_bench Creating 
+ Network bench-regex_mask_performance-864735293_bench Created 
+ Network bench-regex_mask_performance-864735293_bench Created 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-subject-vector-debian Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-vector-debian Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector-debian Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-vector-debian Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector-debian Stopping 
+ Container bench-subject-vector-debian Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/vector-debian.json
+  throughput: 563,406 lines/s
+  lines in: 33,984,888  lines out: 33,964,352  loss: 0.06%
+  cpu: avg 353.3% max 363.0%  mem: avg 101 MB max 104 MB
+  io throughput: avg 569.8 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.2s  recv: 60.3s  active: 60.3s  total: 66.7s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector-debian Stopping 
+ Container bench-subject-vector-debian Stopped 
+ Container bench-subject-vector-debian Removing 
+ Container bench-collector Removed 
+ Container bench-subject-vector-debian Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-regex_mask_performance-864735293_bench Removing 
+ Network bench-regex_mask_performance-864735293_bench Removed 
+
+Summary (1 run):
+TEST                    SUBJECT        STATUS  EPS      CPU%   MEM     LOSS%
+regex_mask_performance  vector-debian  OK      563,406  353.3  101 MB  0.06%

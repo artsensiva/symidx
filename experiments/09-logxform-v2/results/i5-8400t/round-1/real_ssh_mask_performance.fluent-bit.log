@@ -1,0 +1,58 @@
+→ test=real_ssh_mask_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-real_ssh_mask_performance-2674011612_bench Creating 
+ Network bench-real_ssh_mask_performance-2674011612_bench Creating 
+ Network bench-real_ssh_mask_performance-2674011612_bench Created 
+ Network bench-real_ssh_mask_performance-2674011612_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 255,695 lines/s
+  lines in: 15,902,571  lines out: 15,824,166  loss: 0.49%
+  cpu: avg 137.9% max 140.4%  mem: avg 557 MB max 1084 MB
+  io throughput: avg 122.2 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 61.1s  recv: 61.1s  active: 61.9s  total: 68.5s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_mask_performance-2674011612_bench Removing 
+ Network bench-real_ssh_mask_performance-2674011612_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT     STATUS  EPS      CPU%   MEM     LOSS%
+real_ssh_mask_performance  fluent-bit  OK      255,695  137.9  557 MB  0.49%

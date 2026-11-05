@@ -1,0 +1,58 @@
+→ test=regex_mask_performance  subject=logxform-rust  version=dev  config=default
+  starting containers…
+ Network bench-regex_mask_performance-1710585339_bench Creating 
+ Network bench-regex_mask_performance-1710585339_bench Creating 
+ Network bench-regex_mask_performance-1710585339_bench Created 
+ Network bench-regex_mask_performance-1710585339_bench Created 
+ Container bench-subject-logxform-rust Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-logxform-rust Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-logxform-rust Starting 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-subject-logxform-rust Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-subject-logxform-rust Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/logxform-rust.json
+  throughput: 6,250,915 lines/s
+  lines in: 376,954,922  lines out: 376,954,922  loss: 0.00%
+  cpu: avg 234.3% max 275.9%  mem: avg 317 MB max 429 MB
+  io throughput: avg 6309.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.1s  recv: 60.3s  active: 60.3s  total: 68.1s
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-logxform-rust Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-logxform-rust Stopped 
+ Container bench-subject-logxform-rust Removing 
+ Container bench-subject-logxform-rust Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-regex_mask_performance-1710585339_bench Removing 
+ Network bench-regex_mask_performance-1710585339_bench Removed 
+
+Summary (1 run):
+TEST                    SUBJECT        STATUS  EPS        CPU%   MEM     LOSS%
+regex_mask_performance  logxform-rust  OK      6,250,915  234.3  317 MB  0.00%

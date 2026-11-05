@@ -1,0 +1,58 @@
+→ test=real_ssh_syslog_performance  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-real_ssh_syslog_performance-2044561806_bench Creating 
+ Network bench-real_ssh_syslog_performance-2044561806_bench Creating 
+ Network bench-real_ssh_syslog_performance-2044561806_bench Created 
+ Network bench-real_ssh_syslog_performance-2044561806_bench Created 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-collector Started 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting post-send receive grace (5s)…
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t/fluent-bit.json
+  throughput: 171,691 lines/s
+  lines in: 10,866,071  lines out: 10,700,981  loss: 1.52%
+  cpu: avg 129.9% max 131.5%  mem: avg 477 MB max 915 MB
+  io throughput: avg 94.4 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 61.4s  recv: 62.1s  active: 62.3s  total: 68.5s
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-collector Removed 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-real_ssh_syslog_performance-2044561806_bench Removing 
+ Network bench-real_ssh_syslog_performance-2044561806_bench Removed 
+
+Summary (1 run):
+TEST                         SUBJECT     STATUS  EPS      CPU%   MEM     LOSS%
+real_ssh_syslog_performance  fluent-bit  OK      171,691  129.9  477 MB  1.52%
