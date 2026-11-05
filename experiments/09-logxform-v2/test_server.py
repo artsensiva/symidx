@@ -256,6 +256,11 @@ def t_file_restart():
     assert wait(lambda: len(r.all()) == len(lines(0, 1000))); s.stop(); appendf(p, lines(1000, 1100)); os.rename(p, p + ".1"); appendf(p, lines(1100, 1200)); s.start()
     assert wait(lambda: r.all().count(b"\n") == 1200), r.all().count(b"\n"); time.sleep(0.3); eq(sorted(r.all().split()), sorted(lines(0, 1200).split()), "no duplicates or loss"); s.stop(); r.close()
 
+def t_file_exact_name():
+    d = f"{TMP}/f{next(ports)}"; po = next(ports); r = Recv(po); os.makedirs(d); p = d + "/input.log"; appendf(p, lines(0, 10)); s = file_srv(d, po, "input.log")
+    assert wait(lambda: r.all() == lines(0, 10)); shutil.copy(p, p + ".1"); os.truncate(p, 0); time.sleep(0.05); appendf(p, lines(10, 20))
+    assert wait(lambda: r.all() == lines(0, 20)), r.all(); time.sleep(0.2); eq(r.all(), lines(0, 20), "a copy isn't read again"); s.stop(); r.close()
+
 def t_bad_config():
     p = f"{TMP}/bad.conf"; open(p, "w").write("nonsense here\n"); eq(subprocess.run([BIN, "--config", p], stderr=subprocess.DEVNULL).returncode, 2)
     eq(subprocess.run([BIN], stderr=subprocess.DEVNULL).returncode, 2)

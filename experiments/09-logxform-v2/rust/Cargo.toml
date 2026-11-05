@@ -1,0 +1,14 @@
+[package]
+name = "logxform"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "=0.2.177"
+memchr = "=2.8.3"
+regex = "=1.12.2"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"

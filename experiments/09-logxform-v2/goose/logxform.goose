@@ -49,7 +49,7 @@ let SINK_NULL = 2;
 
 // Flat, so it can be handed to a worker.
 struct Cfg {
-    src: i64, port: i64, dir: u8[], prefix: u8[], data_dir: u8[],
+    src: i64, port: i64, dir: u8[], prefix: u8[], exact: bool, data_dir: u8[],
     xf: i64, pat: u8[], rep: u8[], key: u8[], val: u8[],
     sink: i64, host: u8[], sport: i64, path: u8[],
     disk: bool, buf_dir: u8[]
@@ -69,7 +69,7 @@ fn int_of(s: u8[:]) -> i64 {
 fn load(path: u8[:]) -> Cfg {
     var text: u8[>..] = [];
     guard read_file(path, text) else { fail(str("cannot read ", path)); }
-    var src = SRC_TCP; var port = 9000; var dir: u8[>..] = []; var prefix: u8[>..] = []; var data_dir: u8[>..] = [];
+    var src = SRC_TCP; var port = 9000; var dir: u8[>..] = []; var prefix: u8[>..] = []; var exact = true; var data_dir: u8[>..] = [];
     var xf = XF_NONE; var pat: u8[>..] = []; var rep: u8[>..] = []; var key: u8[>..] = []; var val: u8[>..] = [];
     var sink = SINK_TCP; var host: u8[>..] = []; var sport = 0; var hpath: u8[>..] = [];
     var disk = false; var buf_dir: u8[>..] = [];
@@ -82,7 +82,7 @@ fn load(path: u8[:]) -> Cfg {
             src = SRC_TCP;
             port = int_of(t[2]);
         } else if t[0] == "source" && t.len == 3 && t[1] == "file" {
-            // A directory and a name prefix: /data/input.log* follows every file named input.log...
+            // /data/input.log follows that name, and /data/input.log* every name starting with it.
             src = SRC_FILE;
             var slash = t[2].len - 1;
             while slash >= 0 && t[2][slash] != '/' { slash--; }
@@ -90,7 +90,8 @@ fn load(path: u8[:]) -> Cfg {
             dir.clear(); dir.append(t[2][..slash]);
             prefix.clear();
             var e = t[2].len;
-            if t[2][e - 1] == '*' { e--; }
+            exact = t[2][e - 1] != '*';
+            if !exact { e--; }
             prefix.append(t[2][slash + 1..e]);
         } else if t[0] == "data_dir" && t.len == 2 {
             data_dir.clear(); data_dir.append(t[1]);
@@ -114,7 +115,7 @@ fn load(path: u8[:]) -> Cfg {
             fail(str("bad config line: ", line));
         }
     }
-    return Cfg { src: src, port: port, dir: dir[..], prefix: prefix[..], data_dir: data_dir[..],
+    return Cfg { src: src, port: port, dir: dir[..], prefix: prefix[..], exact: exact, data_dir: data_dir[..],
                  xf: xf, pat: pat[..], rep: rep[..], key: key[..], val: val[..],
                  sink: sink, host: host[..], sport: sport, path: hpath[..],
                  disk: disk, buf_dir: buf_dir[..] };
@@ -804,7 +805,7 @@ fn serve_files(cfg: Cfg&) {
         var names: u8[>..] = [];
         if list_dir(cfg.dir, names) {
             for name in split(names[..], '\n') {
-                if name.len == 0 || !starts_with(name, cfg.prefix) { continue; }
+                if name.len == 0 || !starts_with(name, cfg.prefix) || (cfg.exact && name.len != cfg.prefix.len) { continue; }
                 let full = str(cfg.dir, "/", name);
                 let ino = lx_inode(full);
                 if ino < 0 || contains(seen[..], ino) { continue; }
