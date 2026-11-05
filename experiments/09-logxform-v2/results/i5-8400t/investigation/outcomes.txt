@@ -1,0 +1,22 @@
+Development reruns, never counted. Set 1:
+12:53 base-vector-tcp:  lines sent: 450,000 lines received: 417,668 loss: 7.18%
+12:56 base-fb-tcp:  lines sent: 450,000 lines received: 0 loss: 100.00%
+12:58 base-fb-http:  lines sent: 11,865,854 lines received: 6,997,514 loss: 41.03%
+12:59 base-vector-http:  lines sent: 2,170,597 lines received: 2,129,012 loss: 1.92%
+13:02 base-fb-trunc:  lines in: 29,951 lines out: 14,905 loss: 50.24%
+13:03 retry-fb-tcp-1:  lines sent: 450,000 lines received: 450,000 loss: 0.00%
+13:05 retry-fb-tcp-2:  lines sent: 450,000 lines received: 450,000 loss: 0.00%
+13:06 retry-fb-restart-1:  lines sent: 450,000 lines received: 449,715 loss: 0.06%
+13:08 retry-fb-restart-2:  lines sent: 450,000 lines received: 450,000 loss: 0.00%
+done
+Set 2:
+13:11 limit-fb-http-1:  lines sent: 12,786,918 lines received: 12,734,581 loss: 0.41%
+13:13 limit-fb-http-2:  lines sent: 13,136,795 lines received: 13,076,378 loss: 0.46%
+13:16 debug-fb-trunc:  lines in: 29,951 lines out: 14,905 loss: 50.24%
+13:18 stat-fb-trunc:  lines in: 29,951 lines out: 14,951 loss: 50.08%
+13:20 count-vector-tcp-1:  lines sent: 450,000 lines received: 389,930 loss: 13.35%
+count-vector-tcp-1 file sink lines: 389930
+13:21 count-vector-tcp-2:  lines sent: 450,000 lines received: 403,770 loss: 10.27%
+count-vector-tcp-2 file sink lines: 403770
+0
+done

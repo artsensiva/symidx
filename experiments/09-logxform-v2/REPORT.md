@@ -1,13 +1,14 @@
 # Experiment 9: results
 
-**Status: 3 of 3 rounds done for the frozen list of tests.** Still running: the correctness tests on Vector and Fluent Bit ([amendment A8](SPEC.md)). Independent hardware hasn't been tested, so this isn't the end of the evaluation.
+**Status: the local evaluation is finished, 3 of 3 rounds, including the correctness tests on Vector and Fluent Bit ([amendment A8](SPEC.md)).** Independent hardware hasn't been tested, and the tool configs need fixing first, so this isn't the end of the evaluation.
 
 This report covers logXform of Goose and a Rust version with the same design, against Vector and Fluent Bit, on the owner's i5-8400T. It is one machine, shared with the load generator and receiver, and PipeBench's maintainer sells a competing tool. These numbers can't be compared with PipeBench's published ones.
 
 ## What this does and doesn't show
 
-- Both of our servers passed all 66 correctness runs (11 tests, 3 rounds, 2 servers) and handled more lines per CPU core than Vector and Fluent Bit in every performance test.
-- **The size of that lead is not yet a trustworthy finding.** It is about 5 to 23 times on the tests with usable output. The owner's rule is that a large win over industry tools in realistic tests probably means an error in the method. The [audit](AUDIT.md) looked for one and found no single error, but the causes listed below remain, and no Vector or Fluent Bit expert has reviewed the tool configs. The lead is stable across rounds, which shows it repeats, not that it is fair.
+- Both of our servers passed all 66 correctness runs and handled more lines per CPU core than Vector and Fluent Bit in every performance test. In the same correctness tests, Vector passed 23 of 33 runs and Fluent Bit 21 of 33.
+- **Those passes don't show that our servers are more correct.** Reruns traced most of Fluent Bit's loss in three of its four failing tests to the configs PipeBench ships, and showed that Vector's lost lines on `tcp_to_tcp_persistent` never reached its sinks. See [Correctness on the tools](#correctness-on-the-tools).
+- **The size of that lead is not yet a trustworthy finding.** It is about 5 to 23 times on the tests with usable output. The owner's rule is that a large win over industry tools in realistic tests probably means an error in the method. The [audit](AUDIT.md) found no single error in the performance tests, but the correctness work has now found real faults in the shipped tool configs, the causes listed below remain, and no Vector or Fluent Bit expert has reviewed the configs. The lead is stable across rounds, which shows it repeats, not that it is fair.
 - **We lose on memory in four tests**, and two batch marks were missed.
 - **Goose and Rust are close, with no overall winner.** On 10 of 13 tests their median throughput is within 3%, and the other three have overlapping ranges. Each leads on some tests by a small margin.
 
@@ -25,7 +26,7 @@ The code was frozen at `e763a39` before any PipeBench round; see [FREEZE.md](FRE
 | Batch adversarial data: Python, Goose, Rust | 114 of 114 and 150 of 150 each |
 | Batch fuzz: Goose and Rust against Python | 20,000 cases, 0 failures |
 
-So far, correctness tests have run on our two servers only, so they say nothing about how Vector or Fluent Bit would score. That was an omission of mine, and amendment A8 adds them. PipeBench's published c7i.12xlarge results show Vector failing 3 of these 11 tests and Fluent Bit 4. On different hardware, and without looking into the causes, that can't be read as us being more correct than the tools.
+The frozen driver ran the correctness tests on our two servers only. That was an omission of mine, and amendment A8 added the tools.
 
 ## Batch tool marks
 
@@ -126,13 +127,51 @@ Both servers pass the competing bar from the spec, 1.3× better CPU per event on
 
 `tcp_to_blackhole` sends nothing out, so PipeBench shows 100% loss for every program, and its numbers show input handling only. On `set_field` our lines are 2 bytes longer than Vector's, cause not found. PipeBench's receiver only counts lines, so these runs don't verify content. Content was checked separately against Vector, as listed above.
 
+## Correctness on the tools
+
+These 66 runs used the configs PipeBench ships. All have results and different timestamps. They ran after the three rounds, not alongside our servers' runs.
+
+| Test | Goose | Rust | Vector | Vector loss % | Fluent Bit | Fluent Bit loss % |
+|---|---:|---:|---:|---:|---:|---:|
+| `file_rotate_create` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `file_rotate_truncate` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `file_truncate` | 3 of 3 | 3 of 3 | **2 of 3** | 0–0.7 | **0 of 3** | 50.1–50.2 |
+| `file_rotate_restart` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `tcp_to_tcp_persistent` | 3 of 3 | 3 of 3 | **0 of 3** | 2.7–10.6 | **0 of 3** | 90.4–100 |
+| `tcp_to_tcp_persistent_restart` | 3 of 3 | 3 of 3 | **0 of 3** | 7.0–10.7 | **0 of 3** | 100 |
+| `tcp_to_tcp_persistent_crash` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `disk_buffer_persistence` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `tcp_to_http_persistent` | 3 of 3 | 3 of 3 | **0 of 3** | 1.3–1.6 | **0 of 3** | 40.5–41.2 |
+| `sighup` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+| `wrapped_json` | 3 of 3 | 3 of 3 | 3 of 3 | 0 | 3 of 3 | 0 |
+
+The tools fail the same tests here as in PipeBench's published c7i.12xlarge results, so this machine isn't the cause.
+
+**Finding the causes.** These reruns changed one thing at a time. They are development runs under a separate label, they don't change the counted results above, and each has only one or two samples. The evidence is in [results/i5-8400t/investigation](results/i5-8400t/investigation).
+
+| Failure | Change tried | Loss after | What it shows |
+|---|---|---:|---|
+| Fluent Bit, `tcp_to_tcp_persistent`, 90–100% | Added `Retry_Limit false` | 0%, 0% | Caused by the config. It doesn't set `Retry_Limit`, and the log shows chunks given up with `cannot be retried` while the receiver is down |
+| Fluent Bit, `..._restart`, 100% | Same | 0.06%, 0% | Mostly the config. One run would still fail the 0% mark |
+| Fluent Bit, `tcp_to_http_persistent`, 41% | Raised `storage.total_limit_size` from 2G to 8G | 0.41%, 0.46% | Mostly the config. It already had `Retry_Limit false`, but capped storage below the roughly 3 GB sent. The rest is unexplained and would still fail |
+| Fluent Bit, `file_truncate`, 50% | Debug logging; polling instead of inotify | 50.24%, 50.08% | **Not explained.** Debug logging shows no truncation message. Goose and Rust pass, and Vector usually does, so the test can be passed |
+| Vector, `tcp_to_tcp_persistent`, 3–11% | Added a second sink, a file, to count lines | 13.35%, 10.27% | The file and TCP sinks got exactly the same counts: 389,930 and 403,770. So the lines never reached either sink, and the disk buffer and TCP sink aren't the cause. **Whether Vector or the test's generator is at fault is unknown** |
+
+Not investigated: Vector's `tcp_to_tcp_persistent_restart` and `tcp_to_http_persistent` losses, and its single 0.7% miss on `file_truncate`.
+
+**What follows from this:**
+
+- "We pass where they fail" isn't a fair claim, and this report doesn't make it. For Fluent Bit it would mostly compare our default behavior, which retries without limit and pushes back on the sender, with a shipped config that allows drops. For Vector the cause is still unknown.
+- This supports the owner's rule that a result like this probably points to a fault in the method. PipeBench's maintainer wrote these configs and sells a competing tool. We found no sign of intent, only that the configs can't be taken as the tools' best.
+- It raises a question this work hasn't answered: whether the performance configs also understate the tools. A retry limit wouldn't affect those runs, but they have had no expert review either.
+
 ## Why these numbers need care
 
 1. **`file_to_tcp` isn't a usable comparison for the tools.** In round 1 the generator wrote 50 to 57 GB in 60 seconds, and the run counts lines not yet delivered as lost. So the 94% and 99% figures are mostly backlog at the end of the window, not shown data loss. In round 1, Fluent Bit used only 0.09 cores and delivered 1.8 million lines, which looks like a stall rather than a CPU limit. Its cause isn't known, and it could be a problem in the test or our config for it.
 2. **Most tests run at saturation.** The generator sends as fast as it can. Real systems normally run below their limit, and CPU per event at a fixed lower rate is untested. Vector's and Fluent Bit's small losses at the end of each run may also come from the fixed window.
 3. **We do less work per event.** Our servers have no general event model, routing, TLS, metrics or memory buffers, and they use one timestamp per block. That accounts for an unknown share of the lead. This is a difference in product, not language.
 4. **Lighter delivery.** Our server opens one sink connection per input connection and counts a TCP write as delivered. Its disk buffer syncs at most every 500 ms. We haven't compared those guarantees with what Vector and Fluent Bit promise in their disk tests.
-5. **Tool configs are unreviewed.** Our Fluent Bit tuning attempts didn't help, and `Threaded on` delivered nothing, cause not found.
+5. **Tool configs are unreviewed, and some are demonstrably at fault** (see above). Our Fluent Bit tuning attempts on the performance tests didn't help, and `Threaded on` delivered nothing, cause not found.
 6. **Same machine.** The generator and receiver share the 6 cores with the program under test, and a faster program makes them work harder.
 
 [FAIRNESS.md](FAIRNESS.md) and [AUDIT.md](AUDIT.md) have the full reasoning.
@@ -163,10 +202,13 @@ The [fairness review](FAIRNESS.md) changed Rust before this run. It removed four
 - **Carry-over.** Runs start right after one another, so the 1-minute load before a run was often 3 to 20. Rotation spreads this across programs but doesn't remove it.
 - **Other programs.** VS Code and `codex` stayed open on the machine, each averaging a few percent of a core. I can't rule out other use of the machine during the run.
 - **My own activity during runs.** I read result files and ran small scripts during the last correctness run of round 1 and the first runs of round 2. One of my commands hung at about 06:53, for about 2 minutes, in a grep waiting on input. It didn't appear in the top CPU users at the time, but it overlapped round 2's `tcp_to_tcp`. I also committed the interim report during round 2's first tests. During round 2's correctness tests I wrote and stub-tested the tool script and committed it. Small scripts that wait for a finish ran throughout. I can't rule out a small effect on those runs, so they stay in with this note.
-- **A weakness in the frozen driver.** `take_result.py` takes the last stored result for a test, so a run that timed out could have repeated an earlier round's numbers. All 228 timestamps differ, so that didn't happen. The new tool script stores each round separately.
+- **Tool correctness runs** came after the frozen rounds, on the same PipeBench commit and images. These tests are pass or fail and light on CPU, but I can't rule out other use of the machine then either.
+- **A weakness in the frozen driver.** `take_result.py` takes the last stored result for a test, so a run that timed out could have repeated an earlier round's numbers. All 228 timestamps differ, so that didn't happen. The tool script stores each round separately, and its 66 timestamps differ too.
 
 ## Not done yet
 
-- The correctness tests on Vector and Fluent Bit (amendment A8).
-- Independent hardware. `third_party.sh` has never been run end to end, and renting the c7i.4xlarge is the owner's decision.
-- Expert review of the Vector and Fluent Bit configs, also the owner's decision, since it means asking publicly.
+- Corrected tool configs, in a new freeze with new runs, since the fixes above aren't counted.
+- Expert review of the Vector and Fluent Bit configs. This is the owner's decision, since it means asking publicly.
+- A test at a fixed, lower rate.
+- The cause of our high memory on `tcp_to_tcp`, `regex_mask` and the disk tests, and of Vector's lost lines and Fluent Bit's `file_truncate` failure.
+- Independent hardware. `third_party.sh` has never been run end to end, and renting the c7i.4xlarge is the owner's decision. Running it before the configs are fixed would repeat the same faults.

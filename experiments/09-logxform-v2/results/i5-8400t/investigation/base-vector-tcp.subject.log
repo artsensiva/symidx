@@ -1,0 +1,9 @@
+2026-11-05T11:52:27.231999Z  INFO vector::app: Log level is enabled. level="info"
+2026-11-05T11:52:27.232723Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.toml"]
+2026-11-05T11:52:27.239480Z  INFO vector::topology::running: Running healthchecks.
+2026-11-05T11:52:27.239812Z  INFO source{component_kind="source" component_id=in component_type=socket}: vector::sources::util::net::tcp: Listening. addr=0.0.0.0:9000
+2026-11-05T11:52:27.239927Z  INFO vector: Vector has started. debug="false" version="0.54.0" arch="x86_64" revision="2b8b875 2026-03-10 15:47:37.284215410"
+2026-11-05T11:52:27.239940Z  INFO vector::app: API is disabled, enable by setting `api.enabled` to `true` and use commands like `vector top`.
+2026-11-05T11:52:32.243634Z ERROR vector::topology::builder: msg="Healthcheck failed." error=Unable to resolve DNS: Unable to resolve name: failed to lookup address information: Try again component_kind="sink" component_type="socket" component_id=out
+2026-11-05T11:52:32.548439Z ERROR sink{component_kind="sink" component_id=out component_type=socket}: vector::internal_events::common: Unable to connect. error=Unable to resolve DNS: Unable to resolve name: failed to lookup address information: Try again error_code="failed_connecting" error_type="connection_failed" stage="sending"
+2026-11-05T11:52:38.055883Z ERROR sink{component_kind="sink" component_id=out component_type=socket}: vector::internal_events::common: Internal log [Unable to connect.] is being suppressed to avoid flooding.

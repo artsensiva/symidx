@@ -119,3 +119,7 @@ Its numbers stand as what they were, but it can't be quoted as a comparison with
 
 - **Fluent Bit's lost reject:** on the 2 MiB rejected line, the rejects file was wrong in 4 of 25 runs with `Grace 1`, and in 4 of 25 with `Grace 5`. So more grace time doesn't fix it. We didn't find the cause, and it could lie in our configuration or wrapper rather than in the tool.
 - **Feature table:** the table above covers the server. The batch programs in the pilot have none of those features except atomic output and backpressure from reading at their own pace.
+
+## Added after the evaluation
+
+This audit found no single error in the performance tests. The correctness runs later found faults in the configs PipeBench ships. Fluent Bit's `tcp_to_tcp` persistence configs let it give up on data, and its HTTP config caps storage below what the test sends. See the [report](REPORT.md#correctness-on-the-tools). That doesn't show the performance configs are at fault, but they can't be treated as the tools' best until someone who knows the tools has reviewed them.

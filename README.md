@@ -219,6 +219,7 @@ Each stage's verdict, newest last. Time spent is in [DEVLOG.md](DEVLOG.md), and 
 | **Independent reviews** | Results and plan, from outside | Found a miscompilation in F3 (fixed) and several overclaims (corrected). Compiler work paused, and one bounded pilot chosen | [latest](Symidx_Audit_04-11-2026.md), [status](AUDIT.md) |
 | **Native Fluent Bit config** | Whether a better config narrows experiment 4's gap | It doesn't. Fluent Bit: 13.5 MB/s with Lua, 10.5 MB/s native. logXform of Goose: 215 MB/s | [REPORT](experiments/04-vs-tools/REPORT.md) |
 | **Pilot** | One real workflow, in Goose and Rust, against the tools and Python | In progress. Session 2 of 2, on one core: logXform of Goose 198 MB/s, Rust 233, Python 12.9, Fluent Bit 12.7, Vector 5.8. Rust's lead there is mostly run order: about 2% in a diagnostic. No reason to prefer Goose is measured yet | [SPEC](experiments/07-pilot/SPEC.md), [results](experiments/07-pilot/RESULTS.md), [builds](experiments/07-pilot/BUILD.md) |
+| **Experiment 9** | logXform of Goose and a Rust version as servers in PipeBench, frozen before any round, 3 rounds on one machine | Goose and Rust are close. Both handle about 5 to 23 times as many lines per core as the better tool, an unconfirmed lead, and lose on memory in four tests. Most of Fluent Bit's correctness failures trace to PipeBench's shipped configs. Not yet on independent hardware. [Report](experiments/09-logxform-v2/REPORT.md) |
 
 **Overall, so far:** a fixed-purpose log tool beats these tool configurations by a wide margin, and Goose and Rust are about level on one core. Nothing yet shows a Goose tool is better than a Rust one, or that anyone wants this tool. The pilot is meant to test that.
 
@@ -230,6 +231,7 @@ The long-term goal is products on Goose that compete with `serde` + arenas and P
 - **Done:** logXform of Goose against the real tools, including a native Fluent Bit config, which is slower than its Lua config, so the gap stays ([experiment 4](experiments/04-vs-tools/REPORT.md)), cheap fixes ([experiment 5](experiments/05-goose-fixes/PLAN.md)), verified loading and layouts ([experiment 3](experiments/03-goose-patches/PLAN.md)), and the corrections from the review.
 - **Next:** the [pilot](experiments/07-pilot/SPEC.md): sanitize rotated logs for an analytics store, in Goose and in Rust, against the tools and Python, with one change request set in advance.
 - **After the pilot:** [experiment 8](experiments/08-pipebench/PLAN.md): logXform of Goose and a Rust version in PipeBench, a third-party benchmark, beside Vector and Fluent Bit.
+- **Latest:** [experiment 9](experiments/09-logxform-v2/REPORT.md) carried this out on one machine. Next: corrected tool configs, a fixed-rate test, then independent hardware.
 - **Paused:** the six-core work ([experiment 6](experiments/06-parallelism/PLAN.md)), embedding (asked on [goose#63](https://github.com/aardappel/goose/issues/63#issuecomment-6620530555)), and all compiler work ([docs/GOOSE_IMPROVEMENT_PLAN.md](docs/GOOSE_IMPROVEMENT_PLAN.md)).
 
 For outside review: [AUDIT.md](AUDIT.md) (scope, reproduction, findings and their status, questions) and
@@ -280,7 +282,8 @@ experiments/04-vs-tools/  logXform of Goose against Fluent Bit and Vector: SPEC,
 experiments/05-goose-fixes/  single-thread fixes, the fairness check, the consolidated run; data/
 experiments/06-parallelism/  why six threads stall: stage timers, queue benchmark, scaling; a proposal; on hold; data/
 experiments/07-pilot/  the pilot: spec, oracle, programs in Goose and Rust, Fluent Bit and Vector pipelines and wrapper, build notes, results
-experiments/08-pipebench/  planned: logXform of Goose and Rust in a third-party benchmark, after the pilot
+experiments/08-pipebench/  the plan for a third-party benchmark, carried out locally as experiment 9
+experiments/09-logxform-v2/  logXform of Goose and Rust as servers in PipeBench: SPEC, REPORT, results/
 Symidx_Audit_*.md      independent reviews, verbatim
 .github/workflows/     CI: build, checksums, warm and cold benchmarks on Linux and macOS
 CLAUDE.md, DEVLOG.md   project brief and time log;  CHANGELOG.md  releases

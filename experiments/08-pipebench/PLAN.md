@@ -1,5 +1,7 @@
 # Experiment 8: logXform of Goose in a third-party pipeline benchmark
 
+**Status: carried out locally as [experiment 9](../09-logxform-v2/REPORT.md). Independent hardware hasn't been tested.**
+
 **Status: planned, 2026-11-04. Starts after the pilot's report.** This is a separate experiment with its own effort limit, so it doesn't change the [pilot's](../07-pilot/SPEC.md) frozen rules.
 
 ## Why

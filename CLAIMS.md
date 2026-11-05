@@ -69,3 +69,17 @@ Note on P11: the claim rests on a development-log observation, not a recorded be
 | G16 | F3's bug is fixed; base and patched compilers fail the same tests by name | report "Changes implemented" | `experiments/05-goose-fixes/check_f3.sh`, `compare_tests.py`, `data/suite-comparison.txt`. Tests, not a proof |
 | G17 | A native Fluent Bit config doesn't narrow the gap † | report "Analysis" | `experiments/04-vs-tools/data/native/`: CPU per GB 3.8 (Goose), 71.6 (Lua), 93.2 (native), summing per-format medians; `data/correctness.txt` |
 | G18 | Pilot, two sessions, one core: Rust is about 2–3% faster than logXform of Goose on HDFS, as a diagnostic shows; 0.84× as measured in session 2 is mostly run order, and stands as a near miss. Both are at least 6× the best alternative on CPU per GB, per format | [RESULTS](experiments/07-pilot/RESULTS.md) | `experiments/07-pilot/data/session1/`, `session2/`, `wall-check/`, `summarize.py`; correctness in `check_oracle.py` and `data/oracle-*.txt` |
+
+## Experiment 9
+
+Evidence is in `experiments/09-logxform-v2/results/i5-8400t/`. One machine, not independent.
+
+| # | Claim | Where | Evidence |
+|---|---|---|---|
+| L1 | Goose and Rust servers are close: median throughput within 3% on 10 of 13 tests, no overall winner | report "Goose and Rust" | `round-*/*_performance.logxform-*.json` |
+| L2 | Both handle about 5 to 23 times as many lines per core as the better tool; size unconfirmed | report "PipeBench, 3 rounds" and "Why these numbers need care" | `round-*/*_performance.*.json` |
+| L3 | Both lose on memory to Vector on `tcp_to_tcp` and `regex_mask`, and to both tools on the two disk tests | report "Peak memory" | same |
+| L4 | Two batch marks were missed: 12.9% against 10%, and 0.897× against 0.9× | report "Batch tool marks" | `batch-hdfs.csv`, `batch-bgl.csv`, `batch.log` |
+| L5 | In shipped configs Goose and Rust passed 66 of 66 correctness runs, Vector 23 of 33, Fluent Bit 21 of 33; this doesn't show ours are more correct | report "Correctness on the tools" | `round-*/*_correctness.*.json` |
+| L6 | Most of Fluent Bit's loss in three failing tests comes from the shipped configs (development runs, 2 samples each) | same | `investigation/outcomes.txt`, `investigation/set1.sh`, `investigation/set2.sh` |
+| L7 | Vector's lost lines on `tcp_to_tcp_persistent` never reached a sink (development runs, 2 samples); cause unknown | same | `investigation/outcomes.txt` |

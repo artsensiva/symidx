@@ -1,0 +1,391 @@
+Fluent Bit v5.0.11
+* Copyright (C) 2015-2026 The Fluent Bit Authors
+* Fluent Bit is a CNCF graduated project under the Fluent organization
+* https://fluentbit.io
+
+______ _                  _    ______ _ _           _____  _____ 
+|  ___| |                | |   | ___ (_) |         |  ___||  _  |
+| |_  | |_   _  ___ _ __ | |_  | |_/ /_| |_  __   _|___ \ | |/' |
+|  _| | | | | |/ _ \ '_ \| __| | ___ \ | __| \ \ / /   \ \|  /| |
+| |   | | |_| |  __/ | | | |_  | |_/ / | |_   \ V //\__/ /\ |_/ /
+\_|   |_|\__,_|\___|_| |_|\__| \____/|_|\__|   \_/ \____(_)\___/
+
+
+[2026/11/05 11:53:51.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.640] [ warn] [engine] failed to flush chunk '1-1793879630.676569184.flb', retry in 9 seconds: task_id=1, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.640] [ warn] [engine] failed to flush chunk '1-1793879630.665356978.flb', retry in 6 seconds: task_id=0, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.641] [ warn] [engine] failed to flush chunk '1-1793879630.699833638.flb', retry in 11 seconds: task_id=3, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.641] [ warn] [engine] failed to flush chunk '1-1793879630.690193856.flb', retry in 7 seconds: task_id=2, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.641] [ warn] [engine] failed to flush chunk '1-1793879630.718398128.flb', retry in 6 seconds: task_id=5, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [engine] failed to flush chunk '1-1793879630.783990578.flb', retry in 10 seconds: task_id=7, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [engine] failed to flush chunk '1-1793879630.708916875.flb', retry in 11 seconds: task_id=4, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.642] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.642] [ warn] [engine] failed to flush chunk '1-1793879630.774300196.flb', retry in 8 seconds: task_id=6, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.643] [ warn] [engine] failed to flush chunk '1-1793879630.793158667.flb', retry in 7 seconds: task_id=8, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [engine] failed to flush chunk '1-1793879630.802330015.flb', retry in 11 seconds: task_id=9, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.643] [ warn] [engine] failed to flush chunk '1-1793879630.811428844.flb', retry in 9 seconds: task_id=10, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.643] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.643] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.644] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.644] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.644] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.644] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.644] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.644] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.644] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.644] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.644] [ warn] [engine] failed to flush chunk '1-1793879630.883161553.flb', retry in 8 seconds: task_id=12, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.644] [ warn] [engine] failed to flush chunk '1-1793879630.874028152.flb', retry in 6 seconds: task_id=11, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.892552369.flb', retry in 7 seconds: task_id=13, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.645] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.645] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.645] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.901842854.flb', retry in 9 seconds: task_id=14, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.911011662.flb', retry in 7 seconds: task_id=15, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.928887151.flb', retry in 10 seconds: task_id=17, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.919995701.flb', retry in 9 seconds: task_id=16, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.967829923.flb', retry in 9 seconds: task_id=18, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.645] [ warn] [engine] failed to flush chunk '1-1793879630.976479441.flb', retry in 10 seconds: task_id=19, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.646] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879630.985662253.flb', retry in 8 seconds: task_id=20, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879631.3053670.flb', retry in 8 seconds: task_id=22, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879630.994292755.flb', retry in 11 seconds: task_id=21, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879631.75737908.flb', retry in 8 seconds: task_id=24, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879631.66905111.flb', retry in 6 seconds: task_id=23, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.646] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.646] [ warn] [engine] failed to flush chunk '1-1793879631.84617635.flb', retry in 8 seconds: task_id=25, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.647] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.647] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.93357822.flb', retry in 6 seconds: task_id=26, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.647] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.102283933.flb', retry in 11 seconds: task_id=27, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.120637028.flb', retry in 9 seconds: task_id=29, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.111858875.flb', retry in 11 seconds: task_id=28, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.129100478.flb', retry in 8 seconds: task_id=30, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.647] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.171577882.flb', retry in 11 seconds: task_id=31, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.647] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.647] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.647] [ warn] [engine] failed to flush chunk '1-1793879631.180463143.flb', retry in 7 seconds: task_id=32, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.648] [ warn] [engine] failed to flush chunk '1-1793879631.197360596.flb', retry in 8 seconds: task_id=34, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.648] [ warn] [engine] failed to flush chunk '1-1793879631.269978551.flb', retry in 8 seconds: task_id=36, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.648] [ warn] [engine] failed to flush chunk '1-1793879631.189016627.flb', retry in 6 seconds: task_id=33, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.648] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [engine] failed to flush chunk '1-1793879631.374146469.flb', retry in 7 seconds: task_id=44, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [engine] failed to flush chunk '1-1793879631.287022690.flb', retry in 7 seconds: task_id=38, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.650] [ warn] [engine] failed to flush chunk '1-1793879631.312553185.flb', retry in 11 seconds: task_id=41, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.650] [ warn] [engine] failed to flush chunk '1-1793879631.400644861.flb', retry in 8 seconds: task_id=47, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.650] [ warn] [engine] failed to flush chunk '1-1793879631.295244325.flb', retry in 9 seconds: task_id=39, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.329203530.flb', retry in 11 seconds: task_id=43, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.382924822.flb', retry in 6 seconds: task_id=45, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.278597871.flb', retry in 10 seconds: task_id=37, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.473997127.flb', retry in 9 seconds: task_id=49, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.526981358.flb', retry in 9 seconds: task_id=55, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [engine] failed to flush chunk '1-1793879631.586396870.flb', retry in 11 seconds: task_id=57, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.652] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.652] [ warn] [engine] failed to flush chunk '1-1793879631.509407898.flb', retry in 7 seconds: task_id=53, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.652] [ warn] [engine] failed to flush chunk '1-1793879631.491842546.flb', retry in 7 seconds: task_id=51, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.652] [ warn] [engine] failed to flush chunk '1-1793879631.604804278.flb', retry in 7 seconds: task_id=59, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.653] [ warn] [engine] failed to flush chunk '1-1793879631.205456291.flb', retry in 7 seconds: task_id=35, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.653] [ warn] [engine] failed to flush chunk '1-1793879631.622859278.flb', retry in 8 seconds: task_id=61, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.654] [ warn] [engine] failed to flush chunk '1-1793879631.409564193.flb', retry in 8 seconds: task_id=48, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.654] [ warn] [engine] failed to flush chunk '1-1793879631.304024566.flb', retry in 8 seconds: task_id=40, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.654] [ warn] [engine] failed to flush chunk '1-1793879631.391873223.flb', retry in 10 seconds: task_id=46, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.654] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:51.654] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:51.655] [ warn] [engine] failed to flush chunk '1-1793879631.518243511.flb', retry in 10 seconds: task_id=54, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.655] [ warn] [engine] failed to flush chunk '1-1793879631.321019416.flb', retry in 10 seconds: task_id=42, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.655] [ warn] [engine] failed to flush chunk '1-1793879631.500423856.flb', retry in 10 seconds: task_id=52, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.655] [ warn] [engine] failed to flush chunk '1-1793879631.483045050.flb', retry in 7 seconds: task_id=50, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.656] [ warn] [engine] failed to flush chunk '1-1793879631.568739209.flb', retry in 11 seconds: task_id=56, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.656] [ warn] [engine] failed to flush chunk '1-1793879631.614465059.flb', retry in 6 seconds: task_id=60, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.656] [ warn] [engine] failed to flush chunk '1-1793879631.596163215.flb', retry in 11 seconds: task_id=58, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:51.656] [ warn] [engine] failed to flush chunk '1-1793879631.631011589.flb', retry in 7 seconds: task_id=62, input=tcp.0 > output=tcp.0 (out_id=0)
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [engine] chunk '1-1793879631.614465059.flb' cannot be retried: task_id=60, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:57.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:57.641] [error] [engine] chunk '1-1793879631.382924822.flb' cannot be retried: task_id=45, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.641] [error] [engine] chunk '1-1793879630.665356978.flb' cannot be retried: task_id=0, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.642] [error] [engine] chunk '1-1793879630.718398128.flb' cannot be retried: task_id=5, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.642] [error] [engine] chunk '1-1793879630.874028152.flb' cannot be retried: task_id=11, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.643] [error] [engine] chunk '1-1793879631.93357822.flb' cannot be retried: task_id=26, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.643] [error] [engine] chunk '1-1793879631.189016627.flb' cannot be retried: task_id=33, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:57.644] [error] [engine] chunk '1-1793879631.66905111.flb' cannot be retried: task_id=23, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [error] [engine] chunk '1-1793879630.690193856.flb' cannot be retried: task_id=2, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:58.641] [error] [engine] chunk '1-1793879630.892552369.flb' cannot be retried: task_id=13, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:58.641] [error] [engine] chunk '1-1793879631.287022690.flb' cannot be retried: task_id=38, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.642] [error] [engine] chunk '1-1793879631.374146469.flb' cannot be retried: task_id=44, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.642] [error] [engine] chunk '1-1793879631.491842546.flb' cannot be retried: task_id=51, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.643] [error] [engine] chunk '1-1793879630.793158667.flb' cannot be retried: task_id=8, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.643] [error] [engine] chunk '1-1793879631.509407898.flb' cannot be retried: task_id=53, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.644] [error] [engine] chunk '1-1793879630.911011662.flb' cannot be retried: task_id=15, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.644] [error] [engine] chunk '1-1793879631.180463143.flb' cannot be retried: task_id=32, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.645] [error] [engine] chunk '1-1793879631.483045050.flb' cannot be retried: task_id=50, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.645] [error] [engine] chunk '1-1793879631.205456291.flb' cannot be retried: task_id=35, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.646] [error] [engine] chunk '1-1793879631.631011589.flb' cannot be retried: task_id=62, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:58.646] [error] [engine] chunk '1-1793879631.604804278.flb' cannot be retried: task_id=59, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [error] [engine] chunk '1-1793879630.774300196.flb' cannot be retried: task_id=6, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.641] [error] [engine] chunk '1-1793879631.409564193.flb' cannot be retried: task_id=48, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.641] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:53:59.641] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:53:59.641] [error] [engine] chunk '1-1793879630.883161553.flb' cannot be retried: task_id=12, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.642] [error] [engine] chunk '1-1793879631.400644861.flb' cannot be retried: task_id=47, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.642] [error] [engine] chunk '1-1793879631.622859278.flb' cannot be retried: task_id=61, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.643] [error] [engine] chunk '1-1793879631.304024566.flb' cannot be retried: task_id=40, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.643] [error] [engine] chunk '1-1793879631.3053670.flb' cannot be retried: task_id=22, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.644] [error] [engine] chunk '1-1793879631.129100478.flb' cannot be retried: task_id=30, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.644] [error] [engine] chunk '1-1793879631.75737908.flb' cannot be retried: task_id=24, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.645] [error] [engine] chunk '1-1793879631.84617635.flb' cannot be retried: task_id=25, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.645] [error] [engine] chunk '1-1793879631.269978551.flb' cannot be retried: task_id=36, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.646] [error] [engine] chunk '1-1793879631.197360596.flb' cannot be retried: task_id=34, input=tcp.0 > output=tcp.0
+[2026/11/05 11:53:59.646] [error] [engine] chunk '1-1793879630.985662253.flb' cannot be retried: task_id=20, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [error] [engine] chunk '1-1793879631.295244325.flb' cannot be retried: task_id=39, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [error] [engine] chunk '1-1793879630.901842854.flb' cannot be retried: task_id=14, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:00.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:00.641] [error] [engine] chunk '1-1793879630.811428844.flb' cannot be retried: task_id=10, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.641] [error] [engine] chunk '1-1793879630.676569184.flb' cannot be retried: task_id=1, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.642] [error] [engine] chunk '1-1793879631.473997127.flb' cannot be retried: task_id=49, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.643] [error] [engine] chunk '1-1793879631.526981358.flb' cannot be retried: task_id=55, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.643] [error] [engine] chunk '1-1793879630.967829923.flb' cannot be retried: task_id=18, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.644] [error] [engine] chunk '1-1793879630.919995701.flb' cannot be retried: task_id=16, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:00.644] [error] [engine] chunk '1-1793879631.120637028.flb' cannot be retried: task_id=29, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.639] [error] [engine] chunk '1-1793879630.783990578.flb' cannot be retried: task_id=7, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.640] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:01.640] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:01.640] [error] [engine] chunk '1-1793879631.278597871.flb' cannot be retried: task_id=37, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.641] [error] [engine] chunk '1-1793879631.518243511.flb' cannot be retried: task_id=54, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.641] [error] [engine] chunk '1-1793879631.391873223.flb' cannot be retried: task_id=46, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.642] [error] [engine] chunk '1-1793879630.928887151.flb' cannot be retried: task_id=17, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.642] [error] [engine] chunk '1-1793879631.321019416.flb' cannot be retried: task_id=42, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.642] [error] [engine] chunk '1-1793879630.976479441.flb' cannot be retried: task_id=19, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:01.643] [error] [engine] chunk '1-1793879631.500423856.flb' cannot be retried: task_id=52, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.639] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.639] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.648] [error] [engine] chunk '1-1793879630.708916875.flb' cannot be retried: task_id=4, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.649] [error] [engine] chunk '1-1793879630.699833638.flb' cannot be retried: task_id=3, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.649] [error] [engine] chunk '1-1793879630.802330015.flb' cannot be retried: task_id=9, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.649] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.649] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.650] [error] [engine] chunk '1-1793879631.102283933.flb' cannot be retried: task_id=27, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.650] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.650] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.651] [ warn] [net] getaddrinfo(host='receiver', err=11): Could not contact DNS servers
+[2026/11/05 11:54:02.651] [error] [output:tcp:tcp.0] no upstream connections available to receiver:9001
+[2026/11/05 11:54:02.651] [error] [engine] chunk '1-1793879630.994292755.flb' cannot be retried: task_id=21, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.651] [error] [engine] chunk '1-1793879631.111858875.flb' cannot be retried: task_id=28, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.652] [error] [engine] chunk '1-1793879631.312553185.flb' cannot be retried: task_id=41, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.652] [error] [engine] chunk '1-1793879631.171577882.flb' cannot be retried: task_id=31, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.653] [error] [engine] chunk '1-1793879631.329203530.flb' cannot be retried: task_id=43, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.653] [error] [engine] chunk '1-1793879631.596163215.flb' cannot be retried: task_id=58, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.654] [error] [engine] chunk '1-1793879631.568739209.flb' cannot be retried: task_id=56, input=tcp.0 > output=tcp.0
+[2026/11/05 11:54:02.654] [error] [engine] chunk '1-1793879631.586396870.flb' cannot be retried: task_id=57, input=tcp.0 > output=tcp.0

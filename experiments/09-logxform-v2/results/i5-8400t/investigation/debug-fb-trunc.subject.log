@@ -1,0 +1,261 @@
+Fluent Bit v5.0.11
+* Copyright (C) 2015-2026 The Fluent Bit Authors
+* Fluent Bit is a CNCF graduated project under the Fluent organization
+* https://fluentbit.io
+
+______ _                  _    ______ _ _           _____  _____ 
+|  ___| |                | |   | ___ (_) |         |  ___||  _  |
+| |_  | |_   _  ___ _ __ | |_  | |_/ /_| |_  __   _|___ \ | |/' |
+|  _| | | | | |/ _ \ '_ \| __| | ___ \ | __| \ \ / /   \ \|  /| |
+| |   | | |_| |  __/ | | | |_  | |_/ / | |_   \ V //\__/ /\ |_/ /
+\_|   |_|\__,_|\___|_| |_|\__| \____/|_|\__|   \_/ \____(_)\___/
+
+
+[2026/11/05 12:13:42.616] [ info] Configuration:
+[2026/11/05 12:13:42.616] [ info]  flush time     | 1.000000 seconds
+[2026/11/05 12:13:42.616] [ info]  grace          | 5 seconds
+[2026/11/05 12:13:42.616] [ info]  daemon         | 0
+[2026/11/05 12:13:42.616] [ info] ___________
+[2026/11/05 12:13:42.616] [ info]  inputs:
+[2026/11/05 12:13:42.616] [ info]      tail
+[2026/11/05 12:13:42.616] [ info] ___________
+[2026/11/05 12:13:42.616] [ info]  filters:
+[2026/11/05 12:13:42.616] [ info] ___________
+[2026/11/05 12:13:42.616] [ info]  outputs:
+[2026/11/05 12:13:42.616] [ info]      tcp.0
+[2026/11/05 12:13:42.616] [ info] ___________
+[2026/11/05 12:13:42.616] [ info]  collectors:
+[2026/11/05 12:13:42.616] [ info] [fluent bit] version=5.0.11, commit=25931c7c99, pid=1
+[2026/11/05 12:13:42.616] [debug] [engine] coroutine stack size: 24576 bytes (24.0K)
+[2026/11/05 12:13:42.616] [ info] [storage] ver=1.5.4, type=memory, sync=normal, checksum=off, max_chunks_up=128
+[2026/11/05 12:13:42.616] [ info] [simd    ] SSE2
+[2026/11/05 12:13:42.616] [ info] [cmetrics] version=2.1.5
+[2026/11/05 12:13:42.616] [ info] [ctraces ] version=0.7.1
+[2026/11/05 12:13:42.617] [ info] [input:tail:tail.0] initializing
+[2026/11/05 12:13:42.617] [ info] [input:tail:tail.0] storage_strategy='memory' (memory only)
+[2026/11/05 12:13:42.617] [debug] [tail:tail.0] created event channels: read=21 write=22
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] flb_tail_fs_inotify_init() initializing inotify tail input
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] inotify watch fd=27
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] scanning path /data/input.log
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] cannot read info from: /data/input.log
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] 0 new files found on path '/data/input.log'
+[2026/11/05 12:13:42.617] [debug] [tcp:tcp.0] created event channels: read=28 write=29
+[2026/11/05 12:13:42.617] [ info] [sp] stream processor started
+[2026/11/05 12:13:42.617] [ info] [engine] Shutdown Grace Period=5, Shutdown Input Grace Period=2
+[2026/11/05 12:13:42.617] [debug] [input:tail:tail.0] [static files] processed 0b, done
+[2026/11/05 12:13:42.617] [ info] [output:tcp:tcp.0] worker #0 started
+[2026/11/05 12:13:42.618] [ info] [output:tcp:tcp.0] worker #1 started
+[2026/11/05 12:14:41.638] [debug] [input:tail:tail.0] scanning path /data/input.log
+[2026/11/05 12:14:41.638] [debug] [input:tail:tail.0] file will be read in POSIX_FADV_DONTNEED mode /data/input.log
+[2026/11/05 12:14:41.638] [debug] [input:tail:tail.0] inode=3018612 with offset=0 appended as /data/input.log
+[2026/11/05 12:14:41.638] [debug] [input:tail:tail.0] scan_glob add(): /data/input.log, inode 3018612
+[2026/11/05 12:14:41.638] [debug] [input:tail:tail.0] 1 new files found on path '/data/input.log'
+[2026/11/05 12:14:41.649] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.649] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.649] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.650] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.650] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.650] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.651] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.651] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.651] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.652] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.652] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.652] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.653] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.653] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.653] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.653] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.654] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.654] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.654] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.655] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.655] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.655] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.655] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.656] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.656] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.656] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.657] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.657] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.658] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.658] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.658] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.659] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.659] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.659] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.660] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.660] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.660] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.661] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.661] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.661] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.661] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.662] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.662] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.662] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.663] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.663] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.663] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.664] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.664] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.664] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.665] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.665] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.665] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.665] [debug] [input:tail:tail.0] [static files] processed 31.9K
+[2026/11/05 12:14:41.666] [debug] [input:tail:tail.0] [static files] processed 6.8K
+[2026/11/05 12:14:41.666] [debug] [input:tail:tail.0] inode=3018612 file=/data/input.log promote to TAIL_EVENT
+[2026/11/05 12:14:41.666] [ info] [input:tail:tail.0] inotify_fs_add(): inode=3018612 watch_fd=1 name=/data/input.log
+[2026/11/05 12:14:41.666] [debug] [input:tail:tail.0] [static files] processed 0b, done
+[2026/11/05 12:14:42.162] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:42.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:42.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:42.639] [debug] [upstream] KA connection #60 to receiver:9001 is connected
+[2026/11/05 12:14:42.656] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:42.656] [debug] [out flush] cb_destroy coro_id=0
+[2026/11/05 12:14:42.656] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:42.663] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:43.162] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:43.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:43.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:43.639] [debug] [upstream] KA connection #61 to receiver:9001 is connected
+[2026/11/05 12:14:43.640] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:43.640] [debug] [out flush] cb_destroy coro_id=0
+[2026/11/05 12:14:43.640] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:43.763] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:44.263] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:44.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:44.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:44.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:44.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:44.639] [debug] [out flush] cb_destroy coro_id=1
+[2026/11/05 12:14:44.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:44.763] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:45.263] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:45.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:45.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:45.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:45.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:45.639] [debug] [out flush] cb_destroy coro_id=1
+[2026/11/05 12:14:45.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:45.762] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:46.263] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:46.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:46.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:46.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:46.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:46.639] [debug] [out flush] cb_destroy coro_id=2
+[2026/11/05 12:14:46.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:46.762] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:47.262] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:47.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:47.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:47.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:47.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:47.639] [debug] [out flush] cb_destroy coro_id=2
+[2026/11/05 12:14:47.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:47.762] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:48.263] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:48.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:48.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:48.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:48.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:48.639] [debug] [out flush] cb_destroy coro_id=3
+[2026/11/05 12:14:48.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:48.863] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:49.363] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:49.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:49.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:49.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:49.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:49.639] [debug] [out flush] cb_destroy coro_id=3
+[2026/11/05 12:14:49.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:49.863] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:50.363] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:50.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:50.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:50.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:50.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:50.639] [debug] [out flush] cb_destroy coro_id=4
+[2026/11/05 12:14:50.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:50.863] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:51.362] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:51.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:51.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:51.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:51.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:51.639] [debug] [out flush] cb_destroy coro_id=4
+[2026/11/05 12:14:51.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:51.863] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:52.363] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:52.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:52.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:52.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:52.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:52.639] [debug] [out flush] cb_destroy coro_id=5
+[2026/11/05 12:14:52.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:52.862] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:53.362] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:53.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:53.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:53.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:53.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:53.639] [debug] [out flush] cb_destroy coro_id=5
+[2026/11/05 12:14:53.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:53.963] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:54.463] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:54.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:54.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:54.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:54.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:54.639] [debug] [out flush] cb_destroy coro_id=6
+[2026/11/05 12:14:54.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:54.962] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:55.463] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:55.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:55.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:55.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:55.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:55.639] [debug] [out flush] cb_destroy coro_id=6
+[2026/11/05 12:14:55.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:55.963] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:56.463] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:56.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:56.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:56.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:56.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:56.639] [debug] [out flush] cb_destroy coro_id=7
+[2026/11/05 12:14:56.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:56.962] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:57.463] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:57.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:57.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #1
+[2026/11/05 12:14:57.638] [debug] [upstream] KA connection #61 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:57.639] [debug] [upstream] KA connection #61 to receiver:9001 is now available
+[2026/11/05 12:14:57.639] [debug] [out flush] cb_destroy coro_id=7
+[2026/11/05 12:14:57.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:14:57.763] [debug] [input:tail:tail.0] inode=3018612, /data/input.log, events: IN_MODIFY 
+[2026/11/05 12:14:58.638] [debug] [task] created task=0x7c23e6a2ea00 id=0 OK
+[2026/11/05 12:14:58.638] [debug] [output:tcp:tcp.0] task_id=0 assigned to thread #0
+[2026/11/05 12:14:58.638] [debug] [upstream] KA connection #60 to receiver:9001 has been assigned (recycled)
+[2026/11/05 12:14:58.639] [debug] [upstream] KA connection #60 to receiver:9001 is now available
+[2026/11/05 12:14:58.639] [debug] [out flush] cb_destroy coro_id=8
+[2026/11/05 12:14:58.639] [debug] [task] destroy task=0x7c23e6a2ea00 (task_id=0)
+[2026/11/05 12:15:27.638] [debug] [upstream] drop keepalive connection #-1 to receiver:9001 (keepalive idle timeout)
+[2026/11/05 12:15:29.138] [debug] [upstream] drop keepalive connection #-1 to receiver:9001 (keepalive idle timeout)
+[2026/11/05 12:15:41.638] [debug] [input:tail:tail.0] scanning path /data/input.log
+[2026/11/05 12:15:41.638] [debug] [input:tail:tail.0] scan_blog add(): dismissed: /data/input.log, inode 3018612
+[2026/11/05 12:15:41.638] [debug] [input:tail:tail.0] 0 new files found on path '/data/input.log'
+[2026/11/05 12:16:04] [engine] caught signal (SIGTERM)
+[2026/11/05 12:16:04.978] [ warn] [engine] service will shutdown in max 5 seconds
+[2026/11/05 12:16:04.978] [ info] [engine] pausing all inputs..
+[2026/11/05 12:16:04.978] [ info] [input] pausing tail.0
+[2026/11/05 12:16:05.638] [ info] [engine] service has stopped (0 pending tasks)
+[2026/11/05 12:16:05.638] [ info] [input] pausing tail.0
+[2026/11/05 12:16:05.638] [ info] [output:tcp:tcp.0] thread worker #0 stopping...
+[2026/11/05 12:16:05.638] [ info] [output:tcp:tcp.0] thread worker #0 stopped
+[2026/11/05 12:16:05.639] [ info] [output:tcp:tcp.0] thread worker #1 stopping...
+[2026/11/05 12:16:05.639] [ info] [output:tcp:tcp.0] thread worker #1 stopped
+[2026/11/05 12:16:05.639] [debug] [input:tail:tail.0] inode=3018612 removing file name /data/input.log
+[2026/11/05 12:16:05.639] [ info] [input:tail:tail.0] inotify_fs_remove(): inode=3018612 watch_fd=1

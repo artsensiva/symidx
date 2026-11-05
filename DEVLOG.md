@@ -38,3 +38,6 @@ so the minutes measure agent effort and compare versions with each other, not hu
 | 2026-11-04 | Session 1 report, results and build notes, rename to logXform of Goose, benchmark research | pilot, docs | ≈17:50 | 18:05 | ≈15 | |
 | 2026-11-04 | Plan for experiment 8, safety amendment, change-request rules and oracle | pilot, docs | ≈18:15 | 18:42 | ≈27 | BGL inspected before any implementation |
 | 2026-11-04 | Pilot session 2 and the wall-time diagnostic, unattended | pilot | 18:34 | ≈21:10 | ≈156 | |
+| 2026-11-05 | Experiment 9: frozen evaluation, 3 rounds, unattended | experiment 9 | 04:47 | 10:28 | 341 | |
+| 2026-11-05 | Experiment 9: correctness tests on Vector and Fluent Bit, unattended | experiment 9 | 10:31 | 12:50 | 139 | amendment A8 |
+| 2026-11-05 | Experiment 9: reruns to find causes of the tool failures, final report | experiment 9, docs | 12:50 | ≈13:40 | ≈50 | development runs, not counted |
