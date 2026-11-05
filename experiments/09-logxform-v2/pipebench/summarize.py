@@ -19,7 +19,7 @@ for t in sorted(rows):
     if corr:
         print("| Program | Rounds | Passed | Lines in | Lines out | Loss % |\n|---|---|---|---|---|---|")
     else:
-        print("| Program | Rounds | Lines/s, median (range) | CPU cores | Lines/s per core | Peak memory (MB) | Loss % |" + (" Published lines/s |" if pub else "") + "\n|---|---|---|---|---|---|---|" + ("---|" if pub else ""))
+        print("| Program | Rounds | Lines/s, median (range) | CPU cores | Lines/s per core | Peak memory (MB) | Bytes per line out | Loss % |" + (" Published lines/s |" if pub else "") + "\n|---|---|---|---|---|---|---|---|" + ("---|" if pub else ""))
     for s in SUBJ:
         rs = rows[t].get(s)
         if not rs: continue
@@ -31,7 +31,8 @@ for t in sorted(rows):
         eps = [r["lines_per_sec"] for r in rs]; cpu = st.median(r["avg_cpu_percent"] for r in rs) / 100
         per = st.median(r["lines_per_sec"] / max(r["avg_cpu_percent"] / 100, 0.01) for r in rs)
         mem = st.median(r["max_mem_mb"] for r in rs); loss = st.median(r["loss_percent"] for r in rs)
-        row = f"| {s} | {len(rs)} | {st.median(eps):,.0f} ({min(eps):,.0f}–{max(eps):,.0f}) | {cpu:.2f} | {per:,.0f} | {mem:,.0f} | {loss:.2f} |"
+        bpl = st.median(r["bytes_out"] / r["lines_out"] if r["lines_out"] else 0 for r in rs)
+        row = f"| {s} | {len(rs)} | {st.median(eps):,.0f} ({min(eps):,.0f}–{max(eps):,.0f}) | {cpu:.2f} | {per:,.0f} | {mem:,.0f} | {bpl:.0f} | {loss:.2f} |"
         if pub:
             q = published(s, t); row += f" {q['lines_per_sec']:,.0f} |" if q else " – |"
         print(row)

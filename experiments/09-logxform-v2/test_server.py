@@ -164,6 +164,18 @@ def t_sink_restart():
     for b in list(r.conns): pass
     s.p.send_signal(signal.SIGHUP); time.sleep(0.2); assert s.p.poll() is None; c.close(); s.stop()
 
+def t_sink_closes_connection():
+    # A sink that hangs up mustn't kill the process.
+    pi, po = next(ports), next(ports); l = socket.socket(); l.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); l.bind(("127.0.0.1", po)); l.listen(64); l.settimeout(0.05)
+    stop = []
+    def hangup():
+        while not stop:
+            try: c, _ = l.accept(); c.close()
+            except OSError: pass
+    threading.Thread(target=hangup, daemon=True).start()
+    s = Srv(tcp_conf(pi, po), pi); send(pi, b"x" * 1023 + b"\n" * 1 + b"y\n" * 500000); time.sleep(1); assert s.p.poll() is None, "server died"
+    stop.append(1); time.sleep(0.1); eq(s.stop(), 0); l.close()
+
 def t_sighup():
     pi, po = next(ports), next(ports); r = Recv(po); s = Srv(tcp_conf(pi, po), pi); c = send(pi, b"a\n", close=False)
     assert wait(lambda: b"a\n" in r.all()); s.p.send_signal(signal.SIGHUP); time.sleep(0.4); assert s.p.poll() is None
@@ -235,6 +247,12 @@ def t_disk_reads_while_sink_stalls():
     d = b"x" * 255 + b"\n"; n = 80000; threading.Thread(target=lambda: send(pi, d * n), daemon=True).start(); time.sleep(0.2)
     size = lambda: sum(os.path.getsize(f"{bd}/{f}") for f in os.listdir(bd) if f.endswith(".seg"))
     assert wait(lambda: size() == n * 256, 4), f"{size()} of {n * 256} bytes on disk"; s.stop(signal.SIGKILL)
+
+def t_disk_no_resend_after_restart():
+    # What was delivered isn't sent again: the connection stays open, so the segment's still there at the crash.
+    pi, po = next(ports), next(ports); bd = f"{TMP}/b{pi}"; r = Recv(po); s = Srv(disk_conf(pi, po, bd), pi)
+    d = lines(0, 1000); c = send(pi, d, close=False); assert wait(lambda: r.all() == d), len(r.all()); time.sleep(0.2)
+    s.stop(signal.SIGKILL); s.start(); time.sleep(1); eq(r.all(), d, "no duplicates"); c.close(); s.stop(); r.close()
 
 def t_disk_transform():
     pi, po = next(ports), next(ports); bd = f"{TMP}/b{pi}"; r = Recv(po); s = Srv(disk_conf(pi, po, bd, r"regex a b"), pi); send(pi, b"a\n")

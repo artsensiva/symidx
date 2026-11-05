@@ -4,6 +4,7 @@ import os, shutil, subprocess, sys
 GOOSE, W = sys.argv[1], os.path.abspath(sys.argv[2])
 HERE = os.path.dirname(os.path.abspath(__file__))
 G, C = "logxform.goose", "net.c"
+ONLY = sys.argv[3:]
 M = [
     ("backslash not escaped", G, """else if c == '\\\\' { out.append("\\\\\\\\"); }""", """else if c == '\\\\' { out.append("\\\\"); }"""),
     ("facility from the wrong bits", G, "FACS[pri >> 3]", "FACS[(pri >> 2) & 23]"),
@@ -23,6 +24,8 @@ M = [
 ]
 caught = 0
 for name, f, old, new in M:
+    if ONLY and name not in ONLY:
+        continue
     d = f"{W}/m"; shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
     for x in (G, C, "logxform.build"):
         shutil.copy(f"{HERE}/goose/{x}", d)

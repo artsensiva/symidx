@@ -1,3 +1,5 @@
 goose/logxform
 rust/target/
+batch/goose/sanitize
+batch/rust/target/
 __pycache__/
