@@ -1,0 +1,80 @@
+→ test=file_truncate_correctness  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-file_truncate_correctness-1298241540_bench Creating 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Creating 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Creating 
+ Network bench-file_truncate_correctness-1298241540_bench Creating 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Created 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Created 
+ Network bench-file_truncate_correctness-1298241540_bench Created 
+ Network bench-file_truncate_correctness-1298241540_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    received: 14,905 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r1/fluent-bit.json
+  throughput: 245 lines/s
+  lines in: 29,951  lines out: 14,905  loss: 50.24%
+  cpu: avg 0.1% max 2.2%  mem: avg 6 MB max 10 MB
+  io throughput: avg 0.1 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 16.0s  active: 60.8s  total: 142.8s
+  correctness: FAILED
+    - expected loss <= 0.00%, got 50.24%
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Removing 
+ Network bench-file_truncate_correctness-1298241540_bench Removing 
+ Volume bench-file_truncate_correctness-1298241540_shared-data Removed 
+ Network bench-file_truncate_correctness-1298241540_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT     STATUS  EPS  CPU%  MEM   LOSS%
+file_truncate_correctness  fluent-bit  FAIL    245  0.1   6 MB  50.24%

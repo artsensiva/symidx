@@ -1,0 +1,73 @@
+→ test=disk_buffer_persistence_correctness  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Created 
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Created 
+ Container bench-collector Creating 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-vector Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/vector.json
+  throughput: 17,963 lines/s
+  lines in: 1,080,018  lines out: 1,080,018  loss: 0.00%
+  cpu: avg 24.2% max 27.4%  mem: avg 76 MB max 82 MB
+  io throughput: avg 17.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 59.1s  active: 60.1s  total: 127.0s
+  correctness: PASSED
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-vector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Removing 
+ Network bench-disk_buffer_persistence_correctness-4163720150_bench Removed 
+
+Summary (1 run):
+TEST                                 SUBJECT  STATUS  EPS     CPU%  MEM    LOSS%
+disk_buffer_persistence_correctness  vector   PASS    17,963  24.2  76 MB  0.00%

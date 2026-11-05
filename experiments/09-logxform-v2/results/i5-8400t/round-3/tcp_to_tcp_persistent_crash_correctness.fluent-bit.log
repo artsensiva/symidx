@@ -1,0 +1,80 @@
+→ test=tcp_to_tcp_persistent_crash_correctness  subject=fluent-bit  version=5.0  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Creating 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Created 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Started 
+ Container bench-subject-fluent-bit Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-fluent-bit Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 25,000 lines
+  phase 3: killing subject (SIGKILL — no graceful shutdown)…
+ Container bench-subject-fluent-bit Killing 
+ Container bench-subject-fluent-bit Killed 
+  phase 4: starting receiver (subject still stopped)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: restarting subject (should replay persisted logs)…
+ Container bench-subject-fluent-bit Starting 
+ Container bench-subject-fluent-bit Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    received: 25,000 / 25,000 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r3/fluent-bit.json
+  lines sent: 25,000  lines received: 25,000  loss: 0.00%
+  cpu: avg 0.1% max 2.1%  mem: avg 11 MB max 12 MB
+  io throughput: avg 0.4 MB/s
+  unique lines: 25,000  duplicates: 0
+  total time: 74.6s
+  persistence restart correctness: PASSED ✓
+  tearing down…
+ Container bench-receiver Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-collector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Removing 
+ Network bench-tcp_to_tcp_persistent_crash_correctness-3118895961_bench Removed 
+
+Summary (1 run):
+TEST                                     SUBJECT     STATUS  EPS      CPU%  MEM    LOSS%
+tcp_to_tcp_persistent_crash_correctness  fluent-bit  PASS    862,607  0.1   11 MB  0.00%

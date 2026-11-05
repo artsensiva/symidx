@@ -1,0 +1,79 @@
+→ test=file_rotate_create_correctness  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-file_rotate_create_correctness-3077951340_bench Creating 
+ Network bench-file_rotate_create_correctness-3077951340_bench Creating 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Creating 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Creating 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Created 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Created 
+ Network bench-file_rotate_create_correctness-3077951340_bench Created 
+ Network bench-file_rotate_create_correctness-3077951340_bench Created 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+ Container bench-collector Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    received: 29,951 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/fluent-bit.json
+  throughput: 497 lines/s
+  lines in: 29,951  lines out: 29,951  loss: 0.00%
+  cpu: avg 0.3% max 6.9%  mem: avg 9 MB max 21 MB
+  io throughput: avg 0.3 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 15.0s  active: 60.2s  total: 142.7s
+  correctness: PASSED
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Removing 
+ Network bench-file_rotate_create_correctness-3077951340_bench Removing 
+ Volume bench-file_rotate_create_correctness-3077951340_shared-data Removed 
+ Network bench-file_rotate_create_correctness-3077951340_bench Removed 
+
+Summary (1 run):
+TEST                            SUBJECT     STATUS  EPS  CPU%  MEM   LOSS%
+file_rotate_create_correctness  fluent-bit  PASS    497  0.3   9 MB  0.00%

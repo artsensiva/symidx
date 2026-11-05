@@ -1,0 +1,82 @@
+→ test=tcp_to_http_persistent_correctness  subject=fluent-bit  version=5.0  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Creating 
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Creating 
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Created 
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Started 
+ Container bench-collector Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-fluent-bit Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 11,897,475 lines
+  phase 3: waiting for subject to persist data…
+  phase 4: starting receiver (subject should forward buffered logs)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: waiting for logs to drain (up to 2m0s)…
+    received: 2,711,689 / 11,897,475 lines
+    received: 4,482,409 / 11,897,475 lines
+    received: 5,866,326 / 11,897,475 lines
+    received: 6,885,528 / 11,897,475 lines
+    received: 6,983,448 / 11,897,475 lines
+    received: 6,983,448 / 11,897,475 lines
+    received: 6,991,608 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    received: 6,999,768 / 11,897,475 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/fluent-bit.json
+  lines sent: 11,897,475  lines received: 6,999,768  loss: 41.17%
+  cpu: avg 36.9% max 195.3%  mem: avg 36 MB max 104 MB
+  io throughput: avg 80.9 MB/s
+  total time: 125.0s
+  persistence correctness: FAILED ✗
+    - expected loss <= 0.00%, got 41.17% (4,897,707 of 11,897,475 lines lost)
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Removing 
+ Network bench-tcp_to_http_persistent_correctness-3751271887_bench Removed 
+
+Summary (1 run):
+TEST                                SUBJECT     STATUS  EPS      CPU%  MEM    LOSS%
+tcp_to_http_persistent_correctness  fluent-bit  FAIL    189,504  36.9  36 MB  41.17%

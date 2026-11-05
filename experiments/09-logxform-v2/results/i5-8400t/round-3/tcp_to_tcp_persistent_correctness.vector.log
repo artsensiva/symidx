@@ -1,0 +1,76 @@
+→ test=tcp_to_tcp_persistent_correctness  subject=vector  version=0.54.0-alpine  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Creating 
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Creating 
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Created 
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-subject-vector Created 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Started 
+ Container bench-collector Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-vector Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 450,000 lines
+  phase 3: waiting for subject to persist data…
+  phase 4: starting receiver (subject should forward buffered logs)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: waiting for logs to drain (up to 2m0s)…
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    received: 437,931 / 450,000 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r3/vector.json
+  lines sent: 450,000  lines received: 437,931  loss: 2.68%
+  cpu: avg 7.8% max 160.5%  mem: avg 73 MB max 109 MB
+  io throughput: avg 5.7 MB/s
+  unique lines: 437,931  duplicates: 0
+  total time: 78.7s
+  persistence correctness: FAILED ✗
+    - expected loss <= 0.00%, got 2.68% (12,069 of 450,000 lines lost)
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-receiver Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-vector Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-vector Removed 
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Removing 
+ Network bench-tcp_to_tcp_persistent_correctness-2571650983_bench Removed 
+
+Summary (1 run):
+TEST                               SUBJECT  STATUS  EPS      CPU%  MEM    LOSS%
+tcp_to_tcp_persistent_correctness  vector   FAIL    259,749  7.8   73 MB  2.68%

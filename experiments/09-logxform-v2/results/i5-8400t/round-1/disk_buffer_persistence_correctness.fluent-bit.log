@@ -1,0 +1,73 @@
+→ test=disk_buffer_persistence_correctness  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Creating 
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Created 
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    received: 1,080,018 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r1/fluent-bit.json
+  throughput: 17,943 lines/s
+  lines in: 1,080,018  lines out: 1,080,018  loss: 0.00%
+  cpu: avg 5.2% max 6.1%  mem: avg 12 MB max 13 MB
+  io throughput: avg 18.6 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 59.0s  active: 60.2s  total: 127.0s
+  correctness: PASSED
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-collector Removed 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Removing 
+ Network bench-disk_buffer_persistence_correctness-3554755157_bench Removed 
+
+Summary (1 run):
+TEST                                 SUBJECT     STATUS  EPS     CPU%  MEM    LOSS%
+disk_buffer_persistence_correctness  fluent-bit  PASS    17,943  5.2   12 MB  0.00%

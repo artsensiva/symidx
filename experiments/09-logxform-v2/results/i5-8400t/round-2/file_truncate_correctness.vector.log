@@ -1,0 +1,80 @@
+→ test=file_truncate_correctness  subject=vector  version=0.54.0-alpine  config=default
+  starting containers…
+ Network bench-file_truncate_correctness-2126983989_bench Creating 
+ Network bench-file_truncate_correctness-2126983989_bench Creating 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Creating 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Creating 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Created 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Created 
+ Network bench-file_truncate_correctness-2126983989_bench Created 
+ Network bench-file_truncate_correctness-2126983989_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-receiver Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector Starting 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+ Container bench-collector Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    received: 29,742 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/vector.json
+  throughput: 495 lines/s
+  lines in: 29,951  lines out: 29,742  loss: 0.70%
+  cpu: avg 0.8% max 0.9%  mem: avg 12 MB max 13 MB
+  io throughput: avg 0.2 MB/s
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 58.9s  active: 60.0s  total: 142.7s
+  correctness: FAILED
+    - expected loss <= 0.00%, got 0.70%
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-subject-vector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Removing 
+ Network bench-file_truncate_correctness-2126983989_bench Removing 
+ Volume bench-file_truncate_correctness-2126983989_shared-data Removed 
+ Network bench-file_truncate_correctness-2126983989_bench Removed 
+
+Summary (1 run):
+TEST                       SUBJECT  STATUS  EPS  CPU%  MEM    LOSS%
+file_truncate_correctness  vector   FAIL    495  0.8   12 MB  0.70%

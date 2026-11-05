@@ -1,0 +1,172 @@
+→ test=tcp_to_tcp_persistent_restart_correctness  subject=fluent-bit  version=5.0  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Creating 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Creating 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Created 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-collector Started 
+ Container bench-subject-fluent-bit Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-fluent-bit Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 450,000 lines
+  phase 3: stopping subject immediately (SIGTERM)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  phase 4: starting receiver (subject still stopped)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: restarting subject (should replay persisted logs)…
+ Container bench-subject-fluent-bit Starting 
+ Container bench-subject-fluent-bit Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+    received: 0 / 450,000 lines
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/fluent-bit.json
+  lines sent: 450,000  lines received: 0  loss: 100.00%
+  cpu: avg 0.3% max 25.8%  mem: avg 4 MB max 9 MB
+  io throughput: avg 1.2 MB/s
+  unique lines: 0  duplicates: 0
+  total time: 194.8s
+  persistence restart correctness: FAILED ✗
+    - expected loss <= 0.00%, got 100.00% (450,000 of 450,000 lines lost)
+
+  WARNING: 0 lines received. Container logs:
+
+  --- generator ---
+bench-generator  | generator: waiting up to 15s for subject:9000
+bench-generator  | generator: target ready: subject:9000
+bench-generator  | generator: mode=tcp target=subject:9000 rate=25000/s duration=10s connections=18
+bench-generator  | generator: connection 1 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 0 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 2 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 3 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 4 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 5 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 6 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 7 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 8 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 9 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 10 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 11 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 13 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 14 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 12 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 15 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 17 done: lines=25000 bytes=6425000
+bench-generator  | generator: connection 16 done: lines=25000 bytes=6425000
+bench-generator  | generator: done. lines=450000 bytes=115650000 send_duration=917.373707ms
+bench-generator  | {
+bench-generator  |   "lines_sent": 450000,
+bench-generator  |   "bytes_sent": 115650000,
+bench-generator  |   "duration_ms": 917,
+bench-generator  |   "first_sent_ns": 1793875214977619480,
+bench-generator  |   "last_sent_ns": 1793875215894993187
+bench-generator  | }
+
+  --- subject ---
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.201] [error] [engine] chunk '1-1793875215.798942788.flb' cannot be retried: task_id=51, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.202] [error] [engine] chunk '1-1793875215.824617743.flb' cannot be retried: task_id=54, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.202] [error] [engine] chunk '1-1793875215.789979649.flb' cannot be retried: task_id=50, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.202] [error] [engine] chunk '1-1793875215.841546769.flb' cannot be retried: task_id=56, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.203] [error] [engine] chunk '1-1793875215.894627586.flb' cannot be retried: task_id=58, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.203] [error] [engine] chunk '1-1793875215.913821016.flb' cannot be retried: task_id=60, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.204] [error] [engine] chunk '1-1793875215.807977463.flb' cannot be retried: task_id=52, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.204] [error] [engine] chunk '1-1793875215.833107103.flb' cannot be retried: task_id=55, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.205] [error] [engine] chunk '1-1793875215.931016538.flb' cannot be retried: task_id=62, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.205] [error] [engine] chunk '1-1793875215.485250028.flb' cannot be retried: task_id=31, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.206] [error] [engine] chunk '1-1793875215.884408819.flb' cannot be retried: task_id=57, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.206] [error] [engine] chunk '1-1793875215.904843169.flb' cannot be retried: task_id=59, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.207] [error] [engine] chunk '1-1793875215.923107234.flb' cannot be retried: task_id=61, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.207] [error] [engine] chunk '1-1793875215.114235794.flb' cannot be retried: task_id=9, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.208] [error] [engine] chunk '1-1793875215.636089675.flb' cannot be retried: task_id=42, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.208] [error] [engine] chunk '1-1793875215.300190350.flb' cannot be retried: task_id=20, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | [2026/11/05 10:40:17.208] [error] [engine] chunk '1-1793875215.816690668.flb' cannot be retried: task_id=53, input=tcp.0 > output=tcp.0
+bench-subject-fluent-bit  | Fluent Bit v5.0.11
+bench-subject-fluent-bit  | * Copyright (C) 2015-2026 The Fluent Bit Authors
+bench-subject-fluent-bit  | * Fluent Bit is a CNCF graduated project under the Fluent organization
+bench-subject-fluent-bit  | * https://fluentbit.io
+bench-subject-fluent-bit  | 
+bench-subject-fluent-bit  | ______ _                  _    ______ _ _           _____  _____ 
+bench-subject-fluent-bit  | |  ___| |                | |   | ___ (_) |         |  ___||  _  |
+bench-subject-fluent-bit  | | |_  | |_   _  ___ _ __ | |_  | |_/ /_| |_  __   _|___ \ | |/' |
+bench-subject-fluent-bit  | |  _| | | | | |/ _ \ '_ \| __| | ___ \ | __| \ \ / /   \ \|  /| |
+bench-subject-fluent-bit  | | |   | | |_| |  __/ | | | |_  | |_/ / | |_   \ V //\__/ /\ |_/ /
+bench-subject-fluent-bit  | \_|   |_|\__,_|\___|_| |_|\__| \____/|_|\__|   \_/ \____(_)\___/
+bench-subject-fluent-bit  | 
+bench-subject-fluent-bit  | 
+
+  --- receiver ---
+bench-receiver  | receiver: mode=tcp listen=:9001 http_data=:9002 metrics=:9090 dedup=true content=false
+bench-receiver  | receiver: listening on :9001
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-generator Removed 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-collector Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Removing 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-891053222_bench Removed 
+
+Summary (1 run):
+TEST                                       SUBJECT     STATUS  EPS  CPU%  MEM   LOSS%
+tcp_to_tcp_persistent_restart_correctness  fluent-bit  FAIL    0    0.3   4 MB  100.00%

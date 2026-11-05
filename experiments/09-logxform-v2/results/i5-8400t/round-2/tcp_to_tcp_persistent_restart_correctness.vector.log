@@ -1,0 +1,81 @@
+→ test=tcp_to_tcp_persistent_restart_correctness  subject=vector  version=0.54.0-alpine  config=default
+  phase 1: starting subject (receiver is DOWN)…
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Creating 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Creating 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Created 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-collector Creating 
+ Container bench-collector Created 
+ Container bench-subject-vector Created 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-subject-vector Started 
+ Container bench-collector Started 
+  phase 2: sending logs (receiver still DOWN)…
+ Container bench-subject-vector Running 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 2m25s)…
+  generator sent 450,000 lines
+  phase 3: stopping subject immediately (SIGTERM)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  phase 4: starting receiver (subject still stopped)…
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-receiver Starting 
+ Container bench-receiver Started 
+  phase 5: restarting subject (should replay persisted logs)…
+ Container bench-subject-vector Starting 
+ Container bench-subject-vector Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    received: 418,540 / 450,000 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/vector.json
+  lines sent: 450,000  lines received: 418,540  loss: 6.99%
+  cpu: avg 5.4% max 159.7%  mem: avg 57 MB max 103 MB
+  io throughput: avg 4.3 MB/s
+  unique lines: 418,540  duplicates: 0
+  total time: 108.7s
+  persistence restart correctness: FAILED ✗
+    - expected loss <= 0.00%, got 6.99% (31,460 of 450,000 lines lost)
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-receiver Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-subject-vector Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-vector Removed 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Removing 
+ Network bench-tcp_to_tcp_persistent_restart_correctness-82195814_bench Removed 
+
+Summary (1 run):
+TEST                                       SUBJECT  STATUS  EPS      CPU%  MEM    LOSS%
+tcp_to_tcp_persistent_restart_correctness  vector   FAIL    268,416  5.4   57 MB  6.99%

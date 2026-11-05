@@ -1,0 +1,84 @@
+→ test=file_rotate_restart_correctness  subject=vector  version=0.54.0-alpine  config=default
+  phase 1: starting all services (subject tails + forwards in real time)…
+ Network bench-file_rotate_restart_correctness-446059046_bench Creating 
+ Network bench-file_rotate_restart_correctness-446059046_bench Creating 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Creating 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Creating 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Created 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Created 
+ Network bench-file_rotate_restart_correctness-446059046_bench Created 
+ Network bench-file_rotate_restart_correctness-446059046_bench Created 
+ Container bench-subject-vector Creating 
+ Container bench-receiver Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-vector Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-subject-vector Starting 
+ Container bench-collector Starting 
+ Container bench-receiver Starting 
+ Container bench-subject-vector Started 
+ Container bench-collector Started 
+ Container bench-receiver Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  phase 2: waiting 35s (rotation fires at warmup+15s)…
+  phase 3: stopping subject (SIGTERM, must persist file-tail position)…
+ Container bench-subject-vector Stopping 
+ Container bench-subject-vector Stopped 
+  phase 4: waiting for generator to finish writing (up to 3m15s)…
+  generator sent 29,951 lines
+  phase 5: restarting subject (must read .1 archive + new file)…
+ Container bench-subject-vector Starting 
+ Container bench-subject-vector Started 
+  phase 6: waiting for logs to drain (up to 3m0s)…
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    received: 29,951 / 29,951 lines
+    receiver stable — all logs drained
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r1/vector.json
+  lines sent: 29,951  lines received: 29,951  loss: 0.00%
+  cpu: avg 0.2% max 1.4%  mem: avg 25 MB max 33 MB
+  io throughput: avg 0.2 MB/s
+  unique lines: 29,951  duplicates: 0
+  total time: 142.7s
+  file-rotation restart correctness: PASSED ✓
+  tearing down…
+ Container bench-collector Stopping 
+ Container bench-generator Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-vector Stopping 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-subject-vector Stopped 
+ Container bench-subject-vector Removing 
+ Container bench-receiver Removed 
+ Container bench-subject-vector Removed 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Removing 
+ Network bench-file_rotate_restart_correctness-446059046_bench Removing 
+ Volume bench-file_rotate_restart_correctness-446059046_shared-data Removed 
+ Network bench-file_rotate_restart_correctness-446059046_bench Removed 
+
+Summary (1 run):
+TEST                             SUBJECT  STATUS  EPS  CPU%  MEM    LOSS%
+file_rotate_restart_correctness  vector   PASS    498  0.2   25 MB  0.00%

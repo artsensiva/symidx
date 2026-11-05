@@ -1,0 +1,74 @@
+→ test=wrapped_json_correctness  subject=fluent-bit  version=5.0  config=default
+  starting containers…
+ Network bench-wrapped_json_correctness-4258981766_bench Creating 
+ Network bench-wrapped_json_correctness-4258981766_bench Creating 
+ Network bench-wrapped_json_correctness-4258981766_bench Created 
+ Network bench-wrapped_json_correctness-4258981766_bench Created 
+ Container bench-subject-fluent-bit Creating 
+ Container bench-collector Creating 
+ Container bench-receiver Creating 
+ Container bench-receiver Created 
+ Container bench-collector Created 
+ Container bench-subject-fluent-bit Created 
+ Container bench-generator Creating 
+ Container bench-generator Created 
+ Container bench-receiver Starting 
+ Container bench-collector Starting 
+ Container bench-subject-fluent-bit Starting 
+ Container bench-receiver Started 
+ Container bench-collector Started 
+ Container bench-subject-fluent-bit Started 
+ Container bench-generator Starting 
+ Container bench-generator Started 
+  waiting for generator (up to 3m15s)…
+  waiting for receiver to drain…
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    received: 540,018 lines
+    receiver stable — drain complete
+  stopping subject (SIGTERM, 5s grace)…
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+  collecting metrics…
+  stopping collector…
+  done. results → web/results/i5-8400t-tools-r2/fluent-bit.json
+  throughput: 8,927 lines/s
+  lines in: 540,018  lines out: 540,018  loss: 0.00%
+  cpu: avg 2.5% max 6.9%  mem: avg 25 MB max 27 MB
+  io throughput: avg 8.8 MB/s
+  latency: p50=1475.7ms p95=2481.5ms p99=2486.0ms
+  system: 6 CPUs, 15342 MB RAM  send: 60.0s  recv: 58.0s  active: 60.5s  total: 126.5s
+  correctness: PASSED
+  tearing down…
+ Container bench-generator Stopping 
+ Container bench-collector Stopping 
+ Container bench-collector Stopped 
+ Container bench-collector Removing 
+ Container bench-generator Stopped 
+ Container bench-generator Removing 
+ Container bench-collector Removed 
+ Container bench-generator Removed 
+ Container bench-receiver Stopping 
+ Container bench-subject-fluent-bit Stopping 
+ Container bench-subject-fluent-bit Stopped 
+ Container bench-subject-fluent-bit Removing 
+ Container bench-subject-fluent-bit Removed 
+ Container bench-receiver Stopped 
+ Container bench-receiver Removing 
+ Container bench-receiver Removed 
+ Network bench-wrapped_json_correctness-4258981766_bench Removing 
+ Network bench-wrapped_json_correctness-4258981766_bench Removed 
+
+Summary (1 run):
+TEST                      SUBJECT     STATUS  EPS    CPU%  MEM    LOSS%
+wrapped_json_correctness  fluent-bit  PASS    8,927  2.5   25 MB  0.00%
