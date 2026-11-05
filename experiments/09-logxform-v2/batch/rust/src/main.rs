@@ -62,7 +62,6 @@ struct Rec {
 /// The per-batch arenas, reused from batch to batch.
 #[derive(Default)]
 struct Arena {
-    recs: Vec<Rec>,
     kvs: Vec<(Sp, Sp)>,
     bytes: Vec<u8>,
     kv: Vec<(Sp, Sp)>,
@@ -713,14 +712,10 @@ fn render(out: &mut Vec<u8>, r: &Rec, data: &[u8], a: &Arena) {
     out.extend_from_slice(b"}}\n");
 }
 
-/// One batch: parse every line into a record in the arenas, then render them all into `out`.
+/// One batch: parse each line into a record in the arenas, and render it into `out` straight away.
 fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Option<&mut Vec<u8>>, c: &mut Counts, max_line: usize) {
     let mut rejects = rejects;
     assert!(data.len() + (1 << 30) < u32::MAX as usize, "batch too large for u32 spans");
-    if a.recs.capacity() == 0 {
-        a.recs.reserve(BATCH);
-    }
-    a.recs.clear();
     a.kvs.clear();
     a.bytes.clear();
     a.bytes.extend_from_slice(STATIC);
@@ -793,7 +788,7 @@ fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Opt
         } else {
             in_data(h.msg)
         };
-        let Arena { kvs, bytes, kv, recs } = &mut *a;
+        let Arena { kvs, bytes, kv } = &mut *a;
         let bytes = &bytes[..];
         kv.clear();
         for &(k, v) in &h.fp[..h.nf] {
@@ -814,10 +809,10 @@ fn process(fmt: Fmt, data: &[u8], a: &mut Arena, out: &mut Vec<u8>, rejects: Opt
         }
         let kv_lo = kvs.len() as u32;
         kvs.extend_from_slice(kv);
-        recs.push(Rec { ts: h.ts, level: h.level, comp, msg, kv_lo, kv_n: kv.len() as u32 });
-    }
-    for r in &a.recs {
-        render(out, r, data, a);
+        let rec = Rec { ts: h.ts, level: h.level, comp, msg, kv_lo, kv_n: kv.len() as u32 };
+        render(out, &rec, data, a);
+        a.kvs.clear();
+        a.bytes.truncate(STATIC.len());
     }
 }
 

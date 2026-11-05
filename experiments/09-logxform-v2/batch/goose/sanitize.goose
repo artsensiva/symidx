@@ -361,7 +361,10 @@ fn is_ipv4(s: u8[:]) -> bool {
     return groups == 3 && n >= 1 && n <= 3;
 }
 
-fn redact(msg: u8[:], out: u8[>..]&) {
+// Copies msg to out with dotted IPs replaced. Returns whether a digit is followed by - or x, which both of the
+// later redactions need: this loop passes over every number anyway, so most lines can skip those scans.
+fn redact(msg: u8[:], out: u8[>..]&) -> bool {
+    var more = false;
     var start = 0;
     var i = 0;
     while i < msg.len {
@@ -378,10 +381,12 @@ fn redact(msg: u8[:], out: u8[>..]&) {
             }
             i = j;
         } else {
+            if (c == '-' || c == 'x') && i > 0 && is_digit(msg[i - 1]) { more = true; }
             i++;
         }
     }
     out.append(msg[start..]);
+    return more;
 }
 
 fn is_alnum(c: u8) -> bool { (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || is_digit(c) }
@@ -490,6 +495,16 @@ fn redact_dashed(s: u8[>..]&) -> i64 {
     return w;
 }
 
+// The later redactions, on the rare lines that may need them. Apart from the hot loop, because passing that loop's buffer
+// by reference costs every line about 15% in the generated code, even though this almost never runs.
+fn redact_more(s: u8[:], out: u8[>..]&) {
+    var t: u8[>..] = [];
+    t.append(s);
+    let n1 = redact_dashed(t);
+    if n1 < t.len { t.pop_n(t.len - n1); }
+    out.append(t[..redact_hex(t)]);
+}
+
 fn is_key_byte(c: u8) -> bool {
     (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || is_digit(c) || c == '_' || c == '.' || c == '-'
 }
@@ -581,7 +596,6 @@ fn render(out: u8[>..]&, r: Rec&) {
 let NL = byte_set("\n");
 
 fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects: bool, c: Counts&, max_line: i64) {
-    var recs: Rec[>..] = [];
     var start = 0;
     while start < data.len {
         var e = find_any(data[start..], NL);
@@ -614,10 +628,10 @@ fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects
         c.kept++;
         // Per-line scratch, released at the end of each iteration.
         var red_all: u8[>..] = [];
-        redact(s[h.mlo..], red_all);
-        let n1 = redact_dashed(red_all);
-        if n1 < red_all.len { red_all.pop_n(red_all.len - n1); }
-        let red = red_all[..redact_hex(red_all)];
+        var red_more: u8[>..] = [];
+        let more = redact(s[h.mlo..], red_all);
+        if more { redact_more(red_all[..], red_more); }
+        let red = if more { red_more[..] } else { red_all[..] };
         var text: u8[>..] = [];
         var sp: KSpan[>..] = [];
         if h.nf >= 1 { add_pair(text, sp, key_name(h.k1), s[h.v1lo..h.v1hi]); }
@@ -631,12 +645,12 @@ fn process(fmt: i64, data: u8[:], out: u8[>..]&, rejects: u8[>..]&, keep_rejects
             while p < t && red[p] != '=' && is_key_byte(red[p]) { p++; }
             if p > t0 && p < t && red[p] == '=' { add_pair(text, sp, red[t0..p], red[p + 1..t]); }
         }
-        recs.push(Rec {
+        let rec = Rec {
             year: h.y as! u16, mon: h.mo as! u8, day: h.d as! u8, hour: h.h as! u8, min: h.mi as! u8,
             sec: h.s as! u8, level: h.level as! u8, comp: comp, msg: red, kv: pairs_of(sp, text),
-        });
+        };
+        render(out, rec);
     }
-    for r in recs { render(out, r); }
 }
 
 // --- reading batches ------------------------------------------------------------
