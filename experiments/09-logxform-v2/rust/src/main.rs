@@ -198,11 +198,38 @@ fn utf8_len(s: &[u8], i: usize) -> usize {
     n
 }
 
+/// The first byte that needs escaping. Goose's find_any is SIMD, so this is too, for a fair comparison.
+#[cfg(target_arch = "x86_64")]
+fn find_special(s: &[u8]) -> Option<usize> {
+    use std::arch::x86_64::*;
+    let mut i = 0;
+    // SAFETY: SSE2 is part of x86_64, and each load reads 16 bytes that the loop condition shows are in s.
+    unsafe {
+        let (quote, slash, space) = (_mm_set1_epi8(b'"' as i8), _mm_set1_epi8(b'\\' as i8), _mm_set1_epi8(32));
+        while i + 16 <= s.len() {
+            let v = _mm_loadu_si128(s.as_ptr().add(i) as *const __m128i);
+            // A signed compare, so bytes from 128 up count as below space too.
+            let hit = _mm_or_si128(_mm_or_si128(_mm_cmpeq_epi8(v, quote), _mm_cmpeq_epi8(v, slash)), _mm_cmplt_epi8(v, space));
+            let m = _mm_movemask_epi8(hit);
+            if m != 0 {
+                return Some(i + m.trailing_zeros() as usize);
+            }
+            i += 16;
+        }
+    }
+    s[i..].iter().position(|&b| SPECIAL[b as usize]).map(|k| i + k)
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+fn find_special(s: &[u8]) -> Option<usize> {
+    s.iter().position(|&b| SPECIAL[b as usize])
+}
+
 /// s, escaped for a JSON string. Invalid UTF-8 becomes U+FFFD, as Vector's bytes decoder does.
 fn put_esc(out: &mut Vec<u8>, s: &[u8]) {
     let mut i = 0;
     while i < s.len() {
-        let Some(k) = s[i..].iter().position(|&b| SPECIAL[b as usize]) else {
+        let Some(k) = find_special(&s[i..]) else {
             out.extend_from_slice(&s[i..]);
             return;
         };
@@ -370,8 +397,8 @@ fn put_bsd(out: &mut Vec<u8>, t: &[u8], year: i64) -> bool {
 // --- syslog -------------------------------------------------------------------------
 
 const FACS: [&[u8]; 24] = [
-    b"kern", b"user", b"mail", b"daemon", b"auth", b"syslog", b"lpr", b"news", b"uucp", b"cron", b"authpriv", b"ftp", b"ntp", b"security", b"console",
-    b"solaris-cron", b"local0", b"local1", b"local2", b"local3", b"local4", b"local5", b"local6", b"local7",
+    b"kern", b"user", b"mail", b"daemon", b"auth", b"syslog", b"lpr", b"news", b"uucp", b"cron", b"authpriv", b"ftp", b"ntp", b"audit", b"alert",
+    b"clockd", b"local0", b"local1", b"local2", b"local3", b"local4", b"local5", b"local6", b"local7",
 ];
 const SEVS: [&[u8]; 8] = [b"emerg", b"alert", b"crit", b"err", b"warning", b"notice", b"info", b"debug"];
 
@@ -396,6 +423,69 @@ fn put_proc(out: &mut Vec<u8>, p: &[u8]) {
         put_esc(out, p);
         out.push(b'"');
     }
+}
+
+/// RFC 5424 structured data as JSON members, each element an object: [id a="1" b="2"] gives "id":{"a":"1","b":"2"}. False if malformed.
+fn put_sd(out: &mut Vec<u8>, s: &[u8]) -> bool {
+    let mut i = 0;
+    while i < s.len() {
+        if s[i] != b'[' {
+            return false;
+        }
+        i += 1;
+        let id0 = i;
+        while i < s.len() && s[i] != b' ' && s[i] != b']' {
+            i += 1;
+        }
+        if i >= s.len() || i == id0 {
+            return false;
+        }
+        out.extend_from_slice(b",\"");
+        put_esc(out, &s[id0..i]);
+        out.extend_from_slice(b"\":{");
+        let mut first = true;
+        while i < s.len() && s[i] == b' ' {
+            i += 1;
+            let k0 = i;
+            while i < s.len() && s[i] != b'=' {
+                i += 1;
+            }
+            if i + 1 >= s.len() || s[i + 1] != b'"' {
+                return false;
+            }
+            if !first {
+                out.push(b',');
+            }
+            first = false;
+            out.push(b'"');
+            put_esc(out, &s[k0..i]);
+            out.extend_from_slice(b"\":\"");
+            i += 2;
+            let mut v0 = i;
+            while i < s.len() && s[i] != b'"' {
+                // A backslash protects the next byte, and isn't part of the value.
+                if s[i] == b'\\' && i + 1 < s.len() && matches!(s[i + 1], b'"' | b'\\' | b']') {
+                    put_esc(out, &s[v0..i]);
+                    v0 = i + 1;
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+            }
+            if i >= s.len() {
+                return false;
+            }
+            put_esc(out, &s[v0..i]);
+            out.push(b'"');
+            i += 1;
+        }
+        if i >= s.len() || s[i] != b']' {
+            return false;
+        }
+        i += 1;
+        out.push(b'}');
+    }
+    true
 }
 
 /// One syslog line as JSON with the fields Vector's parse_syslog gives. False, with nothing written, if it isn't one.
@@ -494,11 +584,8 @@ fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
         let a = e + 1;
         let b = next_sp(s, a);
         host = &s[a..b];
-        if b >= s.len() {
-            return false;
-        }
-        // tag[pid]: message, where the tag's optional.
-        let tag0 = b + 1;
+        // tag[pid]: message, where the colon's optional. Nothing after the host is an empty message.
+        let tag0 = (b + 1).min(s.len());
         let mut c = tag0;
         while c < s.len() && s[c] != b' ' && s[c] != b':' && s[c] != b'[' {
             c += 1;
@@ -518,20 +605,24 @@ fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
         }
         if c < s.len() && s[c] == b':' {
             c += 1;
-            if c < s.len() && s[c] == b' ' {
+            while c < s.len() && s[c] == b' ' {
                 c += 1;
             }
             body_at = c;
         } else {
-            // No colon: nothing here is a tag, so all of it is the message.
-            app = b"";
-            pid = b"";
-            body_at = tag0;
+            while c < s.len() && s[c] == b' ' {
+                c += 1;
+            }
+            body_at = c;
         }
     }
     let mut when = Vec::with_capacity(40);
     let ok = if ts.len() == 15 && !ts[0].is_ascii_digit() { put_bsd(&mut when, ts, year) } else { put_rfc3339(&mut when, ts) };
     if !ok {
+        return false;
+    }
+    let mut sdj = Vec::new();
+    if !put_sd(&mut sdj, sd) {
         return false;
     }
     out.push(b'{');
@@ -555,10 +646,7 @@ fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
     }
     out.push(b',');
     put_kv(out, b"severity", SEVS[sev]);
-    if !sd.is_empty() {
-        out.push(b',');
-        put_kv(out, b"structured_data", sd);
-    }
+    out.extend_from_slice(&sdj);
     out.extend_from_slice(b",\"timestamp\":\"");
     out.extend_from_slice(&when);
     out.push(b'"');
@@ -663,23 +751,34 @@ struct Ctx {
     port: u16,
 }
 
+/// A line as an event straight from the source, with the fields Vector adds.
+fn put_received(out: &mut Vec<u8>, ctx: &Ctx, s: &[u8], stamp: &[u8]) {
+    out.push(b'{');
+    put_kv(out, b"host", &ctx.host);
+    out.push(b',');
+    put_kv(out, b"message", s);
+    let _ = write!(out, ",\"port\":{}", ctx.port);
+    out.extend_from_slice(b",\"source_type\":\"socket\",\"timestamp\":\"");
+    out.extend_from_slice(stamp);
+    out.extend_from_slice(b"\"}\n");
+}
+
 /// The whole lines in data, transformed, onto out.
 fn transform(cfg: &Cfg, ctx: &Ctx, data: &[u8], out: &mut Vec<u8>) {
     let mut stamp = Vec::with_capacity(32);
     let mut year = 2026;
     if matches!(cfg.xf, Xf::Set | Xf::Syslog | Xf::SyslogTag) {
-        let secs = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64;
-        put_utc(&mut stamp, secs, b"");
+        // One time per block, in nanoseconds, the precision Vector writes. Its socket source stamps per read too.
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        let frac = format!(".{:09}", now.subsec_nanos());
+        put_utc(&mut stamp, now.as_secs() as i64, frac.as_bytes());
         year = dig(&stamp, 0, 4);
     }
     let mut at = 0;
     while at < data.len() {
         let e = memchr(b'\n', &data[at..]).map_or(data.len(), |k| at + k);
-        let mut s = &data[at..e];
+        let s = &data[at..e];
         at = e + 1;
-        if s.last() == Some(&b'\r') {
-            s = &s[..s.len() - 1];
-        }
         match cfg.xf {
             Xf::Regex => {
                 out.extend_from_slice(b"{\"message\":\"");
@@ -705,10 +804,8 @@ fn transform(cfg: &Cfg, ctx: &Ctx, data: &[u8], out: &mut Vec<u8>) {
             }
             Xf::Syslog | Xf::SyslogTag => {
                 if !put_syslog(out, s, cfg.xf == Xf::SyslogTag, year) {
-                    // As Vector does with an event its parser aborts on: pass the original through.
-                    out.push(b'{');
-                    put_kv(out, b"message", s);
-                    out.extend_from_slice(b"}\n");
+                    // As Vector does with an event its parser aborts on: pass the original through, as received.
+                    put_received(out, ctx, s, &stamp);
                 }
             }
             _ => {

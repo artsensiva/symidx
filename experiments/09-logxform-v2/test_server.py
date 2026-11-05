@@ -108,7 +108,7 @@ def t_json_escapes():
     eq(json.loads(out[0])["message"], 'q" b\\ t\t c\x01')
     eq(json.loads(out[1])["message"], "é ok � bad ��")
 
-def t_crlf(): eq(through(r"regex zzz y", b"a\r\nb\n"), b'{"message":"a"}\n{"message":"b"}\n')
+def t_crlf(): eq(through(r"regex zzz y", b"a\r\nb\n"), b'{"message":"a\\r"}\n{"message":"b"}\n')
 
 def t_set_field():
     o = through("set_field processed_by logxform-pipeline", b"hi \"x\"\n"); j = json.loads(o)
@@ -126,11 +126,17 @@ def t_syslog_bsd():
 
 def t_syslog_5424():
     o = json.loads(through("syslog", b'<165>1 2003-10-11T22:14:15.003Z h.example.com evntslog 2 ID47 [ex@32473 a="1"] An event\n'))
-    eq(o, {"appname": "evntslog", "facility": "local4", "hostname": "h.example.com", "message": "An event", "msgid": "ID47", "procid": 2, "severity": "notice", "structured_data": '[ex@32473 a="1"]', "timestamp": "2003-10-11T22:14:15.003Z", "version": 1})
+    eq(o, {"appname": "evntslog", "facility": "local4", "hostname": "h.example.com", "message": "An event", "msgid": "ID47", "procid": 2, "severity": "notice", "ex@32473": {"a": "1"}, "timestamp": "2003-10-11T22:14:15.003Z", "version": 1})
 
 def t_syslog_invalid():
     for bad in [b"no pri at all", b"<999>2026-01-01T00:00:00Z h a: m", b"<13>", b"<13>2026-13-01T00:00:00Z h a: m", b"<13>Xyz 11 22:14:15 h a: m"]:
-        eq(json.loads(through("syslog", bad + b"\n")), {"message": bad.decode()})
+        j = json.loads(through("syslog", bad + b"\n"))
+        eq(j["message"], bad.decode()); eq(j["source_type"], "socket"); eq(j["host"], "127.0.0.1")
+
+def t_syslog_loose():
+    o = json.loads(through("syslog", b"<13>2026-11-05T01:04:00Z h no colon tag\n")); eq(o["appname"], "no"); eq(o["message"], "colon tag")
+    o = json.loads(through("syslog", b"<13>2026-11-05T01:04:00Z h\n")); eq(o["hostname"], "h"); eq(o["message"], ""); assert "appname" not in o
+    o = json.loads(through("syslog", b"<13>2026-11-05T01:04:00Z h p[1]:   spaced\n")); eq(o["message"], "spaced"); eq(o["procid"], 1)
 
 def t_syslog_tag():
     o = through("syslog_tag_debug", b"<15>2026-01-01T00:00:00Z h a: dbg\n<14>2026-01-01T00:00:00Z h a: inf\n").splitlines()

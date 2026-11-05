@@ -68,4 +68,5 @@ Reported per test, as PipeBench reports: lines per second, CPU per event, peak m
 
 ## Amendments
 
-None yet.
+- **A1, 2026-11-05, before the freeze: wider dashed-IP rule.** Checking the frozen rule on SSH left 614 lines leaking the form `host229-140-211-80.serverdedicati.aruba.it`, where letters run straight into the first number. The 0-leftover mark can't be met otherwise, so the first number may now directly follow ASCII letters. A digit directly before it still rules it out, and so does a `-` that follows a digit-only group. So `ab1-2-3-4` becomes `ab<ip>`. This errs toward redacting too much. The mark isn't changed.
+- **A2, 2026-11-05, before the freeze: host names with extra numbers.** After A1, addresses like `pla75-1-78-194-48-145.fbxo.proxad.net` still leaked, because a digit-only group came before them. Now a chain of digit-only groups before the four numbers rules them out only if it starts the run. If a group with a letter comes before the chain, they're redacted: `pla75-1-<ip>.fbxo`. `2005-06-03-15` and `1-2-3-4-5` stay as they are. "Leftover" in the mark means four numbers from 0 to 255, so `657-1-127-147` isn't one.

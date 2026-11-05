@@ -281,7 +281,7 @@ fn put_bsd(out: u8[>..]&, t: u8[:], year: i64) -> bool {
 // --- syslog -------------------------------------------------------------------------
 
 let FACS = ["kern"[..], "user", "mail", "daemon", "auth", "syslog", "lpr", "news", "uucp", "cron", "authpriv", "ftp",
-             "ntp", "security", "console", "solaris-cron", "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"];
+             "ntp", "audit", "alert", "clockd", "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"];
 let SEVS = ["emerg"[..], "alert", "crit", "err", "warning", "notice", "info", "debug"];
 
 fn next_sp(s: u8[:], i: i64) -> i64 {
@@ -300,6 +300,49 @@ fn put_proc(out: u8[>..]&, p: u8[:]) {
     out.append(",\"procid\":");
     if all_digits(p) { out.append(p); }
     else { out.push('"'); put_esc(out, p); out.push('"'); }
+}
+
+// RFC 5424 structured data as JSON members, each element an object: [id a="1" b="2"] gives "id":{"a":"1","b":"2"}. False if malformed.
+fn put_sd(out: u8[>..]&, s: u8[:]) -> bool {
+    var i = 0;
+    while i < s.len {
+        if s[i] != '[' { return false; }
+        i++;
+        let id0 = i;
+        while i < s.len && s[i] != ' ' && s[i] != ']' { i++; }
+        if i >= s.len || i == id0 { return false; }
+        out.push(','); out.push('"'); put_esc(out, s[id0..i]); out.append("\":{");
+        var first = true;
+        while i < s.len && s[i] == ' ' {
+            i++;
+            let k0 = i;
+            while i < s.len && s[i] != '=' { i++; }
+            if i + 1 >= s.len || s[i + 1] != '"' { return false; }
+            if !first { out.push(','); }
+            first = false;
+            out.push('"'); put_esc(out, s[k0..i]); out.append("\":\"");
+            i += 2;
+            var v0 = i;
+            while i < s.len && s[i] != '"' {
+                // A backslash protects the next byte, and isn't part of the value.
+                if s[i] == '\\' && i + 1 < s.len && (s[i + 1] == '"' || s[i + 1] == '\\' || s[i + 1] == ']') {
+                    put_esc(out, s[v0..i]);
+                    v0 = i + 1;
+                    i += 2;
+                } else {
+                    i++;
+                }
+            }
+            if i >= s.len { return false; }
+            put_esc(out, s[v0..i]);
+            out.push('"');
+            i++;
+        }
+        if i >= s.len || s[i] != ']' { return false; }
+        i++;
+        out.push('}');
+    }
+    return true;
 }
 
 // One syslog line as JSON with the fields Vector's parse_syslog gives. False, with nothing written, if it isn't one.
@@ -346,9 +389,8 @@ fn put_syslog(out: u8[>..]&, s: u8[:], tag_debug: bool, year: i64) -> bool {
         let a = e + 1;
         let b = next_sp(s, a);
         host = s[a..b];
-        if b >= s.len { return false; }
-        // tag[pid]: message, where the tag's optional.
-        var c = b + 1;
+        // tag[pid]: message, where the colon's optional. Nothing after the host is an empty message.
+        var c = min(b + 1, s.len);
         let tag0 = c;
         while c < s.len && s[c] != ' ' && s[c] != ':' && s[c] != '[' { c++; }
         app = s[tag0..c];
@@ -362,17 +404,18 @@ fn put_syslog(out: u8[>..]&, s: u8[:], tag_debug: bool, year: i64) -> bool {
         }
         if c < s.len && s[c] == ':' {
             c++;
-            if c < s.len && s[c] == ' ' { c++; }
+            while c < s.len && s[c] == ' ' { c++; }
             body_at = c;
         } else {
-            // No colon: nothing here is a tag, so all of it is the message.
-            app = s[0..0]; pid = s[0..0];
-            body_at = tag0;
+            while c < s.len && s[c] == ' ' { c++; }
+            body_at = c;
         }
     }
     var when: u8[>..] = [];
     let ok = if ts.len == 15 && !(ts[0] >= '0' && ts[0] <= '9') { put_bsd(when, ts, year) } else { put_rfc3339(when, ts) };
     if !ok { return false; }
+    var sdj: u8[>..] = [];
+    if !put_sd(sdj, sd) { return false; }
     out.push('{');
     if app.len > 0 && app != "-" { put_kv(out, "appname", app); out.push(','); }
     put_kv(out, "facility", FACS[pri >> 3]); out.push(',');
@@ -381,7 +424,7 @@ fn put_syslog(out: u8[>..]&, s: u8[:], tag_debug: bool, year: i64) -> bool {
     if mid.len > 0 && mid != "-" { out.push(','); put_kv(out, "msgid", mid); }
     if pid.len > 0 && pid != "-" { put_proc(out, pid); }
     out.push(','); put_kv(out, "severity", SEVS[sev]);
-    if sd.len > 0 { out.push(','); put_kv(out, "structured_data", sd); }
+    out.append(sdj);
     out.append(",\"timestamp\":\"");
     out.append(when);
     out.push('"');
@@ -454,22 +497,38 @@ struct Ctx { host: u8[], port: i64 }
 
 let NL = byte_set("\n");
 
+// A line as an event straight from the source, with the fields Vector adds.
+fn put_received(out: u8[>..]&, ctx: Ctx&, s: u8[:], stamp: u8[:]) {
+    out.push('{');
+    put_kv(out, "host", ctx.host); out.push(',');
+    put_kv(out, "message", s);
+    format(out, ",\"port\":", ctx.port);
+    out.append(",\"source_type\":\"socket\",\"timestamp\":\"");
+    out.append(stamp);
+    out.append("\"}\n");
+}
+
 // The whole lines in data, transformed, onto out.
 fn transform(cfg: Cfg&, re: regex::Regex&, ctx: Ctx&, data: u8[:], out: u8[>..]&) {
     var stamp: u8[>..] = [];
     var year = 2026;
     if cfg.xf == XF_SET || cfg.xf == XF_SYSLOG || cfg.xf == XF_SYSLOG_TAG {
+        // One time per block, in nanoseconds, the precision Vector writes. Its socket source stamps per read too.
         let ns = time_ns();
-        put_utc(stamp, ns / 1000000000, "");
+        var frac: u8[>..] = [];
+        frac.push('.');
+        var div = 100000000;
+        let part = ns % 1000000000;
+        for i in 9 { frac.push((48 + part / div % 10) as u8); div /= 10; }
+        put_utc(stamp, ns / 1000000000, frac);
         year = dig(stamp[..], 0, 4);
     }
     var at = 0;
     while at < data.len {
         var e = find_any(data[at..], NL);
         e = if e < 0 { data.len } else { at + e };
-        var s = data[at..e];
+        let s = data[at..e];
         at = e + 1;
-        if s.len > 0 && s[s.len - 1] == '\r' { s = s[..s.len - 1]; }
         if cfg.xf == XF_REGEX {
             out.append("{\"message\":\"");
             var last = 0;
@@ -491,8 +550,8 @@ fn transform(cfg: Cfg&, re: regex::Regex&, ctx: Ctx&, data: u8[:], out: u8[>..]&
             out.append("\"}\n");
         } else if cfg.xf == XF_SYSLOG || cfg.xf == XF_SYSLOG_TAG {
             if !put_syslog(out, s, cfg.xf == XF_SYSLOG_TAG, year) {
-                // As Vector does with an event its parser aborts on: pass the original through.
-                out.push('{'); put_kv(out, "message", s); out.append("}\n");
+                // As Vector does with an event its parser aborts on: pass the original through, as received.
+                put_received(out, ctx, s, stamp[..]);
             }
         } else {
             // XF_JSON: a line that's one JSON value goes through as it is; anything else is wrapped.
@@ -577,8 +636,7 @@ fn make_re(cfg: Cfg&) -> regex::Regex {
 
 // --- workers ------------------------------------------------------------------------
 
-thread_fn conn_worker(fd: i64, cfg: Cfg) {
-    var re = make_re(cfg);
+thread_fn conn_worker(fd: i64, cfg: Cfg, re: regex::Regex) {
     var peer: u8[>..] = [];
     let pport = lx_peer(fd, peer);
     let ctx = Ctx { host: peer[..], port: pport };
@@ -708,8 +766,7 @@ fn disk_loop(fd: i64, base: u8[:], cfg: Cfg&, re: regex::Regex&, ctx: Ctx&) {
     if sink.fd >= 0 { lx_close(sink.fd); }
 }
 
-thread_fn disk_worker(fd: i64, id: i64, cfg: Cfg) {
-    var re = make_re(cfg);
+thread_fn disk_worker(fd: i64, id: i64, cfg: Cfg, re: regex::Regex) {
     var peer: u8[>..] = [];
     let pport = lx_peer(fd, peer);
     let ctx = Ctx { host: peer[..], port: pport };
@@ -719,16 +776,14 @@ thread_fn disk_worker(fd: i64, id: i64, cfg: Cfg) {
     lx_close(fd);
 }
 
-thread_fn replay_worker(base: u8[], cfg: Cfg) {
-    var re = make_re(cfg);
+thread_fn replay_worker(base: u8[], cfg: Cfg, re: regex::Regex) {
     let ctx = Ctx { host: "", port: 0 };
     disk_loop(-1, base, cfg, re, ctx);
 }
 
 // One tailed file, followed by inode: a rename doesn't change what it reads, a shrink starts it over, and the checkpoint
 // holds the offset of what's been delivered.
-thread_fn tail_worker(path: u8[], inode: i64, cfg: Cfg) {
-    var re = make_re(cfg);
+thread_fn tail_worker(path: u8[], inode: i64, cfg: Cfg, re: regex::Regex) {
     let ctx = Ctx { host: "", port: 0 };
     let fd = lx_open_ro(path);
     if fd < 0 { return; }
@@ -775,13 +830,15 @@ thread_fn tail_worker(path: u8[], inode: i64, cfg: Cfg) {
 
 // Serves until asked to stop or reload. New connections get a new config; ones in progress keep what they started with.
 fn serve_tcp(cfg: Cfg&, lfd: i64, id0: i64) -> i64 {
+    // Compiled once: a compile's scratch stays on a worker's data stack, so each worker doing it would keep that memory.
+    let re = make_re(cfg);
     var id = id0;
     while !lx_term() && !lx_hup_take() {
         let c = lx_accept(lfd, 200);
         if c < 0 { continue; }
         id++;
-        if cfg.disk { thread_spawn(disk_worker, c, id, copy(cfg)); }
-        else { thread_spawn(conn_worker, c, copy(cfg)); }
+        if cfg.disk { thread_spawn(disk_worker, c, id, copy(cfg), copy(re)); }
+        else { thread_spawn(conn_worker, c, copy(cfg), copy(re)); }
     }
     return id;
 }
@@ -799,6 +856,7 @@ fn run_tcp(cfg_path: u8[:], port: i64) {
 }
 
 fn serve_files(cfg: Cfg&) {
+    let re = make_re(cfg);
     var seen: i64[>..] = [];
     while !lx_term() {
         lx_hup_take();
@@ -810,7 +868,7 @@ fn serve_files(cfg: Cfg&) {
                 let ino = lx_inode(full);
                 if ino < 0 || contains(seen[..], ino) { continue; }
                 seen.push(ino);
-                thread_spawn(tail_worker, full[..], ino, copy(cfg));
+                thread_spawn(tail_worker, full[..], ino, copy(cfg), copy(re));
             }
         }
         sleep_ms(20);
@@ -822,6 +880,7 @@ fn main() {
     guard argv.len == 3 && argv[1] == "--config" else { fail("usage: logxform --config FILE"); }
     lx_signals();
     let cfg = load(argv[2]);
+    let re = make_re(cfg);
     if cfg.disk {
         make_dir(cfg.buf_dir);
         var names: u8[>..] = [];
@@ -829,7 +888,7 @@ fn main() {
             for name in split(names[..], '\n') {
                 if !ends_with(name, ".seg") { continue; }
                 let base = str(cfg.buf_dir, "/", name[..name.len - 4]);
-                thread_spawn(replay_worker, base[..], copy(cfg));
+                thread_spawn(replay_worker, base[..], copy(cfg), copy(re));
             }
         }
     }
