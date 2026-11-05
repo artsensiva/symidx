@@ -6,6 +6,7 @@ import http.server, json, os, shutil, signal, socket, socketserver, subprocess, 
 BIN = os.path.abspath(sys.argv[1]); ONLY = sys.argv[2:]
 TMP = tempfile.mkdtemp(prefix="lxt"); ports = iter(range(19100, 19900))
 fails = []
+live = []
 
 
 class Recv:
@@ -44,7 +45,7 @@ class Srv:
         with open(self.path, "w") as f: f.write(conf)
         self.port = port; self.start()
     def start(self):
-        self.p = subprocess.Popen([BIN, "--config", self.path], stderr=subprocess.DEVNULL)
+        self.p = subprocess.Popen([BIN, "--config", self.path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); live.append(self.p)
         if self.port: assert wait(lambda: conn_ok(self.port)), "server didn't listen"
     def stop(self, sig=signal.SIGTERM):
         self.p.send_signal(sig)
@@ -228,6 +229,13 @@ def persist(sig):
 def t_disk_restart(): persist(signal.SIGTERM)
 def t_disk_sigkill(): persist(signal.SIGKILL)
 
+def t_disk_reads_while_sink_stalls():
+    # A sink address that never answers holds a connect for a long time. Reading must go on regardless, or a crash loses what's unread.
+    pi = next(ports); bd = f"{TMP}/b{pi}"; s = Srv(f"source tcp {pi}\ntransform none\nsink tcp 10.255.255.1 9\nbuffer disk {bd}\n", pi)
+    d = b"x" * 255 + b"\n"; n = 80000; threading.Thread(target=lambda: send(pi, d * n), daemon=True).start(); time.sleep(0.2)
+    size = lambda: sum(os.path.getsize(f"{bd}/{f}") for f in os.listdir(bd) if f.endswith(".seg"))
+    assert wait(lambda: size() == n * 256, 4), f"{size()} of {n * 256} bytes on disk"; s.stop(signal.SIGKILL)
+
 def t_disk_transform():
     pi, po = next(ports), next(ports); bd = f"{TMP}/b{pi}"; r = Recv(po); s = Srv(disk_conf(pi, po, bd, r"regex a b"), pi); send(pi, b"a\n")
     assert wait(lambda: r.all() == b'{"message":"b"}\n'), r.all(); s.stop(); r.close()
@@ -278,5 +286,7 @@ for name, fn in tests:
     t0 = time.time()
     try: fn(); print(f"ok   {name} ({time.time() - t0:.1f}s)", flush=True)
     except BaseException as e: fails.append(name); print(f"FAIL {name}: {str(e)[:600]}", flush=True)
+for p in live:
+    if p.poll() is None: p.kill()
 shutil.rmtree(TMP, ignore_errors=True)
 print(f"{'FAILED ' + str(fails) if fails else 'all passed'}"); sys.exit(1 if fails else 0)

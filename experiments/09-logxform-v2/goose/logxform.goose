@@ -32,7 +32,6 @@ extern fn lx_put8(fd: i64, v: i64) -> bool;
 
 let BLOCK = 262144;
 let MAX_LINE = 67108864;
-let MAX_BACKLOG = 4294967296;
 let SYNC_NS = 500000000;
 
 let SRC_TCP = 0;
@@ -677,108 +676,137 @@ thread_fn conn_worker(fd: i64, cfg: Cfg, re: regex::Regex) {
     if sink.fd >= 0 { lx_close(sink.fd); }
 }
 
-// The disk buffer: a segment file holding transformed lines, and an acknowledged offset beside it. Whatever's read from
-// fd goes to the segment before it's sent, so a restart or SIGKILL loses nothing the program had read. fd < 0 replays only.
-fn disk_loop(fd: i64, base: u8[:], cfg: Cfg&, re: regex::Regex&, ctx: Ctx&) {
-    let seg = lx_open_log(str(base, ".seg"));
-    let ack = lx_open_rw(str(base, ".ack"));
-    guard seg >= 0 && ack >= 0 else { fail(str("cannot open buffer ", base)); }
-    var size = lx_size(seg);
-    var acked = lx_get8(ack);
-    if acked > size { acked = 0; }
+// The disk buffer. Two workers per connection that share only files, so a slow or absent sink, or a name lookup that takes
+// seconds, can't stop the reader: anything unread when a process dies is lost with its socket.
+//   base.N.seg  lines, transformed, in order. A new segment starts every SEG_BYTES.
+//   base.N.ack  how much of that segment has been delivered.
+//   base.done   the reader saw the end of its connection.
+// Delivery is at least once.
+fn seg_path(base: u8[:], n: i64) -> u8[>..] { return str(base, ".", n, ".seg"); }
+fn ack_path(base: u8[:], n: i64) -> u8[>..] { return str(base, ".", n, ".ack"); }
+
+let SEG_BYTES = 268435456;
+let MAX_SEGS = 16;
+
+thread_fn disk_reader(fd: i64, base: u8[], cfg: Cfg, re: regex::Regex) {
+    var peer: u8[>..] = [];
+    let pport = lx_peer(fd, peer);
+    let ctx = Ctx { host: peer[..], port: pport };
+    var n = 0;
+    var seg = lx_open_log(seg_path(base, n));
+    guard seg >= 0 else { fail("cannot open a buffer"); }
+    var size = 0;
     var buf: u8[>..] = [];
     var out: u8[>..] = [];
-    var pend: u8[>..] = [];
-    var sink = Sink { fd: -1 };
-    var eof = fd < 0;
     var skipping = false;
+    var eof = false;
     var last_sync = clock_ns();
     var dirty = false;
-    loop {
-        var idle = true;
-        if !eof && size - acked < MAX_BACKLOG {
-            let ready = lx_poll(fd, if size > acked { 0 } else { 100 });
-            if ready > 0 {
-                let n = lx_read(fd, buf, BLOCK);
-                idle = false;
-                if n <= 0 {
-                    eof = true;
-                    if buf.len > 0 && !skipping { buf.push('\n'); }
-                }
-                let nl = last_nl(buf[..]);
-                let e = if nl < 0 { 0 } else { nl + 1 };
-                if e == 0 {
-                    if buf.len > MAX_LINE { write_stderr("logxform: line over the limit dropped\n"); buf.clear(); skipping = true; }
-                } else {
-                    var from = 0;
-                    if skipping { from = find_any(buf[..e], NL) + 1; skipping = false; }
-                    if from < e {
-                        var ok = true;
-                        if cfg.xf == XF_NONE {
-                            ok = lx_write(seg, buf[from..e]);
-                            size += e - from;
-                        } else {
-                            out.clear();
-                            transform(cfg, re, ctx, buf[from..e], out);
-                            ok = lx_write(seg, out);
-                            size += out.len;
-                        }
-                        guard ok else { fail(str("cannot write buffer ", base)); }
-                        dirty = true;
+    while !eof {
+        let ready = lx_poll(fd, 100);
+        if ready <= 0 {
+            if lx_term() { break; }
+        } else {
+            let got = lx_read(fd, buf, BLOCK);
+            if got <= 0 {
+                eof = true;
+                if buf.len > 0 && !skipping { buf.push('\n'); }
+            }
+            let nl = last_nl(buf[..]);
+            let e = if nl < 0 { 0 } else { nl + 1 };
+            if e == 0 {
+                if buf.len > MAX_LINE { write_stderr("logxform: line over the limit dropped\n"); buf.clear(); skipping = true; }
+            } else {
+                var from = 0;
+                if skipping { from = find_any(buf[..e], NL) + 1; skipping = false; }
+                if from < e {
+                    var ok = true;
+                    if cfg.xf == XF_NONE {
+                        ok = lx_write(seg, buf[from..e]);
+                        size += e - from;
+                    } else {
+                        out.clear();
+                        transform(cfg, re, ctx, buf[from..e], out);
+                        ok = lx_write(seg, out);
+                        size += out.len;
                     }
-                    drop_front(buf, e);
+                    guard ok else { fail("cannot write a buffer"); }
+                    dirty = true;
                 }
+                drop_front(buf, e);
             }
         }
-        if dirty && clock_ns() - last_sync > SYNC_NS {
+        if dirty && (eof || clock_ns() - last_sync > SYNC_NS) {
             lx_sync(seg);
             last_sync = clock_ns();
             dirty = false;
         }
-        if size > acked {
-            pend.clear();
-            let want = min(size - acked, BLOCK * 4);
-            let got = lx_pread(seg, pend, want, acked);
-            let nl = last_nl(pend[..]);
-            if got > 0 && nl >= 0 {
-                if send_once(cfg, sink, pend[..nl + 1]) {
-                    acked += nl + 1;
-                    lx_put8(ack, acked);
-                    idle = false;
-                }
-            }
-        }
-        if acked == size && size > 268435456 {
+        if size >= SEG_BYTES {
             lx_sync(seg);
-            lx_truncate(seg);
-            lx_put8(ack, 0);
-            acked = 0;
+            lx_close(seg);
+            n++;
+            // Too much undelivered: stop reading, which pushes back on the sender.
+            while n >= MAX_SEGS && file_exists(seg_path(base, n - MAX_SEGS)) && !lx_term() { sleep_ms(50); }
+            seg = lx_open_log(seg_path(base, n));
+            guard seg >= 0 else { fail("cannot open a buffer"); }
             size = 0;
         }
-        if eof && acked == size { break; }
-        if lx_term() && (eof || lx_poll(fd, 0) <= 0) { lx_sync(seg); return; }
-        if idle && size > acked { sleep_ms(50); }
     }
+    lx_sync(seg);
     lx_close(seg);
-    lx_close(ack);
-    delete_file(str(base, ".seg"));
-    delete_file(str(base, ".ack"));
-    if sink.fd >= 0 { lx_close(sink.fd); }
-}
-
-thread_fn disk_worker(fd: i64, id: i64, cfg: Cfg, re: regex::Regex) {
-    var peer: u8[>..] = [];
-    let pport = lx_peer(fd, peer);
-    let ctx = Ctx { host: peer[..], port: pport };
-    var base: u8[>..] = [];
-    format(base, cfg.buf_dir, "/c", id);
-    disk_loop(fd, base[..], cfg, re, ctx);
     lx_close(fd);
+    if eof {
+        let d = lx_open_rw(str(base, ".done"));
+        if d >= 0 { lx_close(d); }
+    }
 }
 
-thread_fn replay_worker(base: u8[], cfg: Cfg, re: regex::Regex) {
-    let ctx = Ctx { host: "", port: 0 };
-    disk_loop(-1, base, cfg, re, ctx);
+// Sends segments in order. live: a reader may still add to them. Otherwise this is a restart, and what's there is all there is.
+thread_fn disk_sender(base: u8[], first: i64, live: bool, cfg: Cfg) {
+    var n = first;
+    var sink = Sink { fd: -1 };
+    var pend: u8[>..] = [];
+    loop {
+        // A live segment may not be there yet.
+        while !file_exists(seg_path(base, n)) {
+            if !live || lx_term() || file_exists(str(base, ".done")) { break; }
+            sleep_ms(5);
+        }
+        if !file_exists(seg_path(base, n)) { break; }
+        let seg = lx_open_ro(seg_path(base, n));
+        let ack = lx_open_rw(ack_path(base, n));
+        guard seg >= 0 && ack >= 0 else { fail("cannot open a buffer"); }
+        var acked = lx_get8(ack);
+        var finished = false;
+        while !finished {
+            if lx_term() { break; }
+            let size = lx_size(seg);
+            if size > acked {
+                pend.clear();
+                lx_pread(seg, pend, min(size - acked, BLOCK * 4), acked);
+                let nl = last_nl(pend[..]);
+                if nl >= 0 && send_once(cfg, sink, pend[..nl + 1]) {
+                    acked += nl + 1;
+                    lx_put8(ack, acked);
+                } else {
+                    sleep_ms(50);
+                }
+            } else if file_exists(seg_path(base, n + 1)) || !live || file_exists(str(base, ".done")) {
+                // Caught up, and nothing more can come. A second look at the size closes the gap after the reader's last write.
+                if lx_size(seg) == acked { finished = true; }
+            } else {
+                sleep_ms(1);
+            }
+        }
+        lx_close(seg);
+        lx_close(ack);
+        if lx_term() { break; }
+        delete_file(seg_path(base, n));
+        delete_file(ack_path(base, n));
+        n++;
+    }
+    if !lx_term() { delete_file(str(base, ".done")); }
+    if sink.fd >= 0 { lx_close(sink.fd); }
 }
 
 // One tailed file, followed by inode: a rename doesn't change what it reads, a shrink starts it over, and the checkpoint
@@ -837,7 +865,11 @@ fn serve_tcp(cfg: Cfg&, lfd: i64, id0: i64) -> i64 {
         let c = lx_accept(lfd, 200);
         if c < 0 { continue; }
         id++;
-        if cfg.disk { thread_spawn(disk_worker, c, id, copy(cfg), copy(re)); }
+        if cfg.disk {
+            let base = str(cfg.buf_dir, "/c", id);
+            thread_spawn(disk_reader, c, base[..], copy(cfg), copy(re));
+            thread_spawn(disk_sender, base[..], 0, true, copy(cfg));
+        }
         else { thread_spawn(conn_worker, c, copy(cfg), copy(re)); }
     }
     return id;
@@ -885,10 +917,22 @@ fn main() {
         make_dir(cfg.buf_dir);
         var names: u8[>..] = [];
         if list_dir(cfg.buf_dir, names) {
+            // The lowest segment of each connection, in sorted names' terms: names are base.N.seg, so find each base's least N.
+            var bases: u8[>..] = [];
             for name in split(names[..], '\n') {
                 if !ends_with(name, ".seg") { continue; }
-                let base = str(cfg.buf_dir, "/", name[..name.len - 4]);
-                thread_spawn(replay_worker, base[..], copy(cfg), copy(re));
+                let stem = name[..name.len - 4];
+                var dot = stem.len - 1;
+                while dot >= 0 && stem[dot] != '.' { dot--; }
+                if dot <= 0 { continue; }
+                let num = int_of(stem[dot + 1..]);
+                let key = str(stem[..dot], "\n");
+                if find(bases[..], key[..]) >= 0 { continue; }
+                // The first time this base appears; look for any lower number.
+                var low = num;
+                while low > 0 && file_exists(str(cfg.buf_dir, "/", stem[..dot], ".", low - 1, ".seg")) { low--; }
+                bases.append(key);
+                thread_spawn(disk_sender, str(cfg.buf_dir, "/", stem[..dot])[..], low, false, copy(cfg));
             }
         }
     }

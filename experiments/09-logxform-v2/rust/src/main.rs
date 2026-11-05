@@ -18,7 +18,6 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const BLOCK: usize = 262144;
 const MAX_LINE: usize = 67108864;
-const MAX_BACKLOG: u64 = 4294967296;
 const SYNC_EVERY: Duration = Duration::from_millis(500);
 
 static TERM: AtomicBool = AtomicBool::new(false);
@@ -993,108 +992,154 @@ fn rw(path: &str) -> File {
     OpenOptions::new().read(true).write(true).create(true).truncate(false).mode(0o644).open(path).unwrap_or_else(|_| fail(&format!("cannot open {path}")))
 }
 
-/// The disk buffer: a segment file holding transformed lines, and an acknowledged offset beside it. Whatever's read from
-/// fd goes to the segment before it's sent, so a restart or SIGKILL loses nothing the program had read. No fd replays only.
-fn disk_loop(mut fd: Option<TcpStream>, base: &str, cfg: &Cfg, ctx: &Ctx) {
-    let seg_path = format!("{base}.seg");
-    let ack_path = format!("{base}.ack");
-    let mut seg = OpenOptions::new().read(true).append(true).create(true).mode(0o644).open(&seg_path).unwrap_or_else(|_| fail("cannot open a buffer"));
-    let ack = rw(&ack_path);
-    let mut size = seg.metadata().map_or(0, |m| m.len());
-    let mut acked = get8(&ack);
-    if acked > size {
-        acked = 0;
-    }
+// The disk buffer. Two workers per connection that share only files, so a slow or absent sink, or a name lookup that takes
+// seconds, can't stop the reader: anything unread when a process dies is lost with its socket.
+//   base.N.seg  lines, transformed, in order. A new segment starts every SEG_BYTES.
+//   base.N.ack  how much of that segment has been delivered.
+//   base.done   the reader saw the end of its connection.
+// Delivery is at least once.
+const SEG_BYTES: u64 = 268435456;
+const MAX_SEGS: u64 = 16;
+
+fn open_seg(base: &str, n: u64) -> File {
+    OpenOptions::new().read(true).append(true).create(true).mode(0o644).open(format!("{base}.{n}.seg")).unwrap_or_else(|_| fail("cannot open a buffer"))
+}
+
+fn disk_reader(mut fd: TcpStream, base: String, cfg: Arc<Cfg>) {
+    let ctx = peer(&fd);
+    let mut n = 0;
+    let mut seg = open_seg(&base, n);
+    let mut size = 0u64;
     let mut buf: Vec<u8> = Vec::with_capacity(2 * BLOCK);
     let mut out: Vec<u8> = Vec::with_capacity(4 * BLOCK);
-    let mut pend = vec![0u8; BLOCK * 4];
-    let mut sink = None;
     let mut skipping = false;
+    let mut eof = false;
     let mut last_sync = Instant::now();
     let mut dirty = false;
-    loop {
-        let mut idle = true;
-        if size - acked < MAX_BACKLOG {
-            if let Some(f) = fd.as_mut() {
-                if poll_in(f, if size > acked { 0 } else { 100 }) {
-                    let n = read_more(f, &mut buf);
-                    idle = false;
-                    if n == 0 {
-                        fd = None;
-                        if !buf.is_empty() && !skipping {
-                            buf.push(b'\n');
-                        }
-                    }
-                    let e = memrchr(b'\n', &buf).map_or(0, |k| k + 1);
-                    if e == 0 {
-                        if buf.len() > MAX_LINE {
-                            eprintln!("logxform: line over the limit dropped");
-                            buf.clear();
-                            skipping = true;
-                        }
-                    } else {
-                        let mut from = 0;
-                        if skipping {
-                            from = memchr(b'\n', &buf[..e]).map_or(0, |k| k + 1);
-                            skipping = false;
-                        }
-                        if from < e {
-                            let r = if cfg.xf == Xf::None {
-                                size += (e - from) as u64;
-                                seg.write_all(&buf[from..e])
-                            } else {
-                                out.clear();
-                                transform(cfg, ctx, &buf[from..e], &mut out);
-                                size += out.len() as u64;
-                                seg.write_all(&out)
-                            };
-                            if r.is_err() {
-                                fail("cannot write a buffer");
-                            }
-                            dirty = true;
-                        }
-                        buf.drain(..e);
-                    }
+    while !eof {
+        if !poll_in(&fd, 100) {
+            if term() {
+                break;
+            }
+        } else {
+            let got = read_more(&mut fd, &mut buf);
+            if got == 0 {
+                eof = true;
+                if !buf.is_empty() && !skipping {
+                    buf.push(b'\n');
                 }
             }
+            let e = memrchr(b'\n', &buf).map_or(0, |k| k + 1);
+            if e == 0 {
+                if buf.len() > MAX_LINE {
+                    eprintln!("logxform: line over the limit dropped");
+                    buf.clear();
+                    skipping = true;
+                }
+            } else {
+                let mut from = 0;
+                if skipping {
+                    from = memchr(b'\n', &buf[..e]).map_or(0, |k| k + 1);
+                    skipping = false;
+                }
+                if from < e {
+                    let r = if cfg.xf == Xf::None {
+                        size += (e - from) as u64;
+                        seg.write_all(&buf[from..e])
+                    } else {
+                        out.clear();
+                        transform(&cfg, &ctx, &buf[from..e], &mut out);
+                        size += out.len() as u64;
+                        seg.write_all(&out)
+                    };
+                    if r.is_err() {
+                        fail("cannot write a buffer");
+                    }
+                    dirty = true;
+                }
+                buf.drain(..e);
+            }
         }
-        if dirty && last_sync.elapsed() > SYNC_EVERY {
+        if dirty && (eof || last_sync.elapsed() > SYNC_EVERY) {
             let _ = seg.sync_data();
             last_sync = Instant::now();
             dirty = false;
         }
-        if size > acked {
-            let want = ((size - acked) as usize).min(pend.len());
-            if let Ok(got) = seg.read_at(&mut pend[..want], acked) {
-                if let Some(k) = memrchr(b'\n', &pend[..got]) {
-                    if send_once(cfg, &mut sink, &pend[..k + 1]) {
-                        acked += k as u64 + 1;
-                        put8(&ack, acked);
-                        idle = false;
-                    }
-                }
-            }
-        }
-        if acked == size && size > 268435456 {
+        if size >= SEG_BYTES {
             let _ = seg.sync_data();
-            let _ = seg.set_len(0);
-            put8(&ack, 0);
-            acked = 0;
+            n += 1;
+            // Too much undelivered: stop reading, which pushes back on the sender.
+            while n >= MAX_SEGS && Path::new(&format!("{base}.{}.seg", n - MAX_SEGS)).exists() && !term() {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            seg = open_seg(&base, n);
             size = 0;
         }
-        if fd.is_none() && acked == size {
+    }
+    let _ = seg.sync_data();
+    if eof {
+        let _ = rw(&format!("{base}.done"));
+    }
+}
+
+/// Sends segments in order. live: a reader may still add to them. Otherwise this is a restart, and what's there is all there is.
+fn disk_sender(base: String, first: u64, live: bool, cfg: Arc<Cfg>) {
+    let mut n = first;
+    let mut sink = None;
+    let mut pend = vec![0u8; BLOCK * 4];
+    let done = format!("{base}.done");
+    let exists = |p: &str| Path::new(p).exists();
+    loop {
+        let seg_path = format!("{base}.{n}.seg");
+        let ack_path = format!("{base}.{n}.ack");
+        // A live segment may not be there yet.
+        while !exists(&seg_path) {
+            if !live || term() || exists(&done) {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        if !exists(&seg_path) {
             break;
         }
-        if term() && fd.as_ref().map_or(true, |f| !poll_in(f, 0)) {
-            let _ = seg.sync_data();
-            return;
+        let seg = File::open(&seg_path).unwrap_or_else(|_| fail("cannot open a buffer"));
+        let ack = rw(&ack_path);
+        let mut acked = get8(&ack);
+        let next_path = format!("{base}.{}.seg", n + 1);
+        loop {
+            if term() {
+                break;
+            }
+            let size = seg.metadata().map_or(0, |m| m.len());
+            if size > acked {
+                let want = ((size - acked) as usize).min(pend.len());
+                let got = seg.read_at(&mut pend[..want], acked).unwrap_or(0);
+                match memrchr(b'\n', &pend[..got]) {
+                    Some(k) if send_once(&cfg, &mut sink, &pend[..k + 1]) => {
+                        acked += k as u64 + 1;
+                        put8(&ack, acked);
+                    }
+                    _ => std::thread::sleep(Duration::from_millis(50)),
+                }
+            } else if exists(&next_path) || !live || exists(&done) {
+                // Caught up, and nothing more can come. A second look at the size closes the gap after the reader's last write.
+                if seg.metadata().map_or(0, |m| m.len()) == acked {
+                    break;
+                }
+            } else {
+                std::thread::sleep(Duration::from_millis(1));
+            }
         }
-        if idle && size > acked {
-            std::thread::sleep(Duration::from_millis(50));
+        if term() {
+            break;
         }
+        let _ = fs::remove_file(&seg_path);
+        let _ = fs::remove_file(&ack_path);
+        n += 1;
     }
-    let _ = fs::remove_file(&seg_path);
-    let _ = fs::remove_file(&ack_path);
+    if !term() {
+        let _ = fs::remove_file(&done);
+    }
 }
 
 /// One tailed file, followed by inode: a rename doesn't change what it reads, a shrink starts it over, and the checkpoint
@@ -1172,10 +1217,9 @@ fn serve_tcp(cfg: Arc<Cfg>, l: &TcpListener, id: &mut u128) {
         let cfg = cfg.clone();
         if cfg.disk {
             let base = format!("{}/c{}", cfg.buf_dir, *id);
-            std::thread::spawn(move || {
-                let ctx = peer(&c);
-                disk_loop(Some(c), &base, &cfg, &ctx);
-            });
+            let (b2, c2) = (base.clone(), cfg.clone());
+            std::thread::spawn(move || disk_reader(c, base, cfg));
+            std::thread::spawn(move || disk_sender(b2, 0, true, c2));
         } else {
             std::thread::spawn(move || conn_worker(c, cfg));
         }
@@ -1221,13 +1265,20 @@ fn main() {
     if cfg.disk {
         let _ = fs::create_dir_all(&cfg.buf_dir);
         if let Ok(rd) = fs::read_dir(&cfg.buf_dir) {
+            // The lowest segment of each connection: names are base.N.seg.
+            let mut lowest: std::collections::HashMap<String, u64> = Default::default();
             for ent in rd.flatten() {
                 let name = ent.file_name().to_string_lossy().into_owned();
-                if let Some(stem) = name.strip_suffix(".seg") {
-                    let base = format!("{}/{stem}", cfg.buf_dir);
-                    let cfg = cfg.clone();
-                    std::thread::spawn(move || disk_loop(None, &base, &cfg, &Ctx { host: vec![], port: 0 }));
-                }
+                let Some(stem) = name.strip_suffix(".seg") else { continue };
+                let Some((b, num)) = stem.rsplit_once('.') else { continue };
+                let Ok(num) = num.parse::<u64>() else { continue };
+                let e = lowest.entry(b.to_string()).or_insert(num);
+                *e = (*e).min(num);
+            }
+            for (b, low) in lowest {
+                let base = format!("{}/{b}", cfg.buf_dir);
+                let cfg = cfg.clone();
+                std::thread::spawn(move || disk_sender(base, low, false, cfg));
             }
         }
     }
