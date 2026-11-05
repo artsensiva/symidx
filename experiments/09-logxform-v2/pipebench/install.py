@@ -46,6 +46,15 @@ if '"logxform-goose"' not in s:
 		Command:    []string{{"--config", "/etc/logxform/logxform.conf"}},
 	}},
 ''' for n in NAMES)
+    # Vector's Debian image too, in case PipeBench's Alpine one holds Vector back. Used only by the check in real_cases.py.
+    entry += '''	"vector-debian": {
+		Name:       "vector-debian",
+		Image:      "timberio/vector",
+		Version:    "0.54.0-debian",
+		ConfigPath: "/etc/vector/vector.toml",
+		Command:    []string{"--config", "/etc/vector/vector.toml"},
+	},
+'''
     s, k = re.subn(r'(\n\t"vector": \{)', lambda m: "\n" + entry + m.group(1)[1:], s, count=1)
     assert k == 1
     open(p, "w").write(s)

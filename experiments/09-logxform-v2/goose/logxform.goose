@@ -492,7 +492,7 @@ recursive fn skip_value(s: u8[:], i0: i64, depth: i64) -> i64 {
 // --- transform ----------------------------------------------------------------------
 
 // What a worker knows about its input, for the fields Vector adds.
-struct Ctx { host: u8[], port: i64 }
+struct Ctx { host: u8[], port: u8[] }
 
 let NL = byte_set("\n");
 
@@ -501,7 +501,8 @@ fn put_received(out: u8[>..]&, ctx: Ctx&, s: u8[:], stamp: u8[:]) {
     out.push('{');
     put_kv(out, "host", ctx.host); out.push(',');
     put_kv(out, "message", s);
-    format(out, ",\"port\":", ctx.port);
+    out.append(",\"port\":");
+    out.append(ctx.port);
     out.append(",\"source_type\":\"socket\",\"timestamp\":\"");
     out.append(stamp);
     out.append("\"}\n");
@@ -542,7 +543,9 @@ fn transform(cfg: Cfg&, re: regex::Regex&, ctx: Ctx&, data: u8[:], out: u8[>..]&
             out.push('{');
             put_kv(out, "host", ctx.host); out.push(',');
             put_kv(out, "message", s);
-            format(out, ",\"port\":", ctx.port, ",");
+            out.append(",\"port\":");
+            out.append(ctx.port);
+            out.push(',');
             put_kv(out, cfg.key, cfg.val);
             out.append(",\"source_type\":\"socket\",\"timestamp\":\"");
             out.append(stamp);
@@ -638,7 +641,9 @@ fn make_re(cfg: Cfg&) -> regex::Regex {
 thread_fn conn_worker(fd: i64, cfg: Cfg, re: regex::Regex) {
     var peer: u8[>..] = [];
     let pport = lx_peer(fd, peer);
-    let ctx = Ctx { host: peer[..], port: pport };
+    var pstr: u8[>..] = [];
+    format(pstr, pport);
+    let ctx = Ctx { host: peer[..], port: pstr[..] };
     var buf: u8[>..] = [];
     var out: u8[>..] = [];
     var sink = Sink { fd: -1 };
@@ -691,7 +696,9 @@ let MAX_SEGS = 16;
 thread_fn disk_reader(fd: i64, base: u8[], cfg: Cfg, re: regex::Regex) {
     var peer: u8[>..] = [];
     let pport = lx_peer(fd, peer);
-    let ctx = Ctx { host: peer[..], port: pport };
+    var pstr: u8[>..] = [];
+    format(pstr, pport);
+    let ctx = Ctx { host: peer[..], port: pstr[..] };
     var n = 0;
     var seg = lx_open_log(seg_path(base, n));
     guard seg >= 0 else { fail("cannot open a buffer"); }
@@ -812,7 +819,7 @@ thread_fn disk_sender(base: u8[], first: i64, live: bool, cfg: Cfg) {
 // One tailed file, followed by inode: a rename doesn't change what it reads, a shrink starts it over, and the checkpoint
 // holds the offset of what's been delivered.
 thread_fn tail_worker(path: u8[], inode: i64, cfg: Cfg, re: regex::Regex) {
-    let ctx = Ctx { host: "", port: 0 };
+    let ctx = Ctx { host: "", port: "0" };
     let fd = lx_open_ro(path);
     if fd < 0 { return; }
     let ckpt = lx_open_rw(str(cfg.data_dir, "/ino-", inode, ".ckpt"));

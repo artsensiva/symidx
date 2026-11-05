@@ -6,7 +6,7 @@ rows = {}
 for p in glob.glob(f"{d}/round-*/*.json"):
     t, s = os.path.basename(p)[:-5].split(".")
     rows.setdefault(t, {}).setdefault(s, []).append(json.load(open(p)))
-SUBJ = ["logxform-goose", "logxform-rust", "vector", "fluent-bit"]
+SUBJ = ["logxform-goose", "logxform-rust", "vector", "vector-debian", "fluent-bit"]
 def published(s, t):
     if not pub: return None
     try:

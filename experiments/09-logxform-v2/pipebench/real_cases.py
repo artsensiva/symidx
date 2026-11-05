@@ -177,4 +177,14 @@ TAG = """function tag_debug(tag, ts, record)
 end
 """
 case("real_ssh_syslog_performance", "Real SSH log lines with a syslog priority, parsed, tagging debug", [pri(l) + l for l in ssh], SYS_V, SYS_FB, "    Parsers_File parsers.conf\n", {"parsers.conf": PARSERS, "tag_debug.lua": TAG}, "transform syslog_tag_debug")
+# A check in Vector's favor: the same config on its Debian image, on one published case and one of ours.
+for name in ("regex_mask_performance", "real_ssh_mask_performance"):
+    d = f"{P}/cases/{name}"
+    with open(f"{d}/configs/vector.toml") as src, open(f"{d}/configs/vector-debian.conf", "w") as dst:
+        dst.write(src.read())
+    with open(f"{d}/case.yaml") as f:
+        y = f.read()
+    if "vector-debian" not in y:
+        with open(f"{d}/case.yaml", "w") as f:
+            f.write(re.sub(r"^subjects:\n", "subjects:\n  - vector-debian\n", y, count=1, flags=re.M))
 print("added 3 cases;", len(ssh), "SSH lines,", len(hdfs), "HDFS lines")

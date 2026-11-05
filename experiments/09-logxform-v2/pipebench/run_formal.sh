@@ -25,15 +25,22 @@ run() { # test subject round
   python3 -I "$HERE/take_result.py" "web/results/$LABEL/$s.json" "$t" "$d/$t.$s.json" "$before" >> "$d/$t.$s.log" 2>&1
   echo "$(date +%H:%M) round $r $t $s: $(grep -E "^$t " "$d/$t.$s.log" | tail -1 | tr -s ' ' | cut -c1-80)" >> "$OUT/progress.txt"
 }
+# The order rotates with each test and round, so no program always follows the same one: wall time on a busy disk
+# depends on what ran before, as the pilot found. Set out here so anyone can check it.
+SUBJECTS=(logxform-goose logxform-rust vector fluent-bit)
 for r in $(seq 1 "$ROUNDS"); do
   if [ "$WHAT" != correctness ]; then
+    i=$r
     for name in $PERF1 $REAL $PERF2; do
-      for s in logxform-goose logxform-rust vector fluent-bit; do run "${name}_performance" "$s" "$r"; done
+      for k in 0 1 2 3; do run "${name}_performance" "${SUBJECTS[$(( (i + k) % 4 ))]}" "$r"; done
+      i=$((i + 1))
     done
+    for name in regex_mask real_ssh_mask; do run "${name}_performance" vector-debian "$r"; done
   fi
   if [ "$WHAT" != perf ]; then
     for name in $CORRECT; do
-      for s in logxform-goose logxform-rust; do run "${name}_correctness" "$s" "$r"; done
+      if [ $(( (r + ${#name}) % 2 )) = 0 ]; then order="logxform-goose logxform-rust"; else order="logxform-rust logxform-goose"; fi
+      for s in $order; do run "${name}_correctness" "$s" "$r"; done
     done
   fi
 done

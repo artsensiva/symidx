@@ -197,9 +197,41 @@ fn utf8_len(s: &[u8], i: usize) -> usize {
     n
 }
 
-/// The first byte that needs escaping. Goose's find_any is SIMD, so this is too, for a fair comparison.
+/// The first byte that needs escaping. Goose's find_any is SIMD and picks AVX2 at run time, so this does too, for a fair comparison.
 #[cfg(target_arch = "x86_64")]
+#[inline]
 fn find_special(s: &[u8]) -> Option<usize> {
+    if std::is_x86_feature_detected!("avx2") {
+        // SAFETY: AVX2 was just detected.
+        unsafe { find_special_avx2(s) }
+    } else {
+        find_special_sse2(s)
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx2")]
+unsafe fn find_special_avx2(s: &[u8]) -> Option<usize> {
+    use std::arch::x86_64::*;
+    let mut i = 0;
+    let (quote, slash, space) = (_mm256_set1_epi8(b'"' as i8), _mm256_set1_epi8(b'\\' as i8), _mm256_set1_epi8(32));
+    while i + 32 <= s.len() {
+        // SAFETY: the loop condition shows these 32 bytes are in s.
+        let v = unsafe { _mm256_loadu_si256(s.as_ptr().add(i) as *const __m256i) };
+        // A signed compare, so bytes from 128 up count as below space too.
+        let below = _mm256_cmpgt_epi8(space, v);
+        let hit = _mm256_or_si256(_mm256_or_si256(_mm256_cmpeq_epi8(v, quote), _mm256_cmpeq_epi8(v, slash)), below);
+        let m = _mm256_movemask_epi8(hit);
+        if m != 0 {
+            return Some(i + m.trailing_zeros() as usize);
+        }
+        i += 32;
+    }
+    s[i..].iter().position(|&b| SPECIAL[b as usize]).map(|k| i + k)
+}
+
+#[cfg(target_arch = "x86_64")]
+fn find_special_sse2(s: &[u8]) -> Option<usize> {
     use std::arch::x86_64::*;
     let mut i = 0;
     // SAFETY: SSE2 is part of x86_64, and each load reads 16 bytes that the loop condition shows are in s.
@@ -488,7 +520,7 @@ fn put_sd(out: &mut Vec<u8>, s: &[u8]) -> bool {
 }
 
 /// One syslog line as JSON with the fields Vector's parse_syslog gives. False, with nothing written, if it isn't one.
-fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
+fn put_syslog(out: &mut Vec<u8>, when: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
     if s.len() < 5 || s[0] != b'<' {
         return false;
     }
@@ -615,8 +647,8 @@ fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
             body_at = c;
         }
     }
-    let mut when = Vec::with_capacity(40);
-    let ok = if ts.len() == 15 && !ts[0].is_ascii_digit() { put_bsd(&mut when, ts, year) } else { put_rfc3339(&mut when, ts) };
+    when.clear();
+    let ok = if ts.len() == 15 && !ts[0].is_ascii_digit() { put_bsd(when, ts, year) } else { put_rfc3339(when, ts) };
     if !ok {
         return false;
     }
@@ -647,7 +679,7 @@ fn put_syslog(out: &mut Vec<u8>, s: &[u8], tag_debug: bool, year: i64) -> bool {
     put_kv(out, b"severity", SEVS[sev]);
     out.extend_from_slice(&sdj);
     out.extend_from_slice(b",\"timestamp\":\"");
-    out.extend_from_slice(&when);
+    out.extend_from_slice(when);
     out.push(b'"');
     if ver >= 0 {
         out.extend_from_slice(b",\"version\":");
@@ -747,7 +779,7 @@ fn skip_value(s: &[u8], i0: usize, depth: u32) -> Option<usize> {
 /// What a worker knows about its input, for the fields Vector adds.
 struct Ctx {
     host: Vec<u8>,
-    port: u16,
+    port: Vec<u8>,
 }
 
 /// A line as an event straight from the source, with the fields Vector adds.
@@ -756,7 +788,8 @@ fn put_received(out: &mut Vec<u8>, ctx: &Ctx, s: &[u8], stamp: &[u8]) {
     put_kv(out, b"host", &ctx.host);
     out.push(b',');
     put_kv(out, b"message", s);
-    let _ = write!(out, ",\"port\":{}", ctx.port);
+    out.extend_from_slice(b",\"port\":");
+    out.extend_from_slice(&ctx.port);
     out.extend_from_slice(b",\"source_type\":\"socket\",\"timestamp\":\"");
     out.extend_from_slice(stamp);
     out.extend_from_slice(b"\"}\n");
@@ -765,6 +798,7 @@ fn put_received(out: &mut Vec<u8>, ctx: &Ctx, s: &[u8], stamp: &[u8]) {
 /// The whole lines in data, transformed, onto out.
 fn transform(cfg: &Cfg, ctx: &Ctx, data: &[u8], out: &mut Vec<u8>) {
     let mut stamp = Vec::with_capacity(32);
+    let mut when = Vec::with_capacity(64);
     let mut year = 2026;
     if matches!(cfg.xf, Xf::Set | Xf::Syslog | Xf::SyslogTag) {
         // One time per block, in nanoseconds, the precision Vector writes. Its socket source stamps per read too.
@@ -795,14 +829,16 @@ fn transform(cfg: &Cfg, ctx: &Ctx, data: &[u8], out: &mut Vec<u8>) {
                 put_kv(out, b"host", &ctx.host);
                 out.push(b',');
                 put_kv(out, b"message", s);
-                let _ = write!(out, ",\"port\":{},", ctx.port);
+                out.extend_from_slice(b",\"port\":");
+                out.extend_from_slice(&ctx.port);
+                out.push(b',');
                 put_kv(out, &cfg.key, &cfg.val);
                 out.extend_from_slice(b",\"source_type\":\"socket\",\"timestamp\":\"");
                 out.extend_from_slice(&stamp);
                 out.extend_from_slice(b"\"}\n");
             }
             Xf::Syslog | Xf::SyslogTag => {
-                if !put_syslog(out, s, cfg.xf == Xf::SyslogTag, year) {
+                if !put_syslog(out, &mut when, s, cfg.xf == Xf::SyslogTag, year) {
                     // As Vector does with an event its parser aborts on: pass the original through, as received.
                     put_received(out, ctx, s, &stamp);
                 }
@@ -899,31 +935,43 @@ fn send(cfg: &Cfg, sink: &mut Option<TcpStream>, data: &[u8]) -> bool {
     true
 }
 
-/// Reads up to BLOCK more bytes onto buf.
+/// Reads up to BLOCK more bytes onto buf. The bytes are uninitialized until read, as they are in Goose: zeroing a block
+/// on every read would cost a real program nothing it needs, and this comparison a fair result.
 fn read_more(fd: &mut TcpStream, buf: &mut Vec<u8>) -> usize {
-    let at = buf.len();
-    buf.resize(at + BLOCK, 0);
+    buf.reserve(BLOCK);
+    let spare = buf.spare_capacity_mut();
     let n = loop {
-        match fd.read(&mut buf[at..]) {
-            Ok(n) => break n,
-            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-            Err(_) => break 0,
+        // SAFETY: the pointer and length describe buf's spare capacity, and read(2) only writes to it.
+        let r = unsafe { libc::read(fd.as_raw_fd(), spare.as_mut_ptr() as *mut libc::c_void, BLOCK) };
+        if r >= 0 {
+            break r as usize;
+        }
+        if io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+            break 0;
         }
     };
-    buf.truncate(at + n);
+    // SAFETY: read(2) just initialized these n bytes.
+    unsafe { buf.set_len(buf.len() + n) };
     n
+}
+
+/// A config with its own copy of the regex. Goose workers each have their own, and sharing one here would have
+/// every worker but the first take a lock on each line, in the regex crate's cache pool.
+fn own_regex(cfg: &Cfg) -> Cfg {
+    cfg.clone()
 }
 
 // --- workers ------------------------------------------------------------------------
 
 fn peer(s: &TcpStream) -> Ctx {
     match s.peer_addr() {
-        Ok(a) => Ctx { host: a.ip().to_string().into_bytes(), port: a.port() },
-        Err(_) => Ctx { host: vec![], port: 0 },
+        Ok(a) => Ctx { host: a.ip().to_string().into_bytes(), port: a.port().to_string().into_bytes() },
+        Err(_) => Ctx { host: vec![], port: b"0".to_vec() },
     }
 }
 
 fn conn_worker(mut fd: TcpStream, cfg: Arc<Cfg>) {
+    let cfg = own_regex(&cfg);
     let ctx = peer(&fd);
     let mut buf: Vec<u8> = Vec::with_capacity(2 * BLOCK);
     let mut out: Vec<u8> = Vec::with_capacity(4 * BLOCK);
@@ -1006,6 +1054,7 @@ fn open_seg(base: &str, n: u64) -> File {
 }
 
 fn disk_reader(mut fd: TcpStream, base: String, cfg: Arc<Cfg>) {
+    let cfg = own_regex(&cfg);
     let ctx = peer(&fd);
     let mut n = 0;
     let mut seg = open_seg(&base, n);
@@ -1145,7 +1194,8 @@ fn disk_sender(base: String, first: u64, live: bool, cfg: Arc<Cfg>) {
 /// One tailed file, followed by inode: a rename doesn't change what it reads, a shrink starts it over, and the checkpoint
 /// holds the offset of what's been delivered.
 fn tail_worker(path: String, inode: u64, cfg: Arc<Cfg>) {
-    let ctx = Ctx { host: vec![], port: 0 };
+    let cfg = own_regex(&cfg);
+    let ctx = Ctx { host: vec![], port: b"0".to_vec() };
     let Ok(fd) = File::open(&path) else { return };
     let ckpt = rw(&format!("{}/ino-{inode}.ckpt", cfg.data_dir));
     let mut off = get8(&ckpt);
